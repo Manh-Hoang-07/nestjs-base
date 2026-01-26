@@ -1,0 +1,980 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum BasicStatus {
+  active
+  inactive
+}
+
+// ============================================
+// User - Profile
+// ============================================
+
+enum UserStatus {
+  active
+  pending
+  inactive
+}
+
+model User {
+  id                BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  username          String?    @unique @db.VarChar(50)
+  email             String?    @unique @db.VarChar(255)
+  phone             String?    @unique @db.VarChar(20)
+  password          String?    @db.VarChar(255)
+  name              String?    @db.VarChar(255)
+  image             String?    @db.VarChar(255)
+  googleId          String?    @unique @db.VarChar(255)
+  status            UserStatus @default(active)
+  email_verified_at DateTime?  @db.DateTime(0)
+  phone_verified_at DateTime?  @db.DateTime(0)
+  last_login_at     DateTime?  @db.DateTime(0)
+  remember_token    String?    @db.VarChar(100)
+  created_user_id   BigInt?    @db.UnsignedBigInt
+  updated_user_id   BigInt?    @db.UnsignedBigInt
+  created_at        DateTime   @default(now()) @db.DateTime(0)
+  updated_at        DateTime   @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?  @db.DateTime(0)
+
+  profile               Profile?
+  user_groups           UserGroup[]
+  user_role_assignments UserRoleAssignment[]
+  notifications         Notification[]
+  post_comments         PostComment[]
+
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("users")
+}
+
+model Profile {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id         BigInt    @unique @db.UnsignedBigInt
+  birthday        DateTime? @db.Date
+  gender          Gender?
+  address         String?   @db.Text
+  about           String?   @db.Text
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "UQ_profiles_user_id")
+  @@index([deleted_at], map: "idx_profiles_deleted_at")
+  @@map("profiles")
+}
+
+// ============================================
+// RBAC - Phân quyền
+// ============================================
+
+model Context {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  type            String    @db.VarChar(50)
+  ref_id          BigInt?   @db.UnsignedBigInt
+  name            String    @db.VarChar(255)
+  code            String    @unique @db.VarChar(100)
+  status          String    @default("active") @db.VarChar(30)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  groups        Group[]
+  role_contexts RoleContext[]
+
+  @@unique([type, ref_id], map: "idx_contexts_type_ref_id")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("contexts")
+}
+
+model Group {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  type            String    @db.VarChar(50)
+  code            String    @unique @db.VarChar(100)
+  name            String    @db.VarChar(255)
+  description     String?   @db.Text
+  status          String    @default("active") @db.VarChar(30)
+  owner_id        BigInt?   @db.UnsignedBigInt
+  context_id      BigInt    @db.UnsignedBigInt
+  metadata        Json?
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  context               Context              @relation(fields: [context_id], references: [id], onDelete: Restrict)
+  user_groups           UserGroup[]
+  user_role_assignments UserRoleAssignment[]
+
+  @@unique([type, code], map: "idx_groups_type_code")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@index([context_id], map: "IDX_groups_context_id")
+  @@map("groups")
+}
+
+model UserGroup {
+  user_id   BigInt   @db.UnsignedBigInt
+  group_id  BigInt   @db.UnsignedBigInt
+  joined_at DateTime @default(now()) @db.DateTime(0)
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, group_id])
+  @@index([user_id], map: "idx_user_id")
+  @@index([group_id], map: "idx_group_id")
+  @@map("user_groups")
+}
+
+model Permission {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String    @unique @db.VarChar(120)
+  scope           String    @default("context") @db.VarChar(30)
+  name            String?   @db.VarChar(150)
+  status          String    @default("active") @db.VarChar(30)
+  parent_id       BigInt?   @db.UnsignedBigInt
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  parent           Permission?         @relation("PermissionHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  children         Permission[]        @relation("PermissionHierarchy")
+  role_links       RoleHasPermission[]
+  menus            Menu[]
+  menu_permissions MenuPermission[]
+
+  @@index([scope], map: "idx_scope")
+  @@index([parent_id], map: "idx_parent_id")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("permissions")
+}
+
+model Role {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String    @db.VarChar(100)
+  name            String?   @db.VarChar(150)
+  status          String    @default("active") @db.VarChar(30)
+  parent_id       BigInt?   @db.UnsignedBigInt
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  parent                Role?                @relation("RoleHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  children              Role[]               @relation("RoleHierarchy")
+  permissions           RoleHasPermission[]
+  role_contexts         RoleContext[]
+  user_role_assignments UserRoleAssignment[]
+
+  @@unique([code], map: "roles_code_key")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("roles")
+}
+
+model RoleHasPermission {
+  role_id       BigInt @db.UnsignedBigInt
+  permission_id BigInt @db.UnsignedBigInt
+
+  role       Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@index([role_id], map: "idx_role_id")
+  @@index([permission_id], map: "idx_permission_id")
+  @@map("role_has_permissions")
+}
+
+model RoleContext {
+  role_id    BigInt @db.UnsignedBigInt
+  context_id BigInt @db.UnsignedBigInt
+
+  role    Role    @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  context Context @relation(fields: [context_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, context_id])
+  @@index([role_id], map: "idx_role_id")
+  @@index([context_id], map: "idx_context_id")
+  @@map("role_contexts")
+}
+
+model UserRoleAssignment {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  role_id    BigInt   @db.UnsignedBigInt
+  group_id   BigInt   @db.UnsignedBigInt
+  created_at DateTime @default(now()) @db.DateTime(0)
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role  Role  @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, role_id, group_id], map: "idx_user_role_group_unique")
+  @@index([user_id, group_id], map: "idx_user_group")
+  @@index([group_id], map: "idx_group_id")
+  @@index([role_id], map: "idx_role_id")
+  @@map("user_role_assignments")
+}
+
+// ============================================
+// System - Config
+// ============================================
+
+model GeneralConfig {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  site_name             String    @db.VarChar(255)
+  site_description      String?   @db.Text
+  site_logo             String?   @db.VarChar(500)
+  site_favicon          String?   @db.VarChar(500)
+  site_email            String?   @db.VarChar(255)
+  site_phone            String?   @db.VarChar(20)
+  site_address          String?   @db.Text
+  site_copyright        String?   @db.VarChar(255)
+  timezone              String    @default("Asia/Ho_Chi_Minh") @db.VarChar(50)
+  locale                String    @default("vi") @db.VarChar(10)
+  currency              String    @default("VND") @db.VarChar(10)
+  contact_channels      Json?
+  meta_title            String?   @db.VarChar(255)
+  meta_keywords         String?   @db.Text
+  og_title              String?   @db.VarChar(255)
+  og_description        String?   @db.Text
+  og_image              String?   @db.VarChar(500)
+  canonical_url         String?   @db.VarChar(500)
+  google_analytics_id   String?   @db.VarChar(50)
+  google_search_console String?   @db.VarChar(255)
+  facebook_pixel_id     String?   @db.VarChar(50)
+  twitter_site          String?   @db.VarChar(50)
+  created_user_id       BigInt?   @db.UnsignedBigInt
+  updated_user_id       BigInt?   @db.UnsignedBigInt
+  created_at            DateTime  @default(now()) @db.DateTime(0)
+  updated_at            DateTime  @updatedAt @db.DateTime(0)
+  deleted_at            DateTime? @db.DateTime(0)
+
+  @@index([deleted_at], map: "idx_general_configs_deleted_at")
+  @@map("general_configs")
+}
+
+model EmailConfig {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  smtp_host       String    @db.VarChar(255)
+  smtp_port       Int       @default(587)
+  smtp_secure     Boolean   @default(true)
+  smtp_username   String    @db.VarChar(255)
+  smtp_password   String    @db.VarChar(500)
+  from_email      String    @db.VarChar(255)
+  from_name       String    @db.VarChar(255)
+  reply_to_email  String?   @db.VarChar(255)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  @@index([deleted_at], map: "idx_email_configs_deleted_at")
+  @@map("email_configs")
+}
+
+// ============================================
+// Menu
+// ============================================
+
+enum MenuType {
+  route
+  group
+  link
+}
+
+model Menu {
+  id                     BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  code                   String      @unique @db.VarChar(120)
+  name                   String      @db.VarChar(150)
+  path                   String?     @db.VarChar(255)
+  api_path               String?     @db.VarChar(255)
+  icon                   String?     @db.VarChar(120)
+  type                   MenuType    @default(route)
+  status                 BasicStatus @default(active)
+  parent_id              BigInt?     @db.UnsignedBigInt
+  sort_order             Int         @default(0)
+  is_public              Boolean     @default(false)
+  show_in_menu           Boolean     @default(true)
+  required_permission_id BigInt?     @db.UnsignedBigInt
+  created_user_id        BigInt?     @db.UnsignedBigInt
+  updated_user_id        BigInt?     @db.UnsignedBigInt
+  created_at             DateTime    @default(now()) @db.DateTime(0)
+  updated_at             DateTime    @updatedAt @db.DateTime(0)
+  deleted_at             DateTime?   @db.DateTime(0)
+
+  parent              Menu?            @relation("MenuHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  children            Menu[]           @relation("MenuHierarchy")
+  required_permission Permission?      @relation(fields: [required_permission_id], references: [id], onDelete: SetNull)
+  menu_permissions    MenuPermission[]
+
+  @@index([code], map: "idx_code")
+  @@index([parent_id], map: "idx_parent_id")
+  @@index([required_permission_id], map: "idx_required_permission_id")
+  @@index([status, show_in_menu], map: "idx_status_show_in_menu")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("menus")
+}
+
+model MenuPermission {
+  id            BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  menu_id       BigInt @db.UnsignedBigInt
+  permission_id BigInt @db.UnsignedBigInt
+
+  menu       Menu       @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@index([menu_id], map: "idx_menu_id")
+  @@index([permission_id], map: "idx_permission_id")
+  @@map("menu_permissions")
+}
+
+// ============================================
+// Banner
+// ============================================
+
+model BannerLocation {
+  id          BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String      @unique @db.VarChar(100)
+  name        String      @db.VarChar(255)
+  description String?     @db.Text
+  status      BasicStatus @default(active)
+  created_at  DateTime    @default(now()) @db.DateTime(0)
+  updated_at  DateTime    @updatedAt @db.DateTime(0)
+  deleted_at  DateTime?   @db.DateTime(0)
+
+  banners Banner[]
+
+  @@index([code], map: "idx_banner_locations_code")
+  @@index([status], map: "idx_banner_locations_status")
+  @@index([deleted_at], map: "idx_banner_locations_deleted_at")
+  @@map("banner_locations")
+}
+
+model Banner {
+  id           BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  title        String      @db.VarChar(255)
+  subtitle     String?     @db.VarChar(255)
+  image        String      @db.VarChar(500)
+  mobile_image String?     @db.VarChar(500)
+  link         String?     @db.VarChar(500)
+  link_target  String      @default("_self") @db.VarChar(20)
+  description  String?     @db.Text
+  button_text  String?     @db.VarChar(100)
+  button_color String?     @db.VarChar(20)
+  text_color   String?     @db.VarChar(20)
+  location_id  BigInt      @db.UnsignedBigInt
+  sort_order   Int         @default(0)
+  status       BasicStatus @default(active)
+  start_date   DateTime?   @db.DateTime(0)
+  end_date     DateTime?   @db.DateTime(0)
+  created_at   DateTime    @default(now()) @db.DateTime(0)
+  updated_at   DateTime    @updatedAt @db.DateTime(0)
+  deleted_at   DateTime?   @db.DateTime(0)
+
+  location BannerLocation @relation(fields: [location_id], references: [id], onDelete: Cascade)
+
+  @@index([title], map: "idx_banners_title")
+  @@index([location_id], map: "idx_banners_location_id")
+  @@index([status], map: "idx_banners_status")
+  @@index([sort_order], map: "idx_banners_sort_order")
+  @@index([start_date], map: "idx_banners_start_date")
+  @@index([end_date], map: "idx_banners_end_date")
+  @@index([status, sort_order], map: "idx_banners_status_sort")
+  @@index([location_id, status], map: "idx_banners_location_status")
+  @@index([deleted_at], map: "idx_banners_deleted_at")
+  @@map("banners")
+}
+
+// ============================================
+// Banner
+// ============================================
+
+enum NotificationType {
+  info
+  success
+  warning
+  error
+  order_status
+  payment_status
+  promotion
+}
+
+model Notification {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id         BigInt           @db.UnsignedBigInt
+  title           String           @db.VarChar(255)
+  message         String           @db.Text
+  type            NotificationType @default(info)
+  data            Json?
+  is_read         Boolean          @default(false)
+  read_at         DateTime?        @db.DateTime(0)
+  status          BasicStatus      @default(active)
+  created_user_id BigInt?          @db.UnsignedBigInt
+  updated_user_id BigInt?          @db.UnsignedBigInt
+  created_at      DateTime         @default(now()) @db.DateTime(0)
+  updated_at      DateTime         @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?        @db.DateTime(0)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_notifications_user_id")
+  @@index([status], map: "idx_notifications_status")
+  @@index([type], map: "idx_notifications_type")
+  @@index([is_read], map: "idx_notifications_read")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("notifications")
+}
+
+// ============================================
+// Post
+// ============================================
+
+model PostCategory {
+  id               BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name             String      @db.VarChar(255)
+  slug             String      @unique @db.VarChar(255)
+  description      String?     @db.Text
+  parent_id        BigInt?     @db.UnsignedBigInt
+  image            String?     @db.VarChar(255)
+  status           BasicStatus @default(active)
+  meta_title       String?     @db.VarChar(255)
+  meta_description String?     @db.Text
+  canonical_url    String?     @db.VarChar(255)
+  og_image         String?     @db.VarChar(255)
+  sort_order       Int         @default(0)
+  created_user_id  BigInt?     @db.UnsignedBigInt
+  updated_user_id  BigInt?     @db.UnsignedBigInt
+  created_at       DateTime    @default(now()) @db.DateTime(0)
+  updated_at       DateTime    @updatedAt @db.DateTime(0)
+  deleted_at       DateTime?   @db.DateTime(0)
+
+  parent        PostCategory?      @relation("PostCategoryHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  children      PostCategory[]     @relation("PostCategoryHierarchy")
+  primary_posts Post[]             @relation("PostPrimaryCategory")
+  posts         PostPostcategory[]
+
+  @@index([name], map: "idx_name")
+  @@index([slug], map: "idx_slug")
+  @@index([parent_id], map: "idx_parent_id")
+  @@index([status], map: "idx_status")
+  @@index([sort_order], map: "idx_sort_order")
+  @@index([created_at], map: "idx_created_at")
+  @@index([status, sort_order], map: "idx_status_sort_order")
+  @@index([parent_id, status], map: "idx_parent_status")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("postcategory")
+}
+
+model PostTag {
+  id               BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name             String      @db.VarChar(255)
+  slug             String      @unique @db.VarChar(255)
+  description      String?     @db.Text
+  status           BasicStatus @default(active)
+  meta_title       String?     @db.VarChar(255)
+  meta_description String?     @db.Text
+  canonical_url    String?     @db.VarChar(255)
+  created_user_id  BigInt?     @db.UnsignedBigInt
+  updated_user_id  BigInt?     @db.UnsignedBigInt
+  created_at       DateTime    @default(now()) @db.DateTime(0)
+  updated_at       DateTime    @updatedAt @db.DateTime(0)
+  deleted_at       DateTime?   @db.DateTime(0)
+
+  posts PostPosttag[]
+
+  @@index([name], map: "idx_name")
+  @@index([slug], map: "idx_slug")
+  @@index([status], map: "idx_status")
+  @@index([created_at], map: "idx_created_at")
+  @@index([status, created_at], map: "idx_status_created_at")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("posttag")
+}
+
+enum PostStatus {
+  draft
+  scheduled
+  published
+  archived
+}
+
+enum PostType {
+  text
+  video
+  image
+  audio
+}
+
+model Post {
+  id                      BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  name                    String     @db.VarChar(255)
+  slug                    String     @unique @db.VarChar(255)
+  excerpt                 String?    @db.Text
+  content                 String     @db.LongText
+  image                   String?    @db.VarChar(255)
+  cover_image             String?    @db.VarChar(255)
+  primary_postcategory_id BigInt?    @db.UnsignedBigInt
+  status                  PostStatus @default(draft)
+  post_type               PostType   @default(text)
+  video_url               String?    @db.VarChar(500)
+  audio_url               String?    @db.VarChar(500)
+  is_featured             Boolean    @default(false)
+  is_pinned               Boolean    @default(false)
+  published_at            DateTime?  @db.DateTime(0)
+  view_count              BigInt     @default(0) @db.UnsignedBigInt
+  meta_title              String?    @db.VarChar(255)
+  meta_description        String?    @db.Text
+  canonical_url           String?    @db.VarChar(255)
+  og_title                String?    @db.VarChar(255)
+  og_description          String?    @db.Text
+  og_image                String?    @db.VarChar(255)
+  group_id                BigInt?    @db.UnsignedBigInt
+  created_user_id         BigInt?    @db.UnsignedBigInt
+  updated_user_id         BigInt?    @db.UnsignedBigInt
+  created_at              DateTime   @default(now()) @db.DateTime(0)
+  updated_at              DateTime   @updatedAt @db.DateTime(0)
+  deleted_at              DateTime?  @db.DateTime(0)
+
+  post_comments           PostComment[]      @relation("PostToPostComments")
+  view_stats              PostViewStats[]    @relation("PostToViewStats")
+
+  primary_category PostCategory?      @relation("PostPrimaryCategory", fields: [primary_postcategory_id], references: [id], onDelete: SetNull)
+  categories       PostPostcategory[]
+  tags             PostPosttag[]
+
+  @@index([name], map: "idx_name")
+  @@index([slug], map: "idx_slug")
+  @@index([primary_postcategory_id], map: "idx_primary_postcategory_id")
+  @@index([status], map: "idx_status")
+  @@index([post_type], map: "idx_post_type")
+  @@index([is_featured], map: "idx_is_featured")
+  @@index([is_pinned], map: "idx_is_pinned")
+  @@index([published_at], map: "idx_published_at")
+  @@index([view_count], map: "idx_view_count")
+  @@index([created_at], map: "idx_created_at")
+  @@index([status, published_at], map: "idx_status_published_at")
+  @@index([is_featured, status], map: "idx_is_featured_status")
+  @@index([primary_postcategory_id, status], map: "idx_primary_category_status")
+  @@index([group_id], map: "idx_posts_group_id")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("posts")
+}
+
+model PostPostcategory {
+  post_id         BigInt @db.UnsignedBigInt
+  postcategory_id BigInt @db.UnsignedBigInt
+
+  post     Post         @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  category PostCategory @relation(fields: [postcategory_id], references: [id], onDelete: Cascade)
+
+  @@id([post_id, postcategory_id])
+  @@map("post_postcategory")
+}
+
+model PostPosttag {
+  post_id    BigInt @db.UnsignedBigInt
+  posttag_id BigInt @db.UnsignedBigInt
+
+  post Post    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  tag  PostTag @relation(fields: [posttag_id], references: [id], onDelete: Cascade)
+
+  @@id([post_id, posttag_id])
+  @@map("post_posttag")
+}
+
+model PostComment {
+  id              BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  post_id         BigInt        @db.UnsignedBigInt
+  user_id         BigInt?       @db.UnsignedBigInt // Optional cho khách
+  guest_name      String?       @db.VarChar(255)   // Tên khách nếu chưa đăng nhập
+  guest_email     String?       @db.VarChar(255)   // Email khách nếu chưa đăng nhập
+  parent_id       BigInt?       @db.UnsignedBigInt
+  content         String        @db.Text
+  status          CommentStatus @default(visible)
+  
+  created_user_id BigInt?       @db.UnsignedBigInt
+  updated_user_id BigInt?       @db.UnsignedBigInt
+  created_at      DateTime      @default(now()) @db.DateTime(0)
+  updated_at      DateTime      @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?     @db.DateTime(0)
+
+  // Relations
+  post    Post         @relation("PostToPostComments", fields: [post_id], references: [id], onDelete: Cascade)
+  user    User?        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  parent  PostComment? @relation("PostCommentToReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies PostComment[] @relation("PostCommentToReplies")
+
+  @@index([post_id], map: "idx_post_comment_post_id")
+  @@index([user_id], map: "idx_post_comment_user_id")
+  @@index([parent_id], map: "idx_post_comment_parent_id")
+  @@index([status], map: "idx_post_comment_status")
+  @@map("post_comments")
+}
+
+model PostViewStats {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  post_id    BigInt   @db.UnsignedBigInt
+  view_date  DateTime @db.Date // Ngày thống kê
+  view_count Int      @default(0)
+  updated_at DateTime @updatedAt @db.DateTime(0)
+
+  post Post @relation("PostToViewStats", fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, view_date], map: "idx_post_date_unique")
+  @@map("post_view_stats")
+}
+
+enum CommentStatus {
+  visible
+  hidden
+}
+
+model Contact {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  email      String    @db.VarChar(255)
+  phone      String?   @db.VarChar(20)
+  subject    String?   @db.VarChar(255)
+  message    String    @db.Text
+  status     String    @default("Pending") @db.VarChar(50)
+  reply      String?   @db.Text
+  replied_at DateTime? @db.DateTime(0)
+  replied_by BigInt?   @db.UnsignedBigInt
+  created_at DateTime  @default(now()) @db.DateTime(0)
+  updated_at DateTime  @updatedAt @db.DateTime(0)
+  deleted_at DateTime? @db.DateTime(0)
+
+  @@index([email], map: "idx_contacts_email")
+  @@index([status], map: "idx_contacts_status")
+  @@index([created_at], map: "idx_contacts_created_at")
+  @@index([deleted_at], map: "idx_contacts_deleted_at")
+  @@index([status, created_at], map: "idx_contacts_status_created")
+  @@map("contacts")
+}
+
+// ============================================
+// Phase 1: Core Modules - Introduction
+// ============================================
+
+enum ProjectStatus {
+  planning
+  in_progress
+  completed
+  cancelled
+}
+
+model Project {
+  id                BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String        @db.VarChar(255)
+  slug              String        @unique @db.VarChar(255)
+  description       String?       @db.Text
+  short_description String?       @db.VarChar(500)
+  cover_image       String?       @db.VarChar(500)
+  location          String?       @db.VarChar(255)
+  area              Decimal?      @db.Decimal(15, 2)
+  start_date        DateTime?     @db.DateTime(0)
+  end_date          DateTime?     @db.DateTime(0)
+  status            ProjectStatus @default(planning)
+  client_name       String?       @db.VarChar(255)
+  budget            Decimal?      @db.Decimal(20, 2)
+  images            Json?
+  featured          Boolean       @default(false)
+  view_count        BigInt        @default(0) @db.UnsignedBigInt
+  sort_order        Int           @default(0)
+  meta_title        String?       @db.VarChar(255)
+  meta_description  String?       @db.Text
+  canonical_url     String?       @db.VarChar(500)
+  og_image          String?       @db.VarChar(500)
+  created_user_id   BigInt?       @db.UnsignedBigInt
+  updated_user_id   BigInt?       @db.UnsignedBigInt
+  created_at        DateTime      @default(now()) @db.DateTime(0)
+  updated_at        DateTime      @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?     @db.DateTime(0)
+
+  testimonials Testimonial[]
+
+  @@index([slug], map: "idx_projects_slug")
+  @@index([status], map: "idx_projects_status")
+  @@index([featured], map: "idx_projects_featured")
+  @@index([sort_order], map: "idx_projects_sort_order")
+  @@index([created_at], map: "idx_projects_created_at")
+  @@index([status, featured], map: "idx_projects_status_featured")
+  @@index([deleted_at], map: "idx_projects_deleted_at")
+  @@map("projects")
+}
+
+enum AboutSectionType {
+  history
+  mission
+  vision
+  values
+  culture
+  achievement
+  other
+}
+
+model AboutSection {
+  id              BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  title           String            @db.VarChar(255)
+  slug            String            @unique @db.VarChar(255)
+  content         String            @db.LongText
+  image           String?           @db.VarChar(500)
+  video_url       String?           @db.VarChar(500)
+  section_type    AboutSectionType  @default(history)
+  status          BasicStatus       @default(active)
+  sort_order      Int               @default(0)
+  created_user_id BigInt?           @db.UnsignedBigInt
+  updated_user_id BigInt?           @db.UnsignedBigInt
+  created_at      DateTime          @default(now()) @db.DateTime(0)
+  updated_at      DateTime          @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?         @db.DateTime(0)
+
+  @@index([slug], map: "idx_about_sections_slug")
+  @@index([section_type], map: "idx_about_sections_type")
+  @@index([status], map: "idx_about_sections_status")
+  @@index([sort_order], map: "idx_about_sections_sort_order")
+  @@index([deleted_at], map: "idx_about_sections_deleted_at")
+  @@map("about_sections")
+}
+
+model Staff {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String      @db.VarChar(255)
+  position        String      @db.VarChar(255)
+  department      String?     @db.VarChar(255)
+  bio             String?     @db.Text
+  avatar          String?     @db.VarChar(500)
+  email           String?     @db.VarChar(255)
+  phone           String?     @db.VarChar(20)
+  social_links    Json?
+  experience      Int?
+  expertise       String?     @db.Text
+  status          BasicStatus @default(active)
+  sort_order      Int         @default(0)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  @@index([status], map: "idx_staff_status")
+  @@index([sort_order], map: "idx_staff_sort_order")
+  @@index([department], map: "idx_staff_department")
+  @@index([deleted_at], map: "idx_staff_deleted_at")
+  @@map("staff")
+}
+
+// ============================================
+// Phase 2: Important Modules
+// ============================================
+
+model Testimonial {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  client_name     String      @db.VarChar(255)
+  client_position String?     @db.VarChar(255)
+  client_company  String?     @db.VarChar(255)
+  client_avatar   String?     @db.VarChar(500)
+  content         String      @db.Text
+  rating          Int?        @db.UnsignedTinyInt
+  project_id      BigInt?     @db.UnsignedBigInt
+  featured        Boolean     @default(false)
+  status          BasicStatus @default(active)
+  sort_order      Int         @default(0)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  project Project? @relation(fields: [project_id], references: [id], onDelete: SetNull)
+
+  @@index([status], map: "idx_testimonials_status")
+  @@index([featured], map: "idx_testimonials_featured")
+  @@index([project_id], map: "idx_testimonials_project_id")
+  @@index([sort_order], map: "idx_testimonials_sort_order")
+  @@index([deleted_at], map: "idx_testimonials_deleted_at")
+  @@map("testimonials")
+}
+
+enum PartnerType {
+  client
+  supplier
+  partner
+}
+
+model Partner {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String      @db.VarChar(255)
+  logo            String      @db.VarChar(500)
+  website         String?     @db.VarChar(500)
+  description     String?     @db.Text
+  type            PartnerType @default(client)
+  status          BasicStatus @default(active)
+  sort_order      Int         @default(0)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  @@index([type], map: "idx_partners_type")
+  @@index([status], map: "idx_partners_status")
+  @@index([sort_order], map: "idx_partners_sort_order")
+  @@index([deleted_at], map: "idx_partners_deleted_at")
+  @@map("partners")
+}
+
+model Gallery {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  title           String      @db.VarChar(255)
+  slug            String      @unique @db.VarChar(255)
+  description     String?     @db.Text
+  cover_image     String?     @db.VarChar(500)
+  images          Json
+  featured        Boolean     @default(false)
+  status          BasicStatus @default(active)
+  sort_order      Int         @default(0)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  @@index([slug], map: "idx_gallery_slug")
+  @@index([status], map: "idx_gallery_status")
+  @@index([featured], map: "idx_gallery_featured")
+  @@index([sort_order], map: "idx_gallery_sort_order")
+  @@index([deleted_at], map: "idx_gallery_deleted_at")
+  @@map("gallery")
+}
+
+// ============================================
+// Phase 3: Additional Modules
+// ============================================
+
+enum CertificateType {
+  iso
+  award
+  license
+  certification
+  other
+}
+
+model Certificate {
+  id                BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String            @db.VarChar(255)
+  image             String            @db.VarChar(500)
+  issued_by         String?           @db.VarChar(255)
+  issued_date       DateTime?         @db.DateTime(0)
+  expiry_date       DateTime?         @db.DateTime(0)
+  certificate_number String?           @db.VarChar(100)
+  description       String?           @db.Text
+  type              CertificateType   @default(license)
+  status            BasicStatus       @default(active)
+  sort_order        Int               @default(0)
+  created_user_id   BigInt?           @db.UnsignedBigInt
+  updated_user_id   BigInt?           @db.UnsignedBigInt
+  created_at        DateTime          @default(now()) @db.DateTime(0)
+  updated_at        DateTime          @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?         @db.DateTime(0)
+
+  @@index([type], map: "idx_certificates_type")
+  @@index([status], map: "idx_certificates_status")
+  @@index([sort_order], map: "idx_certificates_sort_order")
+  @@index([deleted_at], map: "idx_certificates_deleted_at")
+  @@map("certificates")
+}
+
+model Faq {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  question        String      @db.Text
+  answer          String      @db.LongText
+  view_count      BigInt      @default(0) @db.UnsignedBigInt
+  helpful_count   BigInt      @default(0) @db.UnsignedBigInt
+  status          BasicStatus @default(active)
+  sort_order      Int         @default(0)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  @@index([status], map: "idx_faqs_status")
+  @@index([sort_order], map: "idx_faqs_sort_order")
+  @@index([view_count], map: "idx_faqs_view_count")
+  @@index([deleted_at], map: "idx_faqs_deleted_at")
+  @@map("faqs")
+}
+
+// ============================================
+// Unified Content & Document System
+// ============================================
+
+enum TemplateCategory {
+  render   // Nội dung được render từ text/html (Email, Tele, Zalo, PDF từ HTML)
+  file     // File mẫu có sẵn (Word, Excel, PDF form) để người dùng tải lên/xuống
+}
+
+enum TemplateType {
+  email
+  telegram
+  zalo
+  sms
+  pdf_generated    // Sinh từ HTML content
+  file_word        // File mẫu .docx
+  file_excel       // File mẫu .xlsx
+  file_pdf         // File mẫu .pdf có sẵn
+}
+
+model ContentTemplate {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String           @unique @db.VarChar(100)
+  name            String           @db.VarChar(255)
+  category        TemplateCategory @default(render)
+  type            TemplateType
+  
+  // 1. Dành cho loại 'render': Lưu nội dung HTML/Markdown/Text
+  content         String?          @db.LongText
+  
+  // 2. Dành cho loại 'file': Lưu đường dẫn file mẫu đã upload (ví dụ: /uploads/templates/contract_v1.docx)
+  file_path       String?          @db.VarChar(500)
+  
+  // Cấu hình bổ sung (Subject email, Header, Cấu hình trang PDF...)
+  metadata        Json?        
+  
+  // Danh sách biến mẫu khả dụng (Ví dụ: { "customer_name": "Tên khách", "amount": "Số tiền" })
+  variables       Json?        
+  
+  status          BasicStatus      @default(active)
+  created_at      DateTime         @default(now()) @db.DateTime(0)
+  updated_at      DateTime         @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?        @db.DateTime(0)
+
+  @@index([code], map: "idx_content_templates_code")
+  @@index([status], map: "idx_content_templates_status")
+  @@index([category], map: "idx_content_templates_category")
+  @@index([type], map: "idx_content_templates_type")
+  @@index([deleted_at], map: "idx_content_templates_deleted_at")
+  @@map("content_templates")
+}
