@@ -45,5 +45,3 @@ export interface IPaymentGateway {
   verify(params: VerifyPaymentParams): Promise<VerifyPaymentResponse>;
   webhook(payload: any): Promise<any>;
 }
-
-

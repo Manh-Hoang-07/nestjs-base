@@ -1003,8 +1003,130 @@ model PaymentMethod {
   updated_at      DateTime    @updatedAt @db.DateTime(0)
   deleted_at      DateTime?   @db.DateTime(0)
 
+  payments        Payment[]
+
   @@index([status], map: "idx_payment_methods_status")
   @@index([type], map: "idx_payment_methods_type")
   @@index([deleted_at], map: "idx_deleted_at")
   @@map("payment_methods")
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  processing
+  shipped
+  delivered
+  cancelled
+  refunded
+}
+
+enum ShippingStatus {
+  pending
+  processing
+  shipped
+  delivered
+  returned
+  cancelled
+}
+
+enum OrderType {
+  physical
+  digital
+}
+
+model Order {
+  id                 BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  order_number       String         @unique @db.VarChar(50)
+  user_id            BigInt?        @db.UnsignedBigInt
+  session_token      String?        @db.VarChar(255)
+  customer_name      String         @db.VarChar(255)
+  customer_email     String         @db.VarChar(255)
+  customer_phone     String         @db.VarChar(20)
+  shipping_address   Json
+  billing_address    Json
+  shipping_method_id BigInt?        @db.UnsignedBigInt
+  payment_method_id  BigInt?        @db.UnsignedBigInt
+  order_type         OrderType      @default(physical)
+  status             OrderStatus    @default(pending)
+  payment_status     PaymentStatus  @default(pending)
+  shipping_status    ShippingStatus @default(pending)
+  subtotal           Decimal        @db.Decimal(15, 2)
+  tax_amount         Decimal        @default(0) @db.Decimal(15, 2)
+  shipping_amount    Decimal        @default(0) @db.Decimal(15, 2)
+  discount_amount    Decimal        @default(0) @db.Decimal(15, 2)
+  total_amount       Decimal        @db.Decimal(15, 2)
+  currency           String         @default("VND") @db.VarChar(3)
+  notes              String?        @db.Text
+  tracking_number    String?        @db.VarChar(100)
+  shipped_at         DateTime?      @db.DateTime(0)
+  delivered_at       DateTime?      @db.DateTime(0)
+  group_id           BigInt?        @db.UnsignedBigInt
+  created_at         DateTime       @default(now()) @db.DateTime(0)
+  updated_at         DateTime       @updatedAt @db.DateTime(0)
+  deleted_at         DateTime?      @db.DateTime(0)
+
+  items              OrderItem[]
+  payments           Payment[]
+
+  @@index([user_id], map: "idx_orders_user_id")
+  @@index([status], map: "idx_orders_status")
+  @@index([payment_status], map: "idx_orders_payment_status")
+  @@index([deleted_at], map: "idx_orders_deleted_at")
+  @@map("orders")
+}
+
+model OrderItem {
+  id                 BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  order_id           BigInt   @db.UnsignedBigInt
+  product_id         BigInt   @db.UnsignedBigInt
+  product_variant_id BigInt?  @db.UnsignedBigInt
+  product_name       String   @db.VarChar(255)
+  product_sku        String   @db.VarChar(100)
+  variant_name       String?  @db.VarChar(255)
+  quantity           Int      @default(1)
+  unit_price         Decimal  @db.Decimal(15, 2)
+  total_price        Decimal  @db.Decimal(15, 2)
+  product_attributes Json?
+  created_at         DateTime @default(now()) @db.DateTime(0)
+  updated_at         DateTime @updatedAt @db.DateTime(0)
+
+  order              Order    @relation(fields: [order_id], references: [id], onDelete: Restrict)
+
+  @@index([order_id], map: "idx_order_items_order_id")
+  @@index([product_id], map: "idx_order_items_product_id")
+  @@map("order_items")
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  completed
+  failed
+  refunded
+}
+
+model Payment {
+  id                  BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  order_id            BigInt        @db.UnsignedBigInt
+  payment_method_id   BigInt        @db.UnsignedBigInt
+  amount              Decimal       @db.Decimal(15, 2)
+  status              PaymentStatus @default(pending)
+  payment_method_type PaymentType   @default(offline)
+  transaction_id      String?       @db.VarChar(255)
+  payment_method_code String?       @db.VarChar(100)
+  paid_at             DateTime?     @db.DateTime(0)
+  refunded_at         DateTime?     @db.DateTime(0)
+  notes               String?       @db.Text
+  created_at          DateTime      @default(now()) @db.DateTime(0)
+  updated_at          DateTime      @updatedAt @db.DateTime(0)
+
+  order               Order         @relation(fields: [order_id], references: [id], onDelete: Restrict)
+  payment_method      PaymentMethod @relation(fields: [payment_method_id], references: [id], onDelete: Restrict)
+
+  @@index([order_id], map: "idx_payments_order_id")
+  @@index([payment_method_id], map: "idx_payments_method_id")
+  @@index([status], map: "idx_payments_status")
+  @@index([payment_method_type], map: "idx_payments_method_type")
+  @@map("payments")
 }
