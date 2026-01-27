@@ -1,6 +1,6 @@
 import { IsOptional, IsNumber, IsEnum, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ReviewStatus } from '@/shared/entities/product-review.entity';
+import { BasicStatus } from '@prisma/client';
 
 export class GetReviewsDto {
   @IsOptional()
@@ -19,8 +19,8 @@ export class GetReviewsDto {
   rating?: number;
 
   @IsOptional()
-  @IsEnum(ReviewStatus)
-  status?: ReviewStatus;
+  @IsEnum(BasicStatus)
+  status?: BasicStatus;
 
   @IsOptional()
   @IsString()

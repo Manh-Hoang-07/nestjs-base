@@ -12,17 +12,17 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { ReviewService } from '../services/review.service';
 import { CreateReviewDto } from '../dtos/create-review.dto';
 import { UpdateReviewDto } from '../dtos/update-review.dto';
 import { GetReviewsDto } from '../dtos/get-reviews.dto';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('user/product-reviews')
 export class UserReviewController {
-  constructor(private readonly reviewService: ReviewService) {}
+  constructor(private readonly reviewService: ReviewService) { }
 
   @LogRequest()
   @Post()
@@ -59,7 +59,7 @@ export class UserReviewController {
   @Permission('public')
   async getList(@Request() req: any, @Query(ValidationPipe) query: GetReviewsDto) {
     const userId = req.user?.id;
-    return this.reviewService.getReviews(userId, query);
+    return this.reviewService.getList({ ...query, user_id: userId });
   }
 
   @Get('product/:productId/stats')

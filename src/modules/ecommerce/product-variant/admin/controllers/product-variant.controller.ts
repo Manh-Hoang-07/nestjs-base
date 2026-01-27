@@ -11,15 +11,15 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { AdminProductVariantService } from '@/modules/ecommerce/admin/product-variant/services/product-variant.service';
-import { CreateProductVariantDto } from '@/modules/ecommerce/admin/product-variant/dtos/create-product-variant.dto';
-import { UpdateProductVariantDto } from '@/modules/ecommerce/admin/product-variant/dtos/update-product-variant.dto';
-import { SearchVariantsDto } from '@/modules/ecommerce/admin/product-variant/dtos/search-variants.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { AdminProductVariantService } from '../services/product-variant.service';
+import { CreateProductVariantDto } from '../dtos/create-product-variant.dto';
+import { UpdateProductVariantDto } from '../dtos/update-product-variant.dto';
+import { SearchVariantsDto } from '../dtos/search-variants.dto';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/product-variants')
 @UseGuards(JwtAuthGuard, RbacGuard)
@@ -29,23 +29,22 @@ export class AdminProductVariantController {
   @Get()
   @Permission('product_variant.manage')
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productVariantService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.productVariantService.getList({ ...filter, ...options });
   }
 
   @Get('simple')
   @Permission('product_variant.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productVariantService.getSimpleList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.productVariantService.getList({ ...filter, ...options });
   }
 
   @Get('product/:productId')
   @Permission('product_variant.manage')
   async getByProduct(@Param('productId', ParseIntPipe) productId: number) {
     return this.productVariantService.getList(
-      { product_id: productId },
-      { relations: ['product'], sort: 'created_at:DESC', limit: 1000 }
+      { product_id: productId, sort: 'created_at:DESC', limit: 1000 }
     );
   }
 
@@ -64,7 +63,7 @@ export class AdminProductVariantController {
   @Get(':id')
   @Permission('product_variant.manage')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productVariantService.getOne({ id } as any, { relations: ['product', 'attributes'] });
+    return this.productVariantService.getOne(id);
   }
 
   @LogRequest()

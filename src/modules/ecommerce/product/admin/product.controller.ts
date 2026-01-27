@@ -11,14 +11,14 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { AdminProductService } from '@/modules/ecommerce/admin/product/services/product.service';
-import { CreateProductDto } from '@/modules/ecommerce/admin/product/dtos/create-product.dto';
-import { UpdateProductDto } from '@/modules/ecommerce/admin/product/dtos/update-product.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { AdminProductService } from './services/product.service';
+import { CreateProductDto } from './dtos/create-product.dto';
+import { UpdateProductDto } from './dtos/update-product.dto';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RbacGuard)
@@ -28,26 +28,21 @@ export class AdminProductController {
   @Get()
   @Permission('product.manage')
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.productService.getList({ ...filter, ...options });
   }
 
   @Get('simple')
   @Permission('product.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productService.getSimpleList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.productService.getList({ ...filter, ...options });
   }
 
   @Get(':id')
   @Permission('product.manage')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productService.getOne({ id }, {
-      relations: [
-        'variants',
-        'categories',
-      ]
-    });
+    return this.productService.getOne(id);
   }
 
   @LogRequest({ fileBaseName: 'admin_product_create' })

@@ -12,34 +12,34 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { WarehouseService } from '../services/warehouse.service';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { AdminWarehouseService } from '../services/warehouse.service';
 import { CreateWarehouseDto } from '../dtos/create-warehouse.dto';
 import { UpdateWarehouseDto } from '../dtos/update-warehouse.dto';
 import { CreateStockTransferDto } from '../dtos/create-stock-transfer.dto';
 import { UpdateInventoryDto } from '../dtos/update-inventory.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/warehouses')
 @UseGuards(JwtAuthGuard, RbacGuard)
 export class AdminWarehouseController {
-  constructor(private readonly warehouseService: WarehouseService) {}
+  constructor(private readonly warehouseService: AdminWarehouseService) { }
 
   @Get()
   @Permission('warehouse.manage')
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.warehouseService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.warehouseService.getList({ ...filter, ...options });
   }
 
   @Get('simple')
   @Permission('warehouse.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.warehouseService.getSimpleList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.warehouseService.getList({ ...filter, ...options });
   }
 
   @Get(':id')

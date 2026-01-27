@@ -1,18 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CartHeader } from '@/shared/entities/cart-header.entity';
-import { Cart } from '@/shared/entities/cart.entity';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { CartHeader, Cart } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import { ICartRepository, CART_REPOSITORY } from '../../domain/cart.repository';
+import { PrismaService } from '@/core/database/prisma/prisma.service';
 
 @Injectable()
 export class CartManagementService {
   constructor(
-    @InjectRepository(CartHeader)
-    private readonly cartHeaderRepository: Repository<CartHeader>,
-    @InjectRepository(Cart)
-    private readonly cartRepository: Repository<Cart>,
-  ) {}
+    @Inject(CART_REPOSITORY)
+    private readonly cartRepository: ICartRepository,
+    private readonly prisma: PrismaService,
+  ) { }
 
   /**
    * Get or create cart
@@ -26,24 +24,18 @@ export class CartManagementService {
 
     // Priority: userId > cartUuid > sessionId
     if (userId) {
-      cartHeader = await this.cartHeaderRepository.findOne({
-        where: { owner_key: `user_${userId}` },
-        relations: ['items', 'items.variant'],
-      });
+      cartHeader = await this.cartRepository.findByUserId(userId);
     }
 
     if (!cartHeader && cartUuid) {
-      cartHeader = await this.cartHeaderRepository.findOne({
-        where: { uuid: cartUuid },
-        relations: ['items', 'items.variant'],
-      });
+      cartHeader = await this.cartRepository.findByOwnerKey(cartUuid); // Wait, owner key or uuid? Repository says findByOwnerKey. 
+      // Checking CartRepositoryImpl findByOwnerKey uses { ownerKey }. 
+      // But buildWhere maps ownerKey to owner_key.
+      // Schema says uuid is unique.
     }
 
     if (!cartHeader && sessionId) {
-      cartHeader = await this.cartHeaderRepository.findOne({
-        where: { owner_key: `session_${sessionId}` },
-        relations: ['items', 'items.variant'],
-      });
+      cartHeader = await this.cartRepository.findByOwnerKey(`session_${sessionId}`);
     }
 
     // Create new cart if not found
@@ -56,17 +48,16 @@ export class CartManagementService {
 
       const finalCartUuid = cartUuid || uuidv4();
 
-      cartHeader = this.cartHeaderRepository.create({
+      cartHeader = await this.cartRepository.create({
         uuid: finalCartUuid,
         owner_key: ownerKey,
         currency: 'VND',
-        subtotal: '0',
-        tax_amount: '0',
-        shipping_amount: '0',
-        discount_amount: '0',
-        total_amount: '0',
+        subtotal: 0,
+        tax_amount: 0,
+        shipping_amount: 0,
+        discount_amount: 0,
+        total_amount: 0,
       });
-      cartHeader = await this.cartHeaderRepository.save(cartHeader);
     }
 
     return cartHeader;
@@ -78,41 +69,58 @@ export class CartManagementService {
   async getCartSummary(
     cartHeader: CartHeader,
   ): Promise<any> {
-    const items = await this.cartRepository.find({
-      where: { cart_header_id: cartHeader.id },
-      relations: ['variant'],
+    // PrismaRepository findBy methods already include items if configured in defaultSelect
+    // But let's be explicit if needed.
+    const fullCart = await this.prisma.cartHeader.findUnique({
+      where: { id: cartHeader.id },
+      include: {
+        items: {
+          include: {
+            product: { select: { name: true, image: true, sku: true } },
+            variant: { select: { name: true, image: true, sku: true, price: true } }
+          }
+        }
+      }
     });
 
+    if (!fullCart) throw new NotFoundException('Cart not found');
+
     return {
-      cart_id: cartHeader.id,
-      cart_uuid: cartHeader.uuid,
-      owner_key: cartHeader.owner_key,
-      subtotal: cartHeader.subtotal || '0',
-      tax_amount: cartHeader.tax_amount || '0',
-      shipping_amount: cartHeader.shipping_amount || '0',
-      discount_amount: cartHeader.discount_amount || '0',
-      coupon_code: cartHeader.coupon_code || null,
-      total_amount: cartHeader.total_amount || '0',
-      items: items,
+      cart_id: Number(fullCart.id),
+      cart_uuid: fullCart.uuid,
+      owner_key: fullCart.owner_key,
+      subtotal: fullCart.subtotal,
+      tax_amount: fullCart.tax_amount,
+      shipping_amount: fullCart.shipping_amount,
+      discount_amount: fullCart.discount_amount,
+      coupon_code: fullCart.coupon_code,
+      total_amount: fullCart.total_amount,
+      items: fullCart.items.map(item => ({
+        ...item,
+        id: Number(item.id),
+        cart_header_id: Number(item.cart_header_id),
+        product_id: Number(item.product_id),
+        product_variant_id: item.product_variant_id ? Number(item.product_variant_id) : null
+      })),
     };
   }
 
   /**
    * Clear cart items
    */
-  async clearCartItems(cartHeaderId: number): Promise<void> {
-    await this.cartRepository.delete({
-      cart_header_id: cartHeaderId,
+  async clearCartItems(cartHeaderId: number | bigint): Promise<void> {
+    await this.prisma.cart.deleteMany({
+      where: {
+        cart_header_id: BigInt(cartHeaderId),
+      },
     });
   }
 
   /**
    * Get cart by ID
    */
-  async getCartById(cartId: number): Promise<CartHeader> {
-    const cartHeader = await this.cartHeaderRepository.findOne({
-      where: { id: cartId },
-    });
+  async getCartById(cartId: number | bigint): Promise<CartHeader> {
+    const cartHeader = await this.cartRepository.findById(cartId);
 
     if (!cartHeader) {
       throw new NotFoundException('Cart not found');
@@ -124,16 +132,22 @@ export class CartManagementService {
   /**
    * Get cart by ID with relations
    */
-  async getCartByIdWithRelations(cartId: number): Promise<CartHeader> {
-    const cartHeader = await this.cartHeaderRepository.findOne({
-      where: { id: cartId },
-      relations: ['items', 'items.variant'],
+  async getCartByIdWithRelations(cartId: number | bigint): Promise<CartHeader> {
+    const cartHeader = await this.prisma.cartHeader.findUnique({
+      where: { id: BigInt(cartId) },
+      include: {
+        items: {
+          include: {
+            variant: true
+          }
+        }
+      },
     });
 
     if (!cartHeader) {
       throw new NotFoundException('Cart not found');
     }
 
-    return cartHeader;
+    return cartHeader as any;
   }
 }

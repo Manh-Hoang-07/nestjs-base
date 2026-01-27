@@ -11,14 +11,14 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { AdminProductCategoryService } from '@/modules/ecommerce/admin/product-category/services/product-category.service';
-import { CreateProductCategoryDto } from '@/modules/ecommerce/admin/product-category/dtos/create-product-category.dto';
-import { UpdateProductCategoryDto } from '@/modules/ecommerce/admin/product-category/dtos/update-product-category.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { AdminProductCategoryService } from '../services/product-category.service';
+import { CreateProductCategoryDto } from '../dtos/create-product-category.dto';
+import { UpdateProductCategoryDto } from '../dtos/update-product-category.dto';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/product-categories')
 @UseGuards(JwtAuthGuard, RbacGuard)
@@ -28,15 +28,13 @@ export class AdminProductCategoryController {
   @Get()
   @Permission('product_category.manage')
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productCategoryService.getList(filters, options);
+    return this.productCategoryService.getList(query);
   }
 
   @Get('simple')
   @Permission('product_category.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productCategoryService.getSimpleList(filters, options);
+    return this.productCategoryService.getSimpleList(query);
   }
 
   @Get('tree')
@@ -60,14 +58,14 @@ export class AdminProductCategoryController {
   @Get(':id')
   @Permission('product_category.manage')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productCategoryService.getOne({ id } as any);
+    return this.productCategoryService.getOne(id);
   }
 
   @LogRequest()
   @Post()
   @Permission('product_category.manage')
   async create(@Body(ValidationPipe) dto: CreateProductCategoryDto) {
-    return this.productCategoryService.create(dto as any);
+    return this.productCategoryService.create(dto);
   }
 
   @LogRequest()
@@ -77,7 +75,7 @@ export class AdminProductCategoryController {
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) dto: UpdateProductCategoryDto,
   ) {
-    return this.productCategoryService.update(id, dto as any);
+    return this.productCategoryService.update(id, dto);
   }
 
   @LogRequest()

@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductAttribute } from '@/shared/entities/product-attribute.entity';
-import { AdminProductAttributeService } from '@/modules/ecommerce/admin/product-attribute/services/product-attribute.service';
-import { AdminProductAttributeController } from '@/modules/ecommerce/admin/product-attribute/controllers/product-attribute.controller';
+import { AdminProductAttributeService } from './services/product-attribute.service';
+import { AdminProductAttributeController } from './controllers/product-attribute.controller';
 import { RbacModule } from '@/modules/rbac/rbac.module';
+import { ProductAttributeRepositoryModule } from '../product-attribute.repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductAttribute]),
+    ProductAttributeRepositoryModule,
     RbacModule,
   ],
   controllers: [AdminProductAttributeController],

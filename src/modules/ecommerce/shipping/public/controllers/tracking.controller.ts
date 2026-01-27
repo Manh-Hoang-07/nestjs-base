@@ -6,12 +6,12 @@ import {
   Body,
   ParseIntPipe,
 } from '@nestjs/common';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { TrackingService } from '../services/tracking.service';
 
 @Controller('public/tracking')
 export class PublicTrackingController {
-  constructor(private readonly trackingService: TrackingService) {}
+  constructor(private readonly trackingService: TrackingService) { }
 
   @Get('order/:orderId')
   @Permission('public')

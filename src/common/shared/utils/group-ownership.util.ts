@@ -5,7 +5,7 @@ import { RequestContext } from '@/common/shared/utils';
  * Interface cho entity có group_id
  */
 export interface GroupOwnedEntity {
-  group_id?: number | null;
+  group_id?: number | bigint | null;
 }
 
 /**
@@ -31,7 +31,9 @@ export function verifyGroupOwnership(entity: GroupOwnedEntity): void {
 
   // Group khác: chỉ được truy cập entities có group_id = groupId hiện tại
   if (entity.group_id !== null && entity.group_id !== undefined) {
-    if (entity.group_id !== groupId) {
+    // Convert to Number for comparison to handle bigint
+    const entityGroupId = typeof entity.group_id === 'bigint' ? Number(entity.group_id) : entity.group_id;
+    if (entityGroupId !== groupId) {
       throw new ForbiddenException(
         'Bạn không có quyền truy cập bản ghi này. Bản ghi thuộc về group khác.'
       );

@@ -11,39 +11,37 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { AdminCouponService } from '../services/coupon.service';
 import { CreateCouponDto } from '../dtos/create-coupon.dto';
 import { UpdateCouponDto } from '../dtos/update-coupon.dto';
 import { GetCouponsDto } from '../dtos/get-coupons.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/coupons')
 @UseGuards(JwtAuthGuard, RbacGuard)
 export class AdminCouponController {
-  constructor(private readonly couponService: AdminCouponService) {}
+  constructor(private readonly couponService: AdminCouponService) { }
 
   @Get()
   @Permission('coupon:manage', 'coupon.manage')
   async getList(@Query(ValidationPipe) query: GetCouponsDto) {
-    const { filters, options } = prepareQuery(query);
-    return this.couponService.getList(filters, options);
+    return this.couponService.getList(query);
   }
 
   @Get('simple')
   @Permission('coupon:manage', 'coupon.manage')
   async getSimpleList(@Query(ValidationPipe) query: GetCouponsDto) {
-    const { filters, options } = prepareQuery(query);
-    return this.couponService.getSimpleList(filters, options);
+    return this.couponService.getSimpleList(query);
   }
 
   @Get(':id')
   @Permission('coupon:manage', 'coupon.manage')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.couponService.getOne({ id } as any);
+    return this.couponService.getOne(id);
   }
 
   @Get(':id/stats')
@@ -56,7 +54,7 @@ export class AdminCouponController {
   @Post()
   @Permission('coupon:manage', 'coupon.manage')
   async create(@Body(ValidationPipe) dto: CreateCouponDto) {
-    return this.couponService.create(dto as any);
+    return this.couponService.create(dto);
   }
 
   @LogRequest()
@@ -66,7 +64,7 @@ export class AdminCouponController {
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) dto: UpdateCouponDto,
   ) {
-    return this.couponService.update(id, dto as any);
+    return this.couponService.update(id, dto);
   }
 
   @LogRequest()

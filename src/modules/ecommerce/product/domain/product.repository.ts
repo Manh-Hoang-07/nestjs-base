@@ -21,4 +21,5 @@ export interface IProductRepository extends IRepository<Product> {
 
     // Admin specific methods
     syncCategories(productId: number | bigint, categoryIds: (number | bigint)[]): Promise<void>;
+    findVariants(productId: number | bigint): Promise<any[]>;
 }

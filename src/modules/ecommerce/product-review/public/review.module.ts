@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductReview } from '@/shared/entities/product-review.entity';
-import { Product } from '@/shared/entities/product.entity';
 import { PublicReviewController } from './controllers/review.controller';
 import { PublicReviewService } from './services/review.service';
+import { ProductReviewRepositoryModule } from '../product-review.repository.module';
+import { ProductRepositoryModule } from '@/modules/ecommerce/product/product.repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductReview, Product]),
+    ProductReviewRepositoryModule,
+    ProductRepositoryModule,
   ],
   controllers: [PublicReviewController],
   providers: [PublicReviewService],
   exports: [PublicReviewService],
 })
-export class PublicReviewModule {}
+export class PublicReviewModule { }

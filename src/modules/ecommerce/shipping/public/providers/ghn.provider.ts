@@ -6,7 +6,6 @@ import {
   TrackingInfo,
   ShippingParams,
 } from '../interfaces/shipping-provider.interface';
-import { Order } from '@/shared/entities/order.entity';
 
 @Injectable()
 export class GHNProvider implements IShippingProvider {
@@ -17,23 +16,23 @@ export class GHNProvider implements IShippingProvider {
   private token = process.env.GHN_TOKEN;
   private shopId = process.env.GHN_SHOP_ID;
 
-  async createShipment(order: Order): Promise<ShipmentResponse> {
+  async createShipment(order: any): Promise<ShipmentResponse> {
     try {
       const payload = {
         shop_id: parseInt(this.shopId || '0'),
         to_name: order.customer_name,
         to_phone: order.customer_phone,
         to_address: this.formatAddress(order.shipping_address),
-        to_ward_code: order.shipping_address.ward_code,
-        to_district_id: order.shipping_address.district_id,
-        weight: this.calculateTotalWeight(order.items),
+        to_ward_code: (order.shipping_address as any).ward_code,
+        to_district_id: (order.shipping_address as any).district_id,
+        weight: this.calculateTotalWeight(order.items as any[]),
         length: 30,
         width: 20,
         height: 10,
         service_type_id: 2, // Standard
         payment_type_id: 1, // Shop pays
         required_note: 'KHONGCHOXEMHANG',
-        items: order.items.map((item: any) => ({
+        items: (order.items as any[]).map((item: any) => ({
           name: item.product_name,
           quantity: item.quantity,
           price: parseInt(item.unit_price || '0'),
@@ -109,7 +108,7 @@ export class GHNProvider implements IShippingProvider {
   async handleWebhook(payload: any): Promise<void> {
     // GHN webhook format
     const { OrderCode, Status, CurrentWarehouse, Time } = payload;
-    
+
     // This should be handled by TrackingService
     // The webhook payload will be processed to update tracking history
   }

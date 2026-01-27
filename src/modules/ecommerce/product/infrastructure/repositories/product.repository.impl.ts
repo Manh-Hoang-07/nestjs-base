@@ -128,4 +128,21 @@ export class ProductRepositoryImpl extends PrismaRepository<
             });
         }
     }
+
+    async findVariants(productId: number | bigint): Promise<any[]> {
+        return this.prisma.productVariant.findMany({
+            where: {
+                product_id: this.toPrimaryKey(productId),
+                is_active: true,
+                deleted_at: null,
+            },
+            include: {
+                attributes: {
+                    include: {
+                        attribute_value: true,
+                    },
+                },
+            },
+        });
+    }
 }

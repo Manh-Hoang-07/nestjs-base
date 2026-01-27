@@ -1,57 +1,49 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CrudService } from '@/common/base/services/crud.service';
-import { ShippingMethod } from '@/shared/entities/shipping-method.entity';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { ShippingMethod } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IShippingMethodRepository, SHIPPING_METHOD_REPOSITORY } from '../../domain/shipping-method.repository';
+import { BasicStatus } from '@/shared/enums';
 
 @Injectable()
-export class PublicShippingMethodService extends CrudService<ShippingMethod> {
+export class PublicShippingMethodService extends BaseService<ShippingMethod, IShippingMethodRepository> {
   constructor(
-    @InjectRepository(ShippingMethod)
-    protected readonly shippingMethodRepository: Repository<ShippingMethod>,
+    @Inject(SHIPPING_METHOD_REPOSITORY)
+    protected readonly shippingMethodRepository: IShippingMethodRepository,
   ) {
     super(shippingMethodRepository);
   }
 
   async findActive(): Promise<ShippingMethod[]> {
-    return this.shippingMethodRepository.find({
-      where: { status: BasicStatus.Active },
-      order: { name: 'ASC' },
+    const result = await this.shippingMethodRepository.findAll({
+      filter: { status: BasicStatus.active },
+      sort: 'name:ASC',
+      limit: 1000
     });
+    return result.data;
   }
 
   async calculateShippingCost(
-    shippingMethodId: number,
+    shippingMethodId: number | bigint,
     cartValue: number,
     weight?: number,
     destination?: string,
   ): Promise<number> {
-    const shippingMethod = await this.shippingMethodRepository.findOne({
-      where: { id: shippingMethodId, status: BasicStatus.Active },
-    });
+    const shippingMethod = await this.shippingMethodRepository.findById(shippingMethodId);
 
-    if (!shippingMethod) {
+    if (!shippingMethod || shippingMethod.status !== BasicStatus.active) {
       throw new NotFoundException('Shipping method not found or inactive');
     }
 
-    // Basic calculation logic - can be extended based on business requirements
-    let cost = parseFloat(shippingMethod.base_cost);
+    // Basic calculation logic - base on decimal price from prisma
+    let cost = Number(shippingMethod.price);
 
-    // Add weight-based cost if weight is provided (example implementation)
-    // This would require additional fields in the entity for a real implementation
-    if (weight) {
-      // Example: $5 per kg over 5kg
-      if (weight > 5) {
-        cost += (weight - 5) * 5;
-      }
+    // weight-based and cart-value based logic from old service
+    if (weight && weight > 5) {
+      cost += (weight - 5) * 5000; // Example 5000 VND per kg
     }
 
-    // Add percentage-based cost if cart value is high (example implementation)
-    // This would require additional fields in the entity for a real implementation
-    if (cartValue > 1000) {
-      cost += cartValue * 0.02; // 2% of cart value over $1000
+    if (cartValue > 1000000) {
+      cost += cartValue * 0.02; // 2% of cart value over 1M
     }
 
     return cost;
@@ -73,14 +65,4 @@ export class PublicShippingMethodService extends CrudService<ShippingMethod> {
       shipping_cost: cost,
     };
   }
-
-  protected async beforeCreate(entity: ShippingMethod, createDto: any): Promise<boolean> {
-    return true;
-  }
-
-  protected async beforeUpdate(entity: ShippingMethod, updateDto: any): Promise<boolean> {
-    return true;
-  }
-
-
 }

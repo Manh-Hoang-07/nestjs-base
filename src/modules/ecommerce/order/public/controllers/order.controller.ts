@@ -9,12 +9,12 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { PublicOrderService } from '@/modules/ecommerce/public/order/services/order.service';
-import { CreateOrderDto } from '@/modules/ecommerce/public/order/dtos/create-order.dto';
-import { GetOrdersDto } from '@/modules/ecommerce/public/order/dtos/get-orders.dto';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
-import { Auth } from '@/common/utils/auth.util';
+import { PublicOrderService } from '../services/order.service';
+import { CreateOrderDto } from '../dtos/create-order.dto';
+import { GetOrdersDto } from '../dtos/get-orders.dto';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
+import { Auth } from '@/common/auth/utils/auth.util';
 
 @Controller('public/orders')
 export class PublicOrderController {

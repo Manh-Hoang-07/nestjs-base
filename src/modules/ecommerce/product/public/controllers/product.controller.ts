@@ -3,12 +3,13 @@ import {
   Get,
   Param,
   Query,
+  ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
 import { PublicProductService } from '../services/product.service';
 import { GetProductsDto } from '../dtos/get-products.dto';
 import { GetProductDto } from '../dtos/get-product.dto';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('public/products')
 export class PublicProductController {
@@ -43,5 +44,11 @@ export class PublicProductController {
     @Query() query: any,
   ) {
     return this.productService.getList({ ...query, category_slug: slug });
+  }
+
+  @Permission('public')
+  @Get(':id/variants')
+  async getVariants(@Param('id', ParseIntPipe) id: number) {
+    return this.productService.getProductVariants(id);
   }
 }

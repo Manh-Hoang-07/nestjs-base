@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ShippingMethod } from '@/shared/entities/shipping-method.entity';
-import { AdminShippingMethodService } from '@/modules/ecommerce/admin/shipping-method/services/shipping-method.service';
-import { AdminShippingMethodController } from '@/modules/ecommerce/admin/shipping-method/controllers/shipping-method.controller';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { AdminShippingMethodService } from './services/shipping-method.service';
+import { AdminShippingMethodController } from './controllers/shipping-method.controller';
+import { ShippingMethodRepositoryModule } from '../shipping-method.repository.module';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ShippingMethod]),
+    ShippingMethodRepositoryModule,
     RbacModule,
   ],
   controllers: [AdminShippingMethodController],

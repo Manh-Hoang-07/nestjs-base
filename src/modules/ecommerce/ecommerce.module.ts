@@ -7,7 +7,16 @@ import { AdminProductCategoryModule } from './product-category/admin/product-cat
 import { PublicProductCategoryModule } from './product-category/public/product-category.module';
 import { AdminOrderModule } from './order/admin/order.module';
 import { PublicOrderModule } from './order/public/order.module';
-// ... other modules would be imported here as they are refactored
+import { AdminProductAttributeModule } from './product-attribute/admin/product-attribute.module';
+import { AdminProductAttributeValueModule } from './product-attribute-value/admin/product-attribute-value.module';
+import { AdminProductVariantModule } from './product-variant/admin/product-variant.module';
+import { AdminWarehouseModule } from './warehouse/admin/warehouse.module';
+import { AdminCouponModule } from './coupon/admin/coupon.module';
+import { AdminShippingMethodModule } from './shipping-method/admin/shipping-method.module';
+import { PublicCartModule } from './cart/public/cart.module';
+import { PublicReviewModule } from './product-review/public/review.module';
+import { TrackingModule } from './shipping/public/tracking.module';
+import { PublicDiscountModule } from './discount/public/discount.module';
 
 @Module({
   imports: [
@@ -23,9 +32,31 @@ import { PublicOrderModule } from './order/public/order.module';
     AdminOrderModule,
     PublicOrderModule,
 
-    // Payment bridge (existing in project)
-    // PaymentEcommerceAdminModule,
-    // PaymentEcommerceModule,
+    // Attribute
+    AdminProductAttributeModule,
+    AdminProductAttributeValueModule,
+
+    // Variant
+    AdminProductVariantModule,
+
+    // Warehouse
+    AdminWarehouseModule,
+
+    // Coupon
+    AdminCouponModule,
+
+    // Shipping
+    AdminShippingMethodModule,
+    TrackingModule,
+
+    // Cart
+    PublicCartModule,
+
+    // Review
+    PublicReviewModule,
+
+    // Discount
+    PublicDiscountModule,
   ],
   exports: [
     AdminProductModule,
@@ -34,6 +65,16 @@ import { PublicOrderModule } from './order/public/order.module';
     PublicProductCategoryModule,
     AdminOrderModule,
     PublicOrderModule,
+    AdminProductAttributeModule,
+    AdminProductAttributeValueModule,
+    AdminProductVariantModule,
+    AdminWarehouseModule,
+    AdminCouponModule,
+    AdminShippingMethodModule,
+    TrackingModule,
+    PublicCartModule,
+    PublicReviewModule,
+    PublicDiscountModule,
   ],
 })
 export class EcommerceModule { }

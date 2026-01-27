@@ -11,14 +11,14 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { AdminProductAttributeValueService } from '@/modules/ecommerce/admin/product-attribute-value/services/product-attribute-value.service';
-import { CreateProductAttributeValueDto } from '@/modules/ecommerce/admin/product-attribute-value/dtos/create-product-attribute-value.dto';
-import { UpdateProductAttributeValueDto } from '@/modules/ecommerce/admin/product-attribute-value/dtos/update-product-attribute-value.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { AdminProductAttributeValueService } from '../services/product-attribute-value.service';
+import { CreateProductAttributeValueDto } from '../dtos/create-product-attribute-value.dto';
+import { UpdateProductAttributeValueDto } from '../dtos/update-product-attribute-value.dto';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/product-attribute-values')
 @UseGuards(JwtAuthGuard, RbacGuard)
@@ -28,15 +28,13 @@ export class AdminProductAttributeValueController {
   @Get()
   @Permission('product_attribute_value.manage')
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productAttributeValueService.getList(filters, options);
+    return this.productAttributeValueService.getList(query);
   }
 
   @Get('simple')
   @Permission('product_attribute_value.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productAttributeValueService.getSimpleList(filters, options);
+    return this.productAttributeValueService.getSimpleList(query);
   }
 
   @Get('attribute/:attributeId')
@@ -48,14 +46,14 @@ export class AdminProductAttributeValueController {
   @Get(':id')
   @Permission('product_attribute_value.manage')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productAttributeValueService.getOne({ id } as any);
+    return this.productAttributeValueService.getOne(id);
   }
 
   @LogRequest()
   @Post()
   @Permission('product_attribute_value.manage')
   async create(@Body(ValidationPipe) dto: CreateProductAttributeValueDto) {
-    return this.productAttributeValueService.create(dto as any);
+    return this.productAttributeValueService.create(dto);
   }
 
   @LogRequest()
@@ -65,7 +63,7 @@ export class AdminProductAttributeValueController {
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) dto: UpdateProductAttributeValueDto,
   ) {
-    return this.productAttributeValueService.update(id, dto as any);
+    return this.productAttributeValueService.update(id, dto);
   }
 
   @LogRequest()

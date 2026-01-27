@@ -41,4 +41,8 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
   async getBySlug(slug: string): Promise<Product | null> {
     return this.productRepository.findBySlug(slug);
   }
+
+  async getProductVariants(productId: number | bigint): Promise<any> {
+    return this.productRepository.findVariants(productId);
+  }
 }

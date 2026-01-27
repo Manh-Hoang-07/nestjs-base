@@ -10,12 +10,12 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { PublicCartService } from '@/modules/ecommerce/public/cart/services/cart.service';
-import { AddToCartDto } from '@/modules/ecommerce/public/cart/dtos/add-to-cart.dto';
-import { UpdateCartItemDto } from '@/modules/ecommerce/public/cart/dtos/update-cart-item.dto';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
-import { Auth } from '@/common/utils/auth.util';
+import { PublicCartService } from '../services/cart.service';
+import { AddToCartDto } from '../dtos/add-to-cart.dto';
+import { UpdateCartItemDto } from '../dtos/update-cart-item.dto';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
+import { Auth } from '@/common/auth/utils/auth.util';
 
 @Controller('public/cart')
 export class PublicCartController {

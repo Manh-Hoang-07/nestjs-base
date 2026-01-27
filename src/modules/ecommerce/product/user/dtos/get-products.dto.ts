@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsInt, IsString, IsBoolean, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
+import { BasicStatus } from '@/shared/enums';
 
 export class GetProductsDto {
   @IsOptional()

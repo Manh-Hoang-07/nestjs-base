@@ -1,21 +1,16 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserReviewController } from './controllers/review.controller';
 import { ReviewService } from './services/review.service';
-import { ProductReview } from '@/shared/entities/product-review.entity';
-import { Product } from '@/shared/entities/product.entity';
-import { Order } from '@/shared/entities/order.entity';
-import { OrderItem } from '@/shared/entities/order-item.entity';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
+import { ProductReviewRepositoryModule } from '../product-review.repository.module';
+import { ProductRepositoryModule } from '@/modules/ecommerce/product/product.repository.module';
+import { OrderRepositoryModule } from '@/modules/ecommerce/order/order.repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      ProductReview,
-      Product,
-      Order,
-      OrderItem,
-    ]),
+    ProductReviewRepositoryModule,
+    ProductRepositoryModule,
+    OrderRepositoryModule,
     RbacModule,
   ],
   controllers: [UserReviewController],

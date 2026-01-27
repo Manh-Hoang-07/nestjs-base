@@ -1,5 +1,11 @@
 import { IsOptional, IsEnum, IsString } from 'class-validator';
-import { CouponStatus, CouponType } from '@/shared/entities/coupon.entity';
+import { CouponType } from './create-coupon.dto';
+
+export enum CouponStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  EXPIRED = 'expired',
+}
 
 export class GetCouponsDto {
   @IsOptional()

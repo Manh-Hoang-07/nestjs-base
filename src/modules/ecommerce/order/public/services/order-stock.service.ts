@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
-import { Order } from '@/shared/entities/order.entity';
-import { ProductVariant } from '@/shared/entities/product-variant.entity';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrderStockService {
@@ -9,17 +7,19 @@ export class OrderStockService {
    * Restore stock khi cancel order
    */
   async restoreStock(
-    manager: EntityManager,
-    order: Order,
+    tx: Prisma.TransactionClient,
+    order: any,
   ): Promise<void> {
+    if (!order.items) return;
+
     for (const item of order.items) {
       if (item.product_variant_id) {
-        await manager.increment(
-          ProductVariant,
-          { id: item.product_variant_id },
-          'stock_quantity',
-          item.quantity,
-        );
+        await tx.productVariant.update({
+          where: { id: BigInt(item.product_variant_id) },
+          data: {
+            stock_quantity: { increment: item.quantity },
+          },
+        });
       }
     }
   }

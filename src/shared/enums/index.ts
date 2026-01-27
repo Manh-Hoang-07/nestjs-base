@@ -5,6 +5,7 @@
 
 // Export tất cả enum files - tự động scan và load
 export * from './types/basic-status.enum';
+export * from './types/product-status.enum';
 export * from './types/gender.enum';
 export * from './types/user-status.enum';
 export * from './types/review-status.enum';

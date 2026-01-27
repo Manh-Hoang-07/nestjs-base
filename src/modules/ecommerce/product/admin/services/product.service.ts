@@ -4,9 +4,9 @@ import { BaseService } from '@/common/core/services';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../domain/product.repository';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
-import { RequestContext } from '@/common/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/utils/group-ownership.util';
-import { slugify } from '@/common/utils/string.util';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import { StringUtil } from '@/core/utils/string.util';
 
 @Injectable()
 export class AdminProductService extends BaseService<Product, IProductRepository> {
@@ -46,11 +46,11 @@ export class AdminProductService extends BaseService<Product, IProductRepository
 
     // Xử lý slug
     if (!payload.slug) {
-      payload.slug = slugify(payload.name);
+      payload.slug = StringUtil.toSlug(payload.name);
     }
 
     // Check slug duplicate
-    const existing = await this.productRepository.findBySlug(payload.slug);
+    const existing = payload.slug ? await this.productRepository.findBySlug(payload.slug) : null;
     if (existing) {
       payload.slug = `${payload.slug}-${Date.now()}`;
     }
@@ -90,7 +90,7 @@ export class AdminProductService extends BaseService<Product, IProductRepository
 
     // Xử lý slug if name changed
     if (payload.name && !payload.slug) {
-      payload.slug = slugify(payload.name);
+      payload.slug = StringUtil.toSlug(payload.name);
     }
 
     if (payload.slug && payload.slug !== entity.slug) {

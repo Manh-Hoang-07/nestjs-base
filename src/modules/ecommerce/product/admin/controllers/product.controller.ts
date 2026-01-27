@@ -11,13 +11,13 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RbacGuard } from '@/common/guards/rbac.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { RbacGuard } from '@/common/auth/guards/rbac.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { AdminProductService } from '../services/product.service';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard, RbacGuard)

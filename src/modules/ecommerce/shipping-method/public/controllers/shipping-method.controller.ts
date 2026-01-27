@@ -8,10 +8,10 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { PublicShippingMethodService } from '@/modules/ecommerce/public/shipping-method/services/shipping-method.service';
-import { CalculateShippingDto } from '@/modules/ecommerce/public/shipping-method/dtos/calculate-shipping.dto';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
+import { PublicShippingMethodService } from '../services/shipping-method.service';
+import { CalculateShippingDto } from '../dtos/calculate-shipping.dto';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
 
 @Controller('public/shipping-methods')
 export class PublicShippingMethodController {
@@ -20,8 +20,8 @@ export class PublicShippingMethodController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.shippingMethodService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.shippingMethodService.getList({ ...filter, ...options });
   }
 
   @Permission('public')
@@ -33,7 +33,7 @@ export class PublicShippingMethodController {
   @Permission('public')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.shippingMethodService.getOne({ id: id });
+    return this.shippingMethodService.getOne(id);
   }
 
   @Permission('public')

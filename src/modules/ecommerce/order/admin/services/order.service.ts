@@ -4,8 +4,8 @@ import { BaseService } from '@/common/core/services';
 import { IOrderRepository, ORDER_REPOSITORY } from '../../domain/order.repository';
 import { UpdateOrderStatusDto } from '../dtos/update-order-status.dto';
 import { UpdateOrderDto } from '../dtos/update-order.dto';
-import { RequestContext } from '@/common/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/utils/group-ownership.util';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class AdminOrderService extends BaseService<Order, IOrderRepository> {
@@ -14,6 +14,18 @@ export class AdminOrderService extends BaseService<Order, IOrderRepository> {
     protected readonly orderRepository: IOrderRepository,
   ) {
     super(orderRepository);
+  }
+
+  async getSimpleList(query: any) {
+    return this.getList({ ...query, limit: 1000 });
+  }
+
+  async getOrderById(id: string | number | bigint) {
+    return this.getOne(id);
+  }
+
+  async softDelete(id: string | number | bigint) {
+    return this.delete(id);
   }
 
   protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
@@ -53,13 +65,12 @@ export class AdminOrderService extends BaseService<Order, IOrderRepository> {
     if (!order) throw new NotFoundException('Order not found');
     verifyGroupOwnership(order);
 
-    // Some business logic here if needed
-
     return this.repository.update(orderId, dto);
   }
 
   override async getOne(id: string | number | bigint): Promise<Order> {
     const order = await super.getOne(id);
+    if (!order) throw new NotFoundException('Order not found');
     verifyGroupOwnership(order);
     return order;
   }

@@ -11,13 +11,13 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { DiscountService } from '../services/discount.service';
-import { PublicCartService } from '../../cart/services/cart.service';
+import { PublicCartService } from '../../../cart/public/services/cart.service';
 import { ApplyCouponDto } from '../dtos/apply-coupon.dto';
 import { ValidateCouponDto } from '../dtos/validate-coupon.dto';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('public/discounts')
 export class PublicDiscountController {
@@ -25,7 +25,7 @@ export class PublicDiscountController {
     private readonly discountService: DiscountService,
     @Inject(forwardRef(() => PublicCartService))
     private readonly cartService: PublicCartService,
-  ) {}
+  ) { }
 
   @Get('coupons/available')
   @Permission('public')
@@ -43,7 +43,7 @@ export class PublicDiscountController {
     @Body(ValidationPipe) dto: ApplyCouponDto,
   ) {
     const userId = req.user?.id;
-    
+
     // Get cart by ID or UUID
     let cartHeader;
     if (dto.cart_id) {
@@ -54,25 +54,25 @@ export class PublicDiscountController {
     } else {
       throw new Error('Cần cung cấp cart_id hoặc cart_uuid');
     }
-    
+
     if (!cartHeader) {
       throw new Error('Không tìm thấy giỏ hàng');
     }
-    
+
     // 1. Calculate discount using DiscountService
     const discountInfo = await this.discountService.calculateCouponDiscount(
       cartHeader.id,
       dto.coupon_code,
       userId,
     );
-    
+
     // 2. Apply discount to cart using CartService
     const updatedCart = await this.cartService.applyDiscount(cartHeader.id, {
       discountAmount: discountInfo.discountAmount,
       couponCode: discountInfo.coupon.code,
       couponId: discountInfo.coupon.id,
     });
-    
+
     // 3. Return formatted response
     return {
       message: 'Áp dụng mã giảm giá thành công',
@@ -113,7 +113,7 @@ export class PublicDiscountController {
     @Param('cart_id') cartId: string,
   ) {
     const userId = req.user?.id;
-    
+
     // Check if cartId is a number (ID) or UUID
     let cartHeader;
     if (/^\d+$/.test(cartId)) {
@@ -123,14 +123,14 @@ export class PublicDiscountController {
       // It's a UUID
       cartHeader = await this.cartService.getOrCreateCart(undefined, cartId, userId);
     }
-    
+
     if (!cartHeader) {
       throw new Error('Không tìm thấy giỏ hàng');
     }
-    
+
     // 1. Remove discount from cart using CartService
     const updatedCart = await this.cartService.removeDiscount(cartHeader.id);
-    
+
     // 2. Return formatted response
     return {
       message: 'Xóa mã giảm giá thành công',

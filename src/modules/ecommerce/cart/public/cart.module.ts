@@ -1,23 +1,16 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PublicCartController } from '@/modules/ecommerce/public/cart/controllers/cart.controller';
-import { PublicCartService } from '@/modules/ecommerce/public/cart/services/cart.service';
-import { CartValidationService } from '@/modules/ecommerce/public/cart/services/cart-validation.service';
-import { CartItemService } from '@/modules/ecommerce/public/cart/services/cart-item.service';
-import { CartCalculationService } from '@/modules/ecommerce/public/cart/services/cart-calculation.service';
-import { CartManagementService } from '@/modules/ecommerce/public/cart/services/cart-management.service';
-import { Cart } from '@/shared/entities/cart.entity';
-import { CartHeader } from '@/shared/entities/cart-header.entity';
-import { ProductVariant } from '@/shared/entities/product-variant.entity';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { PublicCartController } from './controllers/cart.controller';
+import { PublicCartService } from './services/cart.service';
+import { CartValidationService } from './services/cart-validation.service';
+import { CartItemService } from './services/cart-item.service';
+import { CartCalculationService } from './services/cart-calculation.service';
+import { CartManagementService } from './services/cart-management.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
+import { CartRepositoryModule } from '../cart.repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Cart,
-      CartHeader,
-      ProductVariant,
-    ]),
+    CartRepositoryModule,
     RbacModule,
   ],
   controllers: [PublicCartController],

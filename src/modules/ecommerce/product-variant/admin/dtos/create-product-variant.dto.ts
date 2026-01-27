@@ -1,5 +1,5 @@
 import { IsString, IsNumber, IsOptional, IsBoolean, Min, MaxLength, IsEnum } from 'class-validator';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
+import { BasicStatus } from '@/shared/enums';
 
 export class CreateProductVariantDto {
   @IsNumber()
@@ -44,5 +44,5 @@ export class CreateProductVariantDto {
 
   @IsEnum(BasicStatus)
   @IsOptional()
-  status?: BasicStatus = BasicStatus.Active;
+  status?: BasicStatus = BasicStatus.active;
 }

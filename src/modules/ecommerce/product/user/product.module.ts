@@ -1,16 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Product } from '@/shared/entities/product.entity';
-import { ProductVariant } from '@/shared/entities/product-variant.entity';
-import { UserProductService } from '@/modules/ecommerce/user/product/services/product.service';
-import { UserProductController } from '@/modules/ecommerce/user/product/controllers/product.controller';
+import { UserProductService } from './services/product.service';
+import { UserProductController } from './controllers/product.controller';
+import { ProductRepositoryModule } from '../product.repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Product,
-      ProductVariant,
-    ]),
+    ProductRepositoryModule,
   ],
   controllers: [
     UserProductController,

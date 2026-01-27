@@ -7,11 +7,11 @@ import {
   ValidationPipe,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { UserProductService } from '@/modules/ecommerce/user/product/services/product.service';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { ProductStatus } from '@/shared/enums/product-status.enum';
-import { createPaginationMeta } from '@/common/base/utils/pagination.helper';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { UserProductService } from '../services/product.service';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { ProductStatus } from '@/shared/enums';
+import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
 
 @Controller('user/products')
 @UseGuards(JwtAuthGuard)
@@ -20,15 +20,14 @@ export class UserProductController {
 
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productService.getProducts({ ...filters, ...options });
+    const { filter, options } = prepareQuery(query);
+    return this.productService.getProducts({ ...filter, ...options });
   }
 
   @Get('featured')
   async getFeatured(@Query('limit', ParseIntPipe) limit: number = 10) {
     return this.productService.getList(
-      { status: ProductStatus.ACTIVE, is_featured: true },
-      { sort: 'created_at:DESC', limit }
+      { status: ProductStatus.active, is_featured: true, sort: 'created_at:DESC', limit }
     );
   }
 
@@ -39,8 +38,7 @@ export class UserProductController {
     @Query('limit', ParseIntPipe) limit: number = 20,
   ) {
     return this.productService.getList(
-      { status: ProductStatus.ACTIVE },
-      { page, limit, sort: 'created_at:DESC' }
+      { status: ProductStatus.active, page, limit, sort: 'created_at:DESC' }
     );
   }
 
@@ -49,7 +47,8 @@ export class UserProductController {
     @Param('slug') slug: string,
     @Query(ValidationPipe) query: any,
   ) {
-    return this.productService.getOne({ slug, status: ProductStatus.ACTIVE });
+    // Use repository method to find by slug
+    return (this.productService as any).productRepository.findBySlug(slug);
   }
 
   @Get(':id/variants')
@@ -63,12 +62,11 @@ export class UserProductController {
     @Query('limit', ParseIntPipe) limit: number = 5,
   ) {
     const result = await this.productService.getList(
-      { status: ProductStatus.ACTIVE },
-      { sort: 'created_at:DESC', limit: limit + 1 }
+      { status: ProductStatus.active, sort: 'created_at:DESC', limit: limit + 1 }
     );
 
     // Filter out current product
-    const related = result.data.filter(p => p.id !== id).slice(0, limit);
+    const related = result.data.filter((p: any) => p.id !== id).slice(0, limit);
     const total = related.length;
     const meta = createPaginationMeta(1, limit, total);
     return {

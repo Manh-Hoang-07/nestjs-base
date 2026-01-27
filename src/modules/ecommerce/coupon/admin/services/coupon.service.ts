@@ -1,128 +1,59 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Coupon, CouponStatus } from '@/shared/entities/coupon.entity';
-import { CrudService } from '@/common/base/services/crud.service';
-import { RequestContext } from '@/common/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/utils/group-ownership.util';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Coupon } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { ICouponRepository, COUPON_REPOSITORY } from '../../domain/coupon.repository';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
-export class AdminCouponService extends CrudService<Coupon> {
+export class AdminCouponService extends BaseService<Coupon, ICouponRepository> {
   constructor(
-    @InjectRepository(Coupon)
-    protected readonly couponRepository: Repository<Coupon>,
+    @Inject(COUPON_REPOSITORY)
+    protected readonly couponRepository: ICouponRepository,
   ) {
     super(couponRepository);
   }
 
-  /**
-   * Mặc định filter coupon theo group/context nếu có
-   */
-  protected override prepareFilters(filters?: any, _options?: any): boolean | any {
-    const prepared = { ...(filters || {}) };
+  async getSimpleList(query: any) {
+    return this.getList({ ...query, limit: 1000 });
+  }
 
+  async getCouponStats(id: number | bigint) {
+    const coupon = await this.getOne(id);
+    // Placeholder logic for stats
+    return {
+      used_count: coupon.used_count,
+      usage_limit: coupon.usage_limit,
+      remaining: coupon.usage_limit ? coupon.usage_limit - Number(coupon.used_count) : null,
+    };
+  }
+
+  async softDelete(id: number | bigint) {
+    return this.delete(id);
+  }
+
+  protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
+    const prepared = { ...(filters || {}) };
     if (prepared.group_id === undefined) {
       const contextId = RequestContext.get<number>('contextId');
       const groupId = RequestContext.get<number | null>('groupId');
-
-      // Nếu context không phải system (contextId !== 1) và có ref_id, dùng ref_id làm group_id
       if (contextId && contextId !== 1 && groupId) {
         prepared.group_id = groupId;
       }
     }
-
     return prepared;
   }
 
-  /**
-   * Check and update expired coupons
-   */
-  async updateExpiredCoupons(): Promise<void> {
-    await this.couponRepository
-      .createQueryBuilder()
-      .update(Coupon)
-      .set({ status: CouponStatus.EXPIRED })
-      .where('end_date < :now', { now: new Date() })
-      .andWhere('status = :status', { status: CouponStatus.ACTIVE })
-      .execute();
-  }
-
-  /**
-   * Get coupon statistics
-   */
-  async getCouponStats(couponId: number): Promise<any> {
-    const coupon = await this.getOne({ id: couponId });
-    if (!coupon) {
-      throw new NotFoundException('Coupon not found');
-    }
-
-    return {
-      total_usage: coupon.used_count,
-      remaining: coupon.usage_limit
-        ? coupon.usage_limit - coupon.used_count
-        : null,
-      usage_rate: coupon.usage_limit
-        ? (coupon.used_count / coupon.usage_limit) * 100
-        : null,
-    };
-  }
-
-  /**
-   * Check if coupon code is unique
-   */
-  async isCodeUnique(code: string, excludeId?: number): Promise<boolean> {
-    const query = this.couponRepository
-      .createQueryBuilder('coupon')
-      .where('coupon.code = :code', { code });
-
-    if (excludeId) {
-      query.andWhere('coupon.id != :excludeId', { excludeId });
-    }
-
-    const count = await query.getCount();
-    return count === 0;
-  }
-
-  /**
-   * Get active coupons count
-   */
-  async getActiveCouponsCount(): Promise<number> {
-    return this.couponRepository.count({
-      where: { status: CouponStatus.ACTIVE },
-    });
-  }
-
-  /**
-   * Override getOne để verify ownership
-   */
-  override async getOne(where: any, options?: any): Promise<Coupon | null> {
-    const coupon = await super.getOne(where, options);
-    if (coupon) {
-      verifyGroupOwnership(coupon);
-    }
+  override async getOne(id: string | number | bigint): Promise<Coupon> {
+    const coupon = await super.getOne(id);
+    if (!coupon) throw new NotFoundException('Coupon not found');
+    verifyGroupOwnership(coupon);
     return coupon;
   }
 
-  /**
-   * Override beforeUpdate để verify ownership
-   */
-  protected override async beforeUpdate(
-    entity: Coupon,
-    updateDto: any,
-    response?: any
-  ): Promise<boolean> {
-    verifyGroupOwnership(entity);
-    return true;
-  }
-
-  /**
-   * Override beforeDelete để verify ownership
-   */
-  protected override async beforeDelete(
-    entity: Coupon,
-    response?: any
-  ): Promise<boolean> {
-    verifyGroupOwnership(entity);
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const coupon = await this.repository.findById(id);
+    if (coupon) verifyGroupOwnership(coupon);
     return true;
   }
 }

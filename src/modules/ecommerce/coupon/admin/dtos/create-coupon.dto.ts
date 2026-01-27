@@ -11,7 +11,12 @@ import {
   MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CouponType } from '@/shared/entities/coupon.entity';
+
+export enum CouponType {
+  FIXED_AMOUNT = 'fixed_amount',
+  PERCENTAGE = 'percentage',
+  FREE_SHIPPING = 'free_shipping',
+}
 
 export class CreateCouponDto {
   @IsString()

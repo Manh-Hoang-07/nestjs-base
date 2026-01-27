@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { VNPayGateway } from '../gateways/vnpay.gateway';
-import { CODGateway } from '../gateways/cod.gateway';
-import { IPaymentGateway } from '../interfaces/payment-gateway.interface';
+import { VNPayGateway } from './gateways/vnpay.gateway';
+import { CODGateway } from './gateways/cod.gateway';
+import { IPaymentGateway } from './interfaces/payment-gateway.interface';
 
 @Injectable()
 export class PaymentGatewayService {

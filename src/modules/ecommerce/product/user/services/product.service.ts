@@ -1,36 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
-import { Product } from '@/shared/entities/product.entity';
-import { ProductVariant } from '@/shared/entities/product-variant.entity';
-import { GetProductsDto } from '@/modules/ecommerce/user/product/dtos/get-products.dto';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
-import { ListService } from '@/common/base/services/list.service';
+import { Injectable, Inject } from '@nestjs/common';
+import { Product } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { PRODUCT_REPOSITORY, IProductRepository } from '../../domain/product.repository';
+import { GetProductsDto } from '../dtos/get-products.dto';
 
 @Injectable()
-export class UserProductService extends ListService<Product> {
+export class UserProductService extends BaseService<Product, IProductRepository> {
   constructor(
-    @InjectRepository(Product)
-    protected readonly productRepository: Repository<Product>,
-    @InjectRepository(ProductVariant)
-    private readonly productVariantRepository: Repository<ProductVariant>,
+    @Inject(PRODUCT_REPOSITORY)
+    protected readonly productRepository: IProductRepository,
   ) {
     super(productRepository);
   }
 
   /**
-   * Override prepareOptions để load relations mặc định
-   */
-  protected override prepareOptions(queryOptions: any = {}) {
-    const base = super.prepareOptions(queryOptions);
-    return {
-      ...base,
-      relations: ['variants', 'categories'],
-    } as any;
-  }
-
-  /**
-   * Lấy danh sách products - đơn giản hóa, dùng getList từ base
+   * Lấy danh sách products
    */
   async getProducts(getProductsDto: GetProductsDto): Promise<any> {
     const {
@@ -39,31 +23,24 @@ export class UserProductService extends ListService<Product> {
       status = 'active',
       sort_by = 'created_at',
       sort_order = 'DESC',
+      search,
     } = getProductsDto;
 
-    // Đơn giản hóa: chỉ filter cơ bản, bỏ search và price filter phức tạp
-    const filters: any = { status };
-
-    return this.getList(filters, {
+    return this.getList({
+      status,
+      search,
       page,
       limit,
       sort: `${sort_by}:${sort_order}`,
     });
   }
 
-
   /**
-   * Lấy variants của product - giữ nguyên vì cần repository riêng
+   * Lấy variants của product - Repository đã include variants mặc định trong defaultSelect
+   * Hoặc nếu muốn lấy riêng:
    */
   async getProductVariants(productId: number): Promise<any> {
-    const variants = await this.productVariantRepository.find({
-      where: { product_id: productId, status: BasicStatus.Active },
-      order: { created_at: 'ASC' },
-    });
-    return variants;
+    const product = await this.productRepository.findById(productId);
+    return (product as any)?.variants || [];
   }
-
-
-
-
 }

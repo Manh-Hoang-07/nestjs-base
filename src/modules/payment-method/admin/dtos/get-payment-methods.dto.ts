@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsBoolean, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
+import { BasicStatus } from '@/shared/enums';
 
 export class GetPaymentMethodsDto {
   @IsOptional()

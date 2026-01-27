@@ -1,5 +1,3 @@
-import { Order } from '@/shared/entities/order.entity';
-
 export interface Address {
   street: string;
   ward: string;
@@ -41,7 +39,7 @@ export interface TrackingInfo {
 }
 
 export interface IShippingProvider {
-  createShipment(order: Order): Promise<ShipmentResponse>;
+  createShipment(order: any): Promise<ShipmentResponse>;
   getTracking(trackingNumber: string): Promise<TrackingInfo>;
   calculateShippingFee(params: ShippingParams): Promise<number>;
   handleWebhook(payload: any): Promise<void>;

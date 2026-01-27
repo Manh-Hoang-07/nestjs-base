@@ -1,12 +1,12 @@
 import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards, Req } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { AdminOrderService } from '@/modules/ecommerce/admin/order/services/order.service';
-import { GetOrdersDto } from '@/modules/ecommerce/admin/order/dtos/get-orders.dto';
-import { UpdateOrderStatusDto } from '@/modules/ecommerce/admin/order/dtos/update-order-status.dto';
-import { UpdateOrderDto } from '@/modules/ecommerce/admin/order/dtos/update-order.dto';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { AdminOrderService } from '../services/order.service';
+import { GetOrdersDto } from '../dtos/get-orders.dto';
+import { UpdateOrderStatusDto } from '../dtos/update-order-status.dto';
+import { UpdateOrderDto } from '../dtos/update-order.dto';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/orders')
 @UseGuards(JwtAuthGuard)
@@ -16,18 +16,14 @@ export class AdminOrderController {
   @Get()
   @Permission('read:orders', 'update:orders', 'order.manage')
   async getList(@Query() query: GetOrdersDto) {
-    const { filters, options } = prepareQuery(query);
-    return this.orderService.getList(filters, options);
+    return this.orderService.getList(query);
   }
 
   @Get('simple')
   @Permission('read:orders', 'update:orders', 'order.manage')
   async getSimpleList(@Query() query: GetOrdersDto) {
-    const { filters, options } = prepareQuery(query);
-    return this.orderService.getSimpleList(filters, options);
+    return this.orderService.getSimpleList(query);
   }
-
-  // Statistics endpoint removed as service method was deleted
 
   @Get(':id')
   @Permission('read:orders', 'update:orders', 'order.manage')
@@ -54,6 +50,4 @@ export class AdminOrderController {
   ) {
     return this.orderService.updateOrder(id, dto);
   }
-
-  // Cancel order endpoint removed as service method was deleted
 }

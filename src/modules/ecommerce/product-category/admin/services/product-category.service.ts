@@ -4,7 +4,7 @@ import { BaseService } from '@/common/core/services';
 import { IProductCategoryRepository, PRODUCT_CATEGORY_REPOSITORY } from '../../domain/product-category.repository';
 import { CreateProductCategoryDto } from '../dtos/create-product-category.dto';
 import { UpdateProductCategoryDto } from '../dtos/update-product-category.dto';
-import { slugify } from '@/common/utils/string.util';
+import { slugify } from '@/common/shared/utils/string.util';
 
 @Injectable()
 export class AdminProductCategoryService extends BaseService<ProductCategory, IProductCategoryRepository> {
@@ -15,8 +15,28 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
     super(productCategoryRepository);
   }
 
+  async getSimpleList(query: any) {
+    return this.getList({ ...query, limit: 1000 });
+  }
+
+  async findTree() {
+    return this.productCategoryRepository.getTree();
+  }
+
+  async findRootCategories() {
+    return this.productCategoryRepository.findMany({ parent_id: null });
+  }
+
+  async findChildren(parentId: number | bigint) {
+    return this.productCategoryRepository.findMany({ parent_id: parentId });
+  }
+
+  async restore(id: number | bigint) {
+    return this.productCategoryRepository.update(id, { deleted_at: null } as any);
+  }
+
   protected override async beforeCreate(data: CreateProductCategoryDto): Promise<any> {
-    const payload = { ...data };
+    const payload: any = { ...data };
     if (!payload.slug) {
       payload.slug = slugify(payload.name);
     }
@@ -39,7 +59,7 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
       throw new NotFoundException(`Product Category with ID ${id} not found`);
     }
 
-    const payload = { ...data };
+    const payload: any = { ...data };
     if (payload.name && !payload.slug) {
       payload.slug = slugify(payload.name);
     }
@@ -56,9 +76,5 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
     }
 
     return payload;
-  }
-
-  async getTree(): Promise<ProductCategory[]> {
-    return this.productCategoryRepository.getTree();
   }
 }

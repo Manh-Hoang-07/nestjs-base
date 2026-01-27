@@ -7,14 +7,14 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { PublicReviewService } from '../services/review.service';
 import { GetReviewsDto } from '../dtos/get-reviews.dto';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('public/product-reviews')
 export class PublicReviewController {
-  constructor(private readonly reviewService: PublicReviewService) {}
+  constructor(private readonly reviewService: PublicReviewService) { }
 
   @Get()
   @Permission('public')

@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cart } from '@/shared/entities/cart.entity';
-import { ProductVariant } from '@/shared/entities/product-variant.entity';
-import { OrderType } from '@/shared/enums/order-type.enum';
+import { Cart, ProductVariant } from '@prisma/client';
 
 @Injectable()
 export class OrderCalculationService {
@@ -9,9 +7,9 @@ export class OrderCalculationService {
    * Xác định order type dựa trên products trong cart
    */
   calculateOrderType(
-    cartItems: Cart[],
-    variantMap: Map<number, ProductVariant>,
-  ): OrderType {
+    cartItems: any[],
+    variantMap: Map<number | bigint, any>,
+  ): string {
     const hasPhysicalProducts = cartItems.some(item => {
       const variantId = item.product_variant_id;
       if (!variantId) return false;
@@ -27,11 +25,11 @@ export class OrderCalculationService {
     });
 
     if (hasPhysicalProducts && hasDigitalProducts) {
-      return OrderType.MIXED;
+      return 'mixed';
     } else if (hasDigitalProducts) {
-      return OrderType.DIGITAL;
+      return 'digital';
     } else {
-      return OrderType.PHYSICAL;
+      return 'physical';
     }
   }
 }

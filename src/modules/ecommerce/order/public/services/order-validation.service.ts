@@ -1,50 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
-import { CartHeader } from '@/shared/entities/cart-header.entity';
-import { Cart } from '@/shared/entities/cart.entity';
-import { ProductVariant } from '@/shared/entities/product-variant.entity';
-import { ShippingMethod } from '@/shared/entities/shipping-method.entity';
-import { PaymentMethod } from '@/shared/entities/payment-method.entity';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
-import { OrderType } from '@/shared/enums/order-type.enum';
+import { Prisma } from '@prisma/client';
 import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class OrderValidationService {
   /**
-   * Validate và lấy cart với pessimistic lock
+   * Validate và lấy cart
    * Đảm bảo user_id match với cart owner để tránh security issues
    */
   async validateAndGetCart(
-    manager: EntityManager,
-    userId?: number,
+    tx: Prisma.TransactionClient,
+    userId?: number | bigint,
     cartUuid?: string,
-  ): Promise<CartHeader> {
-    let cartHeader: CartHeader | null = null;
+  ): Promise<any> {
+    let cartHeader: any = null;
 
     if (userId) {
-      // Nếu đã đăng nhập, tìm cart theo userId với pessimistic lock
-      cartHeader = await manager
-        .createQueryBuilder(CartHeader, 'cart_header')
-        .setLock('pessimistic_write')
-        .where('cart_header.owner_key = :ownerKey', { ownerKey: `user_${userId}` })
-        .getOne();
-      
+      // Nếu đã đăng nhập, tìm cart theo userId
+      cartHeader = await tx.cartHeader.findFirst({
+        where: { owner_key: `user_${userId}` },
+      });
+
       // CRITICAL: Validate ownership ngay sau khi tìm thấy cart
-      // Đảm bảo cart thuộc về user này
       if (cartHeader && cartHeader.owner_key !== `user_${userId}`) {
         throw new ForbiddenException('Cart does not belong to this user');
       }
     } else if (cartUuid) {
       // Guest cart - chỉ tìm theo UUID
-      cartHeader = await manager
-        .createQueryBuilder(CartHeader, 'cart_header')
-        .setLock('pessimistic_write')
-        .where('cart_header.uuid = :uuid', { uuid: cartUuid })
-        .getOne();
-      
+      cartHeader = await tx.cartHeader.findFirst({
+        where: { uuid: cartUuid },
+      });
+
       // CRITICAL: Nếu có userId nhưng cart là guest cart, reject
-      // Tránh trường hợp user cố gắng dùng cart của guest khác
       if (cartHeader && userId && cartHeader.owner_key && !cartHeader.owner_key.startsWith('user_')) {
         throw new ForbiddenException('You do not have permission to use this cart');
       }
@@ -66,15 +53,15 @@ export class OrderValidationService {
    * Validate cart items không rỗng
    */
   async validateCartItems(
-    manager: EntityManager,
-    cartHeaderId: number,
-  ): Promise<Cart[]> {
-    const cartItems = await manager
-      .createQueryBuilder(Cart, 'cart')
-      .leftJoinAndSelect('cart.variant', 'variant')
-      .setLock('pessimistic_write')
-      .where('cart.cart_header_id = :cartHeaderId', { cartHeaderId })
-      .getMany();
+    tx: Prisma.TransactionClient,
+    cartHeaderId: number | bigint,
+  ): Promise<any[]> {
+    const cartItems = await tx.cart.findMany({
+      where: { cart_header_id: BigInt(cartHeaderId) },
+      include: {
+        variant: true,
+      },
+    });
 
     if (cartItems.length === 0) {
       throw new BadRequestException('Cart is empty');
@@ -87,19 +74,21 @@ export class OrderValidationService {
    * Validate và lock product variants
    */
   async validateProductVariants(
-    manager: EntityManager,
-    cartItems: Cart[],
-  ): Promise<Map<number, ProductVariant>> {
-    const variantIds = cartItems.map(item => item.product_variant_id).filter(Boolean);
-    
-    const variants = await manager
-      .createQueryBuilder(ProductVariant, 'variant')
-      .leftJoinAndSelect('variant.product', 'product')
-      .setLock('pessimistic_write')
-      .whereInIds(variantIds)
-      .andWhere('variant.status = :status', { status: BasicStatus.Active })
-      .andWhere('product.status = :productStatus', { productStatus: BasicStatus.Active })
-      .getMany();
+    tx: Prisma.TransactionClient,
+    cartItems: any[],
+  ): Promise<Map<number | bigint, any>> {
+    const variantIds = cartItems.map(item => BigInt(item.product_variant_id)).filter(Boolean);
+
+    const variants = await tx.productVariant.findMany({
+      where: {
+        id: { in: variantIds },
+        status: 'active',
+        product: { status: 'active' },
+      },
+      include: {
+        product: true,
+      },
+    });
 
     const variantMap = new Map(variants.map(v => [v.id, v]));
 
@@ -109,9 +98,9 @@ export class OrderValidationService {
         throw new BadRequestException(`Product variant ID missing for ${item.product_name}`);
       }
 
-      const variantId = item.product_variant_id as number;
+      const variantId = BigInt(item.product_variant_id);
       const variant = variantMap.get(variantId);
-      
+
       if (!variant) {
         throw new BadRequestException(`Product variant not found or inactive for ${item.product_name}`);
       }
@@ -130,11 +119,11 @@ export class OrderValidationService {
    * Validate shipping method
    */
   async validateShippingMethod(
-    manager: EntityManager,
-    shippingMethodId: number,
-  ): Promise<ShippingMethod> {
-    const shippingMethod = await manager.findOne(ShippingMethod, {
-      where: { id: shippingMethodId, status: BasicStatus.Active },
+    tx: Prisma.TransactionClient,
+    shippingMethodId: number | bigint,
+  ): Promise<any> {
+    const shippingMethod = await tx.shippingMethod.findUnique({
+      where: { id: BigInt(shippingMethodId), status: 'active' },
     });
 
     if (!shippingMethod) {
@@ -148,17 +137,17 @@ export class OrderValidationService {
    * Validate payment method cho digital/mixed orders
    */
   async validatePaymentMethodForOrderType(
-    manager: EntityManager,
-    orderType: OrderType,
-    paymentMethodId?: number,
+    tx: Prisma.TransactionClient,
+    orderType: string,
+    paymentMethodId?: number | bigint,
   ): Promise<void> {
-    if (orderType === OrderType.DIGITAL || orderType === OrderType.MIXED) {
+    if (orderType === 'digital' || orderType === 'mixed') {
       if (paymentMethodId) {
-        const paymentMethod = await manager.findOne(PaymentMethod, {
-          where: { id: paymentMethodId },
+        const paymentMethod = await tx.paymentMethod.findUnique({
+          where: { id: BigInt(paymentMethodId) },
         });
-        
-        if (paymentMethod?.code === 'COD') {
+
+        if (paymentMethod?.code?.toUpperCase() === 'COD') {
           throw new BadRequestException('COD is not available for digital or mixed orders');
         }
       }

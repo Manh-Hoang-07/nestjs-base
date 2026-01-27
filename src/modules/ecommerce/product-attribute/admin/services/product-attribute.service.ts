@@ -1,41 +1,52 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, FindOneOptions, DeepPartial } from 'typeorm';
-import { CrudService } from '@/common/base/services/crud.service';
-import { ProductAttribute } from '@/shared/entities/product-attribute.entity';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { ResponseRef } from '@/common/base/utils/response-ref.helper';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { ProductAttribute } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IProductAttributeRepository, PRODUCT_ATTRIBUTE_REPOSITORY } from '../../domain/product-attribute.repository';
+import { CreateProductAttributeDto } from '../dtos/create-product-attribute.dto';
+import { UpdateProductAttributeDto } from '../dtos/update-product-attribute.dto';
+import { slugify } from '@/common/shared/utils/string.util';
 
 @Injectable()
-export class AdminProductAttributeService extends CrudService<ProductAttribute> {
+export class AdminProductAttributeService extends BaseService<ProductAttribute, IProductAttributeRepository> {
   constructor(
-    @InjectRepository(ProductAttribute)
-    protected readonly productAttributeRepository: Repository<ProductAttribute>,
+    @Inject(PRODUCT_ATTRIBUTE_REPOSITORY)
+    protected readonly productAttributeRepository: IProductAttributeRepository,
   ) {
     super(productAttributeRepository);
   }
 
-  /**
-   * Hook trước khi tạo - sử dụng ensureSlug từ base
-   */
-  protected async beforeCreate(
-    entity: ProductAttribute,
-    createDto: DeepPartial<ProductAttribute>,
-    response?: ResponseRef<ProductAttribute | null>
-  ): Promise<boolean> {
-    await this.ensureSlug(createDto);
-    return true;
+  async getSimpleList(query: any) {
+    return this.getList({ ...query, limit: 1000 });
   }
 
-  /**
-   * Hook trước khi update - sử dụng ensureSlug từ base
-   */
-  protected async beforeUpdate(
-    entity: ProductAttribute,
-    updateDto: DeepPartial<ProductAttribute>,
-    response?: ResponseRef<ProductAttribute | null>
-  ): Promise<boolean> {
-    await this.ensureSlug(updateDto, entity.id, entity.slug);
-    return true;
+  protected override async beforeCreate(data: CreateProductAttributeDto): Promise<any> {
+    const payload = { ...data };
+    if (!payload.code) {
+      payload.code = slugify(payload.name).replace(/-/g, '_');
+    }
+
+    const existing = await this.productAttributeRepository.findByCode(payload.code);
+    if (existing) {
+      payload.code = `${payload.code}_${Date.now()}`;
+    }
+
+    return payload;
+  }
+
+  protected override async beforeUpdate(id: string | number | bigint, data: UpdateProductAttributeDto): Promise<any> {
+    const entity = await this.repository.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Product Attribute with ID ${id} not found`);
+    }
+
+    const payload = { ...data };
+    if (payload.code && payload.code !== entity.code) {
+      const existing = await this.productAttributeRepository.findByCode(payload.code);
+      if (existing && existing.id !== entity.id) {
+        payload.code = `${payload.code}_${Date.now()}`;
+      }
+    }
+
+    return payload;
   }
 }

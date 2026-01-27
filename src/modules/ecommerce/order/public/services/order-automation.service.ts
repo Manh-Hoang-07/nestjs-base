@@ -1,21 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from '@/shared/entities/order.entity';
-import { OrderItem } from '@/shared/entities/order-item.entity';
-import { ShippingStatus } from '@/shared/enums/shipping-status.enum';
-import { OrderStatus } from '@/shared/enums/order-status.enum';
+import { Order, OrderItem } from '@prisma/client';
 import { MailService } from '@/core/mail/mail.service';
+import { PrismaService } from '@/core/database/prisma/prisma.service';
 
 @Injectable()
 export class OrderAutomationService {
   constructor(
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
+    private readonly prisma: PrismaService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
   /**
    * Xử lý hậu thanh toán cho đơn hàng digital/mixed
@@ -31,10 +24,13 @@ export class OrderAutomationService {
 
     // Digital order: tự động delivered toàn bộ đơn
     if (order.order_type === 'digital') {
-      await this.orderRepository.update(order.id, {
-        status: OrderStatus.DELIVERED,
-        shipping_status: ShippingStatus.DELIVERED,
-        delivered_at: new Date(),
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: 'delivered',
+          shipping_status: 'delivered',
+          delivered_at: new Date(),
+        },
       });
     }
   }
@@ -44,14 +40,20 @@ export class OrderAutomationService {
    */
   private async sendDigitalProducts(order: Order): Promise<void> {
     // Lấy order items với product info
-    const orderItems = await this.orderItemRepository.find({
+    const orderItems = await this.prisma.orderItem.findMany({
       where: { order_id: order.id },
-      relations: ['variant', 'variant.product'],
+      include: {
+        variant: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     // Lọc chỉ sản phẩm digital
     const digitalItems = orderItems.filter(
-      (item) => item.variant?.product?.is_digital === true,
+      (item: any) => item.variant?.product?.is_digital === true,
     );
 
     if (digitalItems.length === 0) {
@@ -59,11 +61,9 @@ export class OrderAutomationService {
     }
 
     // Chuẩn bị dữ liệu để gửi
-    const digitalProducts = digitalItems.map((item) => ({
+    const digitalProducts = digitalItems.map((item: any) => ({
       product_name: item.product_name,
       variant_name: item.variant_name,
-      // TODO: Lấy thông tin từ product (tài khoản, key, download link)
-      // Tùy vào cách lưu trữ sản phẩm digital
     }));
 
     const subject = `[Order #${order.order_number}] Thông tin sản phẩm digital của bạn`;
@@ -95,5 +95,3 @@ export class OrderAutomationService {
     });
   }
 }
-
-

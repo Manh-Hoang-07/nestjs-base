@@ -561,8 +561,8 @@ model Post {
   updated_at              DateTime   @updatedAt @db.DateTime(0)
   deleted_at              DateTime?  @db.DateTime(0)
 
-  post_comments           PostComment[]      @relation("PostToPostComments")
-  view_stats              PostViewStats[]    @relation("PostToViewStats")
+  post_comments PostComment[]   @relation("PostToPostComments")
+  view_stats    PostViewStats[] @relation("PostToViewStats")
 
   primary_category PostCategory?      @relation("PostPrimaryCategory", fields: [primary_postcategory_id], references: [id], onDelete: SetNull)
   categories       PostPostcategory[]
@@ -609,25 +609,25 @@ model PostPosttag {
 }
 
 model PostComment {
-  id              BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  post_id         BigInt        @db.UnsignedBigInt
-  user_id         BigInt?       @db.UnsignedBigInt // Optional cho khách
-  guest_name      String?       @db.VarChar(255)   // Tên khách nếu chưa đăng nhập
-  guest_email     String?       @db.VarChar(255)   // Email khách nếu chưa đăng nhập
-  parent_id       BigInt?       @db.UnsignedBigInt
-  content         String        @db.Text
-  status          CommentStatus @default(visible)
-  
-  created_user_id BigInt?       @db.UnsignedBigInt
-  updated_user_id BigInt?       @db.UnsignedBigInt
-  created_at      DateTime      @default(now()) @db.DateTime(0)
-  updated_at      DateTime      @updatedAt @db.DateTime(0)
-  deleted_at      DateTime?     @db.DateTime(0)
+  id          BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  post_id     BigInt        @db.UnsignedBigInt
+  user_id     BigInt?       @db.UnsignedBigInt // Optional cho khách
+  guest_name  String?       @db.VarChar(255) // Tên khách nếu chưa đăng nhập
+  guest_email String?       @db.VarChar(255) // Email khách nếu chưa đăng nhập
+  parent_id   BigInt?       @db.UnsignedBigInt
+  content     String        @db.Text
+  status      CommentStatus @default(visible)
+
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
 
   // Relations
-  post    Post         @relation("PostToPostComments", fields: [post_id], references: [id], onDelete: Cascade)
-  user    User?        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  parent  PostComment? @relation("PostCommentToReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  post    Post          @relation("PostToPostComments", fields: [post_id], references: [id], onDelete: Cascade)
+  user    User?         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  parent  PostComment?  @relation("PostCommentToReplies", fields: [parent_id], references: [id], onDelete: Cascade)
   replies PostComment[] @relation("PostCommentToReplies")
 
   @@index([post_id], map: "idx_post_comment_post_id")
@@ -740,20 +740,20 @@ enum AboutSectionType {
 }
 
 model AboutSection {
-  id              BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
-  title           String            @db.VarChar(255)
-  slug            String            @unique @db.VarChar(255)
-  content         String            @db.LongText
-  image           String?           @db.VarChar(500)
-  video_url       String?           @db.VarChar(500)
-  section_type    AboutSectionType  @default(history)
-  status          BasicStatus       @default(active)
-  sort_order      Int               @default(0)
-  created_user_id BigInt?           @db.UnsignedBigInt
-  updated_user_id BigInt?           @db.UnsignedBigInt
-  created_at      DateTime          @default(now()) @db.DateTime(0)
-  updated_at      DateTime          @updatedAt @db.DateTime(0)
-  deleted_at      DateTime?         @db.DateTime(0)
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  title           String           @db.VarChar(255)
+  slug            String           @unique @db.VarChar(255)
+  content         String           @db.LongText
+  image           String?          @db.VarChar(500)
+  video_url       String?          @db.VarChar(500)
+  section_type    AboutSectionType @default(history)
+  status          BasicStatus      @default(active)
+  sort_order      Int              @default(0)
+  created_user_id BigInt?          @db.UnsignedBigInt
+  updated_user_id BigInt?          @db.UnsignedBigInt
+  created_at      DateTime         @default(now()) @db.DateTime(0)
+  updated_at      DateTime         @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?        @db.DateTime(0)
 
   @@index([slug], map: "idx_about_sections_slug")
   @@index([section_type], map: "idx_about_sections_type")
@@ -887,22 +887,22 @@ enum CertificateType {
 }
 
 model Certificate {
-  id                BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
-  name              String            @db.VarChar(255)
-  image             String            @db.VarChar(500)
-  issued_by         String?           @db.VarChar(255)
-  issued_date       DateTime?         @db.DateTime(0)
-  expiry_date       DateTime?         @db.DateTime(0)
-  certificate_number String?           @db.VarChar(100)
-  description       String?           @db.Text
-  type              CertificateType   @default(license)
-  status            BasicStatus       @default(active)
-  sort_order        Int               @default(0)
-  created_user_id   BigInt?           @db.UnsignedBigInt
-  updated_user_id   BigInt?           @db.UnsignedBigInt
-  created_at        DateTime          @default(now()) @db.DateTime(0)
-  updated_at        DateTime          @updatedAt @db.DateTime(0)
-  deleted_at        DateTime?         @db.DateTime(0)
+  id                 BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  name               String          @db.VarChar(255)
+  image              String          @db.VarChar(500)
+  issued_by          String?         @db.VarChar(255)
+  issued_date        DateTime?       @db.DateTime(0)
+  expiry_date        DateTime?       @db.DateTime(0)
+  certificate_number String?         @db.VarChar(100)
+  description        String?         @db.Text
+  type               CertificateType @default(license)
+  status             BasicStatus     @default(active)
+  sort_order         Int             @default(0)
+  created_user_id    BigInt?         @db.UnsignedBigInt
+  updated_user_id    BigInt?         @db.UnsignedBigInt
+  created_at         DateTime        @default(now()) @db.DateTime(0)
+  updated_at         DateTime        @updatedAt @db.DateTime(0)
+  deleted_at         DateTime?       @db.DateTime(0)
 
   @@index([type], map: "idx_certificates_type")
   @@index([status], map: "idx_certificates_status")
@@ -937,8 +937,8 @@ model Faq {
 // ============================================
 
 enum TemplateCategory {
-  render   // Nội dung được render từ text/html (Email, Tele, Zalo, PDF từ HTML)
-  file     // File mẫu có sẵn (Word, Excel, PDF form) để người dùng tải lên/xuống
+  render // Nội dung được render từ text/html (Email, Tele, Zalo, PDF từ HTML)
+  file // File mẫu có sẵn (Word, Excel, PDF form) để người dùng tải lên/xuống
 }
 
 enum TemplateType {
@@ -946,35 +946,35 @@ enum TemplateType {
   telegram
   zalo
   sms
-  pdf_generated    // Sinh từ HTML content
-  file_word        // File mẫu .docx
-  file_excel       // File mẫu .xlsx
-  file_pdf         // File mẫu .pdf có sẵn
+  pdf_generated // Sinh từ HTML content
+  file_word // File mẫu .docx
+  file_excel // File mẫu .xlsx
+  file_pdf // File mẫu .pdf có sẵn
 }
 
 model ContentTemplate {
-  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
-  code            String           @unique @db.VarChar(100)
-  name            String           @db.VarChar(255)
-  category        TemplateCategory @default(render)
-  type            TemplateType
-  
+  id       BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  code     String           @unique @db.VarChar(100)
+  name     String           @db.VarChar(255)
+  category TemplateCategory @default(render)
+  type     TemplateType
+
   // 1. Dành cho loại 'render': Lưu nội dung HTML/Markdown/Text
-  content         String?          @db.LongText
-  
+  content String? @db.LongText
+
   // 2. Dành cho loại 'file': Lưu đường dẫn file mẫu đã upload (ví dụ: /uploads/templates/contract_v1.docx)
-  file_path       String?          @db.VarChar(500)
-  
+  file_path String? @db.VarChar(500)
+
   // Cấu hình bổ sung (Subject email, Header, Cấu hình trang PDF...)
-  metadata        Json?        
-  
+  metadata Json?
+
   // Danh sách biến mẫu khả dụng (Ví dụ: { "customer_name": "Tên khách", "amount": "Số tiền" })
-  variables       Json?        
-  
-  status          BasicStatus      @default(active)
-  created_at      DateTime         @default(now()) @db.DateTime(0)
-  updated_at      DateTime         @updatedAt @db.DateTime(0)
-  deleted_at      DateTime?        @db.DateTime(0)
+  variables Json?
+
+  status     BasicStatus @default(active)
+  created_at DateTime    @default(now()) @db.DateTime(0)
+  updated_at DateTime    @updatedAt @db.DateTime(0)
+  deleted_at DateTime?   @db.DateTime(0)
 
   @@index([code], map: "idx_content_templates_code")
   @@index([status], map: "idx_content_templates_status")
@@ -1019,8 +1019,8 @@ model ProductCategory {
   updated_at       DateTime    @updatedAt @db.DateTime(0)
   deleted_at       DateTime?   @db.DateTime(0)
 
-  parent   ProductCategory?          @relation("ProductCategoryHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
-  children ProductCategory[]         @relation("ProductCategoryHierarchy")
+  parent   ProductCategory?         @relation("ProductCategoryHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  children ProductCategory[]        @relation("ProductCategoryHierarchy")
   products ProductProductCategory[]
 
   @@index([name], map: "idx_product_categories_name")
@@ -1059,10 +1059,10 @@ model Product {
   updated_at        DateTime      @updatedAt @db.DateTime(0)
   deleted_at        DateTime?     @db.DateTime(0)
 
-  categories ProductProductCategory[]
-  variants   ProductVariant[]
-  reviews    ProductReview[]
-  carts      Cart[]
+  categories  ProductProductCategory[]
+  variants    ProductVariant[]
+  reviews     ProductReview[]
+  carts       Cart[]
   order_items OrderItem[]
 
   @@index([name], map: "idx_products_name")
@@ -1279,19 +1279,21 @@ model CouponUsage {
 }
 
 model ProductReview {
-  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
-  product_id      BigInt      @db.UnsignedBigInt
-  user_id         BigInt?     @db.UnsignedBigInt
-  customer_name   String?     @db.VarChar(255)
-  customer_email  String?     @db.VarChar(255)
-  rating          Int         @db.UnsignedTinyInt
-  comment         String?     @db.Text
-  status          BasicStatus @default(active)
-  created_user_id BigInt?     @db.UnsignedBigInt
-  updated_user_id BigInt?     @db.UnsignedBigInt
-  created_at      DateTime    @default(now()) @db.DateTime(0)
-  updated_at      DateTime    @updatedAt @db.DateTime(0)
-  deleted_at      DateTime?   @db.DateTime(0)
+  id                   BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id           BigInt      @db.UnsignedBigInt
+  user_id              BigInt?     @db.UnsignedBigInt
+  customer_name        String?     @db.VarChar(255)
+  customer_email       String?     @db.VarChar(255)
+  rating               Int         @db.UnsignedTinyInt
+  comment              String?     @db.Text
+  helpful_count        Int         @default(0)
+  is_verified_purchase Boolean     @default(false)
+  status               BasicStatus @default(active)
+  created_user_id      BigInt?     @db.UnsignedBigInt
+  updated_user_id      BigInt?     @db.UnsignedBigInt
+  created_at           DateTime    @default(now()) @db.DateTime(0)
+  updated_at           DateTime    @updatedAt @db.DateTime(0)
+  deleted_at           DateTime?   @db.DateTime(0)
 
   product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
 
@@ -1464,8 +1466,9 @@ model Order {
   updated_at         DateTime       @updatedAt @db.DateTime(0)
   deleted_at         DateTime?      @db.DateTime(0)
 
-  items    OrderItem[]
-  payments Payment[]
+  items            OrderItem[]
+  payments         Payment[]
+  tracking_history TrackingHistory[]
 
   @@index([user_id], map: "idx_orders_user_id")
   @@index([status], map: "idx_orders_status")
@@ -1529,4 +1532,19 @@ model Payment {
   @@index([status], map: "idx_payments_status")
   @@index([payment_method_type], map: "idx_payments_method_type")
   @@map("payments")
+}
+
+model TrackingHistory {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  order_id    BigInt   @db.UnsignedBigInt
+  status      String   @db.VarChar(50)
+  description String?  @db.Text
+  location    String?  @db.VarChar(255)
+  raw_data    Json?
+  created_at  DateTime @default(now()) @db.DateTime(0)
+
+  order Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([order_id], map: "idx_th_order_id")
+  @@map("tracking_history")
 }
