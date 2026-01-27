@@ -8,14 +8,23 @@ export class CartValidationService {
    */
   validateCartOwnership(
     cartHeader: CartHeader,
-    userId?: number | bigint,
-    sessionId?: string,
+    options: {
+      userId?: number | bigint;
+      cartUuid?: string;
+    },
   ): void {
-    if (userId && cartHeader.owner_key !== `user_${userId}`) {
-      throw new ForbiddenException('Bạn không có quyền sửa giỏ hàng này');
+    const { userId, cartUuid } = options;
+
+    // User đã đăng nhập: owner_key phải là user_<id>
+    if (userId) {
+      if (cartHeader.owner_key !== `user_${userId}`) {
+        throw new ForbiddenException('Bạn không có quyền sửa giỏ hàng này');
+      }
+      return;
     }
 
-    if (sessionId && cartHeader.owner_key !== `session_${sessionId}`) {
+    // Guest: bắt buộc phải khớp uuid nếu được truyền vào
+    if (cartUuid && cartHeader.uuid && cartHeader.uuid !== cartUuid) {
       throw new ForbiddenException('Bạn không có quyền sửa giỏ hàng này');
     }
   }

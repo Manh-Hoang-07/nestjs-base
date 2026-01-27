@@ -23,6 +23,7 @@ import { RateLimitModule } from '@/core/security/throttler.module';
 // Business Logic Aggregate Modules
 import { CoreModulesModule } from '@/modules/core/core.module';
 import { IntroductionModule } from '@/modules/introduction/introduction.module';
+import { EcommerceModule } from '@/modules/ecommerce/ecommerce.module';
 
 // Other Domain Modules
 import { PostModule } from '@/modules/post/post.module';
@@ -31,6 +32,7 @@ import { FileUploadModule } from '@/modules/storage/file-upload/file-upload.modu
 import { MarketingModule } from '@/modules/marketing/marketing.module';
 import { AppMailModule } from '@/core/mail/mail.module';
 import { HomepageModule } from '@/modules/homepage/homepage.module';
+import { PaymentMethodModule } from '@/modules/payment-method/payment-method.module';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { HomepageModule } from '@/modules/homepage/homepage.module';
     // Business Logic Modules
     CoreModulesModule,
     IntroductionModule,
+    EcommerceModule,
 
     // Remaining Independent Modules
     PostModule,
@@ -50,6 +53,7 @@ import { HomepageModule } from '@/modules/homepage/homepage.module';
     FileUploadModule,
     AppMailModule,
     HomepageModule,
+    PaymentMethodModule,
   ],
   controllers: [],
   providers: [

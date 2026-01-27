@@ -16,35 +16,28 @@ export class CartManagementService {
    * Get or create cart
    */
   async getOrCreateCart(
-    sessionId?: string,
     cartUuid?: string,
     userId?: number | bigint,
   ): Promise<CartHeader> {
     let cartHeader: CartHeader | null = null;
 
-    // Priority: userId > cartUuid > sessionId
+    // Ưu tiên: cart của user đăng nhập > cart guest theo uuid
     if (userId) {
       cartHeader = await this.cartRepository.findByUserId(userId);
     }
 
+    // Nếu chưa có cart user và có cartUuid (guest)
     if (!cartHeader && cartUuid) {
-      cartHeader = await this.cartRepository.findByOwnerKey(cartUuid); // Wait, owner key or uuid? Repository says findByOwnerKey. 
-      // Checking CartRepositoryImpl findByOwnerKey uses { ownerKey }. 
-      // But buildWhere maps ownerKey to owner_key.
-      // Schema says uuid is unique.
-    }
-
-    if (!cartHeader && sessionId) {
-      cartHeader = await this.cartRepository.findByOwnerKey(`session_${sessionId}`);
+      cartHeader = await this.prisma.cartHeader.findUnique({
+        where: { uuid: cartUuid },
+      }) as CartHeader | null;
     }
 
     // Create new cart if not found
     if (!cartHeader) {
       const ownerKey = userId
         ? `user_${userId}`
-        : sessionId
-          ? `session_${sessionId}`
-          : `guest_${uuidv4()}`;
+        : `guest_${uuidv4()}`;
 
       const finalCartUuid = cartUuid || uuidv4();
 

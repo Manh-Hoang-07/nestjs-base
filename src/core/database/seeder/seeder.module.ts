@@ -20,8 +20,8 @@ import { SeedGallery } from '@/core/database/seeder/seed-gallery';
 import { SeedCertificates } from '@/core/database/seeder/seed-certificates';
 import { SeedFaqs } from '@/core/database/seeder/seed-faqs';
 import { SeedPosts } from '@/core/database/seeder/seed-posts';
-
 import { SeedContentTemplates } from '@/core/database/seeder/seed-content-templates';
+import { SeedEcommerce } from '@/core/database/seeder/seed-ecommerce';
 
 @Module({
   imports: [PrismaModule],
@@ -51,6 +51,7 @@ import { SeedContentTemplates } from '@/core/database/seeder/seed-content-templa
     SeedFaqs,
     // Post Module Seeders
     SeedPosts,
+    SeedEcommerce,
   ],
   exports: [SeedService],
 })

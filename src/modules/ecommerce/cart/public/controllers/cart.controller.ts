@@ -27,7 +27,7 @@ export class PublicCartController {
     @Query('cart_uuid') cartUuid?: string,
   ) {
     const userId = Auth.id() || undefined;
-    return this.cartService.getCartSummary(undefined, cartUuid, userId);
+    return this.cartService.getCartSummary(cartUuid, userId);
   }
 
   @LogRequest()
@@ -40,7 +40,6 @@ export class PublicCartController {
     return this.cartService.addToCart(
       dto.product_variant_id,
       dto.quantity,
-      undefined,
       dto.cart_uuid,
       userId,
     );
@@ -56,7 +55,6 @@ export class PublicCartController {
     return this.cartService.updateCartItem(
       dto.cart_item_id,
       dto.quantity,
-      undefined,
       dto.cart_uuid,
       userId,
     );
@@ -74,7 +72,6 @@ export class PublicCartController {
     return this.cartService.updateCartItem(
       cartItemId,
       dto.quantity!,
-      undefined,
       cartUuid,
       userId,
     );
@@ -88,7 +85,7 @@ export class PublicCartController {
     @Query('cart_uuid') cartUuid?: string,
   ) {
     const userId = Auth.id() || undefined;
-    return this.cartService.removeFromCart(cartItemId, undefined, cartUuid, userId);
+    return this.cartService.removeFromCart(cartItemId, cartUuid, userId);
   }
 
   @LogRequest()
@@ -98,7 +95,7 @@ export class PublicCartController {
     @Query('cart_uuid') cartUuid?: string,
   ) {
     const userId = Auth.id() || undefined;
-    return this.cartService.clearCart(undefined, cartUuid, userId);
+    return this.cartService.clearCart(cartUuid, userId);
   }
 
   @Permission('public')
@@ -107,6 +104,6 @@ export class PublicCartController {
     @Query('cart_uuid') cartUuid?: string,
   ) {
     const userId = Auth.id() || undefined;
-    return this.cartService.getCartSummary(undefined, cartUuid, userId);
+    return this.cartService.getCartSummary(cartUuid, userId);
   }
 }

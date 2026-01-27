@@ -68,6 +68,19 @@ export class SeedPermissions {
       { code: 'faq.manage', name: 'Quản lý Câu hỏi thường gặp', status: 'active', parent_code: null },
       // ========== CONTENT TEMPLATE MODULE ==========
       { code: 'content_template.manage', name: 'Quản lý Mẫu tài liệu', status: 'active', parent_code: null },
+
+      // ========== ECOMMERCE MODULES ==========
+      { code: 'product.manage', name: 'Quản lý Sản phẩm', status: 'active', parent_code: null },
+      { code: 'product_category.manage', name: 'Quản lý Danh mục sản phẩm', status: 'active', parent_code: null },
+      { code: 'product_attribute.manage', name: 'Quản lý Thuộc tính sản phẩm', status: 'active', parent_code: null },
+      { code: 'product_attribute_value.manage', name: 'Quản lý Giá trị thuộc tính sản phẩm', status: 'active', parent_code: null },
+      { code: 'product_variant.manage', name: 'Quản lý Biến thể sản phẩm', status: 'active', parent_code: null },
+      { code: 'product_review.manage', name: 'Quản lý Đánh giá sản phẩm', status: 'active', parent_code: null },
+      { code: 'order.manage', name: 'Quản lý Đơn hàng', status: 'active', parent_code: null },
+      { code: 'shipping_method.manage', name: 'Quản lý Phương thức vận chuyển', status: 'active', parent_code: null },
+      { code: 'payment_method.manage', name: 'Quản lý Phương thức thanh toán', status: 'active', parent_code: null },
+      { code: 'coupon.manage', name: 'Quản lý Mã khuyến mãi', status: 'active', parent_code: null },
+      { code: 'warehouse.manage', name: 'Quản lý Kho hàng', status: 'active', parent_code: null },
     ];
 
     const createdPermissions: Map<string, any> = new Map();

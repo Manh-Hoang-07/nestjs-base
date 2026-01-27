@@ -50,7 +50,7 @@ export class PublicDiscountController {
       // Find cart by ID with relations
       cartHeader = await this.cartService.getCartByIdWithRelations(dto.cart_id);
     } else if (dto.cart_uuid) {
-      cartHeader = await this.cartService.getOrCreateCart(undefined, dto.cart_uuid, userId);
+      cartHeader = await this.cartService.getOrCreateCart(dto.cart_uuid, userId);
     } else {
       throw new Error('Cần cung cấp cart_id hoặc cart_uuid');
     }
@@ -121,7 +121,7 @@ export class PublicDiscountController {
       cartHeader = await this.cartService.getCartByIdWithRelations(parseInt(cartId));
     } else {
       // It's a UUID
-      cartHeader = await this.cartService.getOrCreateCart(undefined, cartId, userId);
+      cartHeader = await this.cartService.getOrCreateCart(cartId, userId);
     }
 
     if (!cartHeader) {

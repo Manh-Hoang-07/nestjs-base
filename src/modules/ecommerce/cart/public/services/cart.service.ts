@@ -23,11 +23,10 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   }
 
   async getOrCreateCart(
-    sessionId?: string,
     cartUuid?: string,
     userId?: number | bigint,
   ) {
-    return this.managementService.getOrCreateCart(sessionId, cartUuid, userId);
+    return this.managementService.getOrCreateCart(cartUuid, userId);
   }
 
   async getCartByIdWithRelations(cartId: number | bigint) {
@@ -37,14 +36,12 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   async addToCart(
     productVariantId: number | bigint,
     quantity: number,
-    sessionId?: string,
     cartUuid?: string,
     userId?: number | bigint,
   ): Promise<any> {
     return await this.prisma.$transaction(async (tx) => {
       // 1. Get or create cart
       const cartHeader = await this.managementService.getOrCreateCart(
-        sessionId,
         cartUuid,
         userId,
       );
@@ -84,19 +81,18 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
       );
 
       // 8. Return updated cart
-      return await this.getCartSummary(sessionId, cartHeader.uuid || undefined, userId);
+      return await this.getCartSummary(cartHeader.uuid || undefined, userId);
     });
   }
 
   async updateCartItem(
     cartItemId: number | bigint,
     quantity: number,
-    sessionId?: string,
     cartUuid?: string,
     userId?: number | bigint,
   ): Promise<any> {
     if (quantity <= 0) {
-      return this.removeFromCart(cartItemId, sessionId, cartUuid, userId);
+      return this.removeFromCart(cartItemId, cartUuid, userId);
     }
 
     return await this.prisma.$transaction(async (tx) => {
@@ -107,7 +103,10 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
       );
 
       // 2. Validate ownership
-      this.validationService.validateCartOwnership(cartHeader, userId, sessionId);
+      this.validationService.validateCartOwnership(cartHeader, {
+        userId,
+        cartUuid,
+      });
 
       // 3. Validate and lock variant
       const variant = await this.validationService.validateAndLockProductVariant(
@@ -132,13 +131,12 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
         cartHeader.id,
       );
 
-      return await this.getCartSummary(sessionId, cartHeader.uuid || undefined, userId);
+      return await this.getCartSummary(cartHeader.uuid || undefined, userId);
     });
   }
 
   async removeFromCart(
     cartItemId: number | bigint,
-    sessionId?: string,
     cartUuid?: string,
     userId?: number | bigint,
   ): Promise<any> {
@@ -150,7 +148,10 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
       );
 
       // 2. Validate ownership
-      this.validationService.validateCartOwnership(cartHeader, userId, sessionId);
+      this.validationService.validateCartOwnership(cartHeader, {
+        userId,
+        cartUuid,
+      });
 
       // 3. Remove cart item
       await this.itemService.removeCartItem(tx, cartItem);
@@ -161,13 +162,12 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
         cartHeader.id,
       );
 
-      return await this.getCartSummary(sessionId, cartHeader.uuid || undefined, userId);
+      return await this.getCartSummary(cartHeader.uuid || undefined, userId);
     });
   }
 
-  async clearCart(sessionId?: string, cartUuid?: string, userId?: number | bigint): Promise<any> {
+  async clearCart(cartUuid?: string, userId?: number | bigint): Promise<any> {
     const cartHeader = await this.managementService.getOrCreateCart(
-      sessionId,
       cartUuid,
       userId,
     );
@@ -177,16 +177,14 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
     // Update totals
     await this.calculationService.updateCartTotals(this.prisma, cartHeader.id);
 
-    return await this.getCartSummary(sessionId, cartHeader.uuid || undefined, userId);
+    return await this.getCartSummary(cartHeader.uuid || undefined, userId);
   }
 
   async getCartSummary(
-    sessionId?: string,
     cartUuid?: string,
     userId?: number | bigint,
   ): Promise<any> {
     const cartHeader = await this.managementService.getOrCreateCart(
-      sessionId,
       cartUuid,
       userId,
     );

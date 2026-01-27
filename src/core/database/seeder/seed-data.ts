@@ -20,6 +20,7 @@ import { SeedCertificates } from '@/core/database/seeder/seed-certificates';
 import { SeedFaqs } from '@/core/database/seeder/seed-faqs';
 import { SeedPosts } from '@/core/database/seeder/seed-posts';
 import { SeedContentTemplates } from '@/core/database/seeder/seed-content-templates';
+import { SeedEcommerce } from '@/core/database/seeder/seed-ecommerce';
 
 @Injectable()
 export class SeedService {
@@ -38,6 +39,7 @@ export class SeedService {
     private readonly seedEmailConfigs: SeedEmailConfigs,
     private readonly seedGroups: SeedGroups,
     private readonly seedContentTemplates: SeedContentTemplates,
+    private readonly seedEcommerce: SeedEcommerce,
     // Introduction Seeders
     private readonly seedProjects: SeedProjects,
     private readonly seedAboutSections: SeedAboutSections,
@@ -93,6 +95,9 @@ export class SeedService {
 
       // Post Module
       await this.seedPosts.seed();
+
+      // Ecommerce (products, categories, variants, attributes, coupons, shipping, payment)
+      await this.seedEcommerce.seed();
 
       this.logger.log('Database seeding completed successfully');
     } catch (error) {
