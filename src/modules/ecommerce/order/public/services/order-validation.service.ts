@@ -82,7 +82,7 @@ export class OrderValidationService {
     const variants = await tx.productVariant.findMany({
       where: {
         id: { in: variantIds },
-        status: 'active',
+        is_active: true,
         product: { status: 'active' },
       },
       include: {

@@ -8,7 +8,7 @@ export class CartValidationService {
    */
   validateCartOwnership(
     cartHeader: CartHeader,
-    userId?: number,
+    userId?: number | bigint,
     sessionId?: string,
   ): void {
     if (userId && cartHeader.owner_key !== `user_${userId}`) {

@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsBoolean, IsNumber } from 'class-validator';
-import { AttributeType } from '@/modules/ecommerce/admin/product-attribute/dtos/create-product-attribute.dto';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
+import { AttributeType } from './create-product-attribute.dto';
+import { BasicStatus } from '@/shared/enums/types/basic-status.enum';
 
 export class UpdateProductAttributeDto {
   @IsOptional()

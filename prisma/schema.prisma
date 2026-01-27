@@ -1250,6 +1250,7 @@ model Coupon {
   usage_limit     Int?
   used_count      Int         @default(0)
   status          BasicStatus @default(active)
+  group_id        BigInt?     @db.UnsignedBigInt
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
   created_at      DateTime    @default(now()) @db.DateTime(0)
@@ -1260,6 +1261,7 @@ model Coupon {
 
   @@index([code], map: "idx_coupons_code")
   @@index([status], map: "idx_coupons_status")
+  @@index([group_id], map: "idx_coupons_group_id")
   @@map("coupons")
 }
 

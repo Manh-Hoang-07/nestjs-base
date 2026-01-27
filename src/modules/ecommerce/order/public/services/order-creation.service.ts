@@ -47,8 +47,8 @@ export class OrderCreationService {
       billing_address: data.billingAddress
         ? JSON.stringify(data.billingAddress)
         : JSON.stringify(data.shippingAddress),
-      shipping_method: { connect: { id: BigInt(data.shippingMethodId) } },
-      payment_method: data.paymentMethodId ? { connect: { id: BigInt(data.paymentMethodId) } } : undefined,
+      shipping_method_id: data.shippingMethodId ? BigInt(data.shippingMethodId) : null,
+      payment_method_id: data.paymentMethodId ? BigInt(data.paymentMethodId) : null,
       notes: data.notes || null,
       user_id: data.userId ? BigInt(data.userId) : null,
       session_token: null,
@@ -77,7 +77,7 @@ export class OrderCreationService {
       quantity: cartItem.quantity,
       unit_price: cartItem.unit_price,
       total_price: cartItem.total_price,
-      product_attributes: cartItem.product_attributes ? JSON.stringify(cartItem.product_attributes) : null,
+      product_attributes: cartItem.product_attributes || null,
     }));
 
     await tx.orderItem.createMany({ data: orderItemsData });

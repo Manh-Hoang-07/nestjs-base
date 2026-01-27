@@ -25,21 +25,21 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   async getOrCreateCart(
     sessionId?: string,
     cartUuid?: string,
-    userId?: number,
+    userId?: number | bigint,
   ) {
     return this.managementService.getOrCreateCart(sessionId, cartUuid, userId);
   }
 
-  async getCartByIdWithRelations(cartId: number) {
+  async getCartByIdWithRelations(cartId: number | bigint) {
     return this.managementService.getCartByIdWithRelations(cartId);
   }
 
   async addToCart(
-    productVariantId: number,
+    productVariantId: number | bigint,
     quantity: number,
     sessionId?: string,
     cartUuid?: string,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<any> {
     return await this.prisma.$transaction(async (tx) => {
       // 1. Get or create cart
@@ -89,11 +89,11 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   }
 
   async updateCartItem(
-    cartItemId: number,
+    cartItemId: number | bigint,
     quantity: number,
     sessionId?: string,
     cartUuid?: string,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<any> {
     if (quantity <= 0) {
       return this.removeFromCart(cartItemId, sessionId, cartUuid, userId);
@@ -137,10 +137,10 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   }
 
   async removeFromCart(
-    cartItemId: number,
+    cartItemId: number | bigint,
     sessionId?: string,
     cartUuid?: string,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<any> {
     return await this.prisma.$transaction(async (tx) => {
       // 1. Validate và lấy cart item với cart header
@@ -165,7 +165,7 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
     });
   }
 
-  async clearCart(sessionId?: string, cartUuid?: string, userId?: number): Promise<any> {
+  async clearCart(sessionId?: string, cartUuid?: string, userId?: number | bigint): Promise<any> {
     const cartHeader = await this.managementService.getOrCreateCart(
       sessionId,
       cartUuid,
@@ -183,7 +183,7 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   async getCartSummary(
     sessionId?: string,
     cartUuid?: string,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<any> {
     const cartHeader = await this.managementService.getOrCreateCart(
       sessionId,
@@ -198,11 +198,11 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
    * Apply discount to cart
    */
   async applyDiscount(
-    cartId: number,
+    cartId: number | bigint,
     discountInfo: {
       discountAmount: number;
       couponCode?: string;
-      couponId?: number;
+      couponId?: number | bigint;
     },
   ): Promise<any> {
     const cartHeader = await this.managementService.getCartById(cartId);
@@ -235,7 +235,7 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   /**
    * Remove discount from cart
    */
-  async removeDiscount(cartId: number): Promise<any> {
+  async removeDiscount(cartId: number | bigint): Promise<any> {
     const cartHeader = await this.managementService.getCartById(cartId);
 
     const subtotal = Number(cartHeader.subtotal) || 0;

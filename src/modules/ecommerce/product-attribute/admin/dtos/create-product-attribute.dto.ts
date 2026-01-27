@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsEnum, IsBoolean, IsNumber } from 'class-validator';
-import { BasicStatus } from '@/shared/enums/basic-status.enum';
+import { BasicStatus } from '@/shared/enums/types/basic-status.enum';
 
 export enum AttributeType {
   TEXT = 'text',

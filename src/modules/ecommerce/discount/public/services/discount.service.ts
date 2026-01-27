@@ -23,9 +23,9 @@ export class DiscountService {
    * Calculate discount for coupon (without applying to cart)
    */
   async calculateCouponDiscount(
-    cartId: number,
+    cartId: number | bigint,
     couponCode: string,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<any> {
     // 1. Find coupon
     const coupon = await this.couponRepository.findByCode(couponCode);
@@ -57,7 +57,7 @@ export class DiscountService {
   /**
    * Validate coupon eligibility
    */
-  private async validateCoupon(coupon: Coupon, userId?: number): Promise<void> {
+  private async validateCoupon(coupon: Coupon, userId?: number | bigint): Promise<void> {
     const now = new Date();
 
     // Check dates
@@ -148,7 +148,7 @@ export class DiscountService {
   /**
    * Get available coupons for user
    */
-  async getAvailableCoupons(userId?: number): Promise<any> {
+  async getAvailableCoupons(userId?: number | bigint): Promise<any> {
     const now = new Date();
 
     const coupons = await this.couponRepository.findMany({
@@ -190,7 +190,7 @@ export class DiscountService {
   async validateCouponCode(
     couponCode: string,
     cartTotal?: number,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<any> {
     const coupon = await this.couponRepository.findByCode(couponCode);
 
@@ -254,7 +254,7 @@ export class DiscountService {
   /**
    * Get cart with items
    */
-  public async getCartWithItems(cartId: number): Promise<any> {
+  public async getCartWithItems(cartId: number | bigint): Promise<any> {
     const cartHeader = await this.cartRepository.findById(cartId);
 
     if (!cartHeader) {

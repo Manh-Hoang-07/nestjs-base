@@ -6,9 +6,9 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { PublicProductCategoryService } from '@/modules/ecommerce/public/product-category/services/product-category.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
+import { PublicProductCategoryService } from '../services/product-category.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
 
 @Controller('public/product-categories')
 export class PublicProductCategoryController {
@@ -17,23 +17,23 @@ export class PublicProductCategoryController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.productCategoryService.getCategories({ ...filters, ...options });
+    const { filter, options } = prepareQuery(query);
+    return this.productCategoryService.getCategories({ ...filter, ...options });
   }
 
   @Permission('public')
   @Get('tree')
   async getTree(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    const treeDto = { ...filters, ...options, format: 'tree' as 'tree' | 'flat' };
+    const { filter, options } = prepareQuery(query);
+    const treeDto = { ...filter, ...options, format: 'tree' as 'tree' | 'flat' };
     return this.productCategoryService.getCategories(treeDto);
   }
 
   @Permission('public')
   @Get('root')
   async getRoot(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    const rootDto = { ...filters, ...options, format: 'tree' as 'tree' | 'flat' };
+    const { filter, options } = prepareQuery(query);
+    const rootDto = { ...filter, ...options, format: 'tree' as 'tree' | 'flat' };
     return this.productCategoryService.getCategories(rootDto);
   }
 

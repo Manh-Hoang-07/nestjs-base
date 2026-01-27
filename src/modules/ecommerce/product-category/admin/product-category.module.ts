@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductCategory } from '@/shared/entities/product-category.entity';
 import { AdminProductCategoryService } from './services/product-category.service';
 import { AdminProductCategoryController } from './controllers/product-category.controller';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
+import { ProductCategoryRepositoryModule } from '../product-category.repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductCategory]),
+    ProductCategoryRepositoryModule,
     RbacModule,
   ],
   controllers: [AdminProductCategoryController],

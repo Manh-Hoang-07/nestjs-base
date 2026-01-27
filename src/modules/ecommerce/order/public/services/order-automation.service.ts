@@ -16,7 +16,7 @@ export class OrderAutomationService {
   async processPostPayment(order: Order): Promise<void> {
     if (!order) return;
 
-    if (order.order_type !== 'digital' && order.order_type !== 'mixed') {
+    if (order.order_type !== 'digital') {
       return;
     }
 

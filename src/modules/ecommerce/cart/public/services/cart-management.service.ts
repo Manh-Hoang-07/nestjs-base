@@ -18,7 +18,7 @@ export class CartManagementService {
   async getOrCreateCart(
     sessionId?: string,
     cartUuid?: string,
-    userId?: number,
+    userId?: number | bigint,
   ): Promise<CartHeader> {
     let cartHeader: CartHeader | null = null;
 

@@ -32,7 +32,7 @@ export class UserProductCategoryService extends BaseService<ProductCategory, IPr
         ? tree.filter(cat => cat.status === 'active')
         : tree;
 
-      return this.transform(filteredTree);
+      return filteredTree.map(cat => this.transform(cat));
     }
 
     // Format 'flat'
