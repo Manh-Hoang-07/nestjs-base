@@ -988,6 +988,404 @@ model ContentTemplate {
 // Ecommerce - Payment
 // ============================================
 
+// ============================================
+// Ecommerce - Products & Categories
+// ============================================
+
+enum ProductStatus {
+  active
+  inactive
+  draft
+  archived
+}
+
+model ProductCategory {
+  id               BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name             String      @db.VarChar(255)
+  slug             String      @unique @db.VarChar(255)
+  description      String?     @db.Text
+  parent_id        BigInt?     @db.UnsignedBigInt
+  image            String?     @db.VarChar(500)
+  icon             String?     @db.VarChar(100)
+  status           BasicStatus @default(active)
+  sort_order       Int         @default(0)
+  meta_title       String?     @db.VarChar(255)
+  meta_description String?     @db.Text
+  canonical_url    String?     @db.VarChar(500)
+  og_image         String?     @db.VarChar(500)
+  created_user_id  BigInt?     @db.UnsignedBigInt
+  updated_user_id  BigInt?     @db.UnsignedBigInt
+  created_at       DateTime    @default(now()) @db.DateTime(0)
+  updated_at       DateTime    @updatedAt @db.DateTime(0)
+  deleted_at       DateTime?   @db.DateTime(0)
+
+  parent   ProductCategory?          @relation("ProductCategoryHierarchy", fields: [parent_id], references: [id], onDelete: SetNull)
+  children ProductCategory[]         @relation("ProductCategoryHierarchy")
+  products ProductProductCategory[]
+
+  @@index([name], map: "idx_product_categories_name")
+  @@index([parent_id], map: "idx_product_categories_parent_id")
+  @@index([status], map: "idx_product_categories_status")
+  @@index([sort_order], map: "idx_product_categories_sort_order")
+  @@index([deleted_at], map: "idx_product_categories_deleted_at")
+  @@map("product_categories")
+}
+
+model Product {
+  id                BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String        @db.VarChar(255)
+  slug              String        @unique @db.VarChar(255)
+  sku               String        @unique @db.VarChar(100)
+  description       String?       @db.LongText
+  short_description String?       @db.Text
+  min_stock_level   Int           @default(0)
+  image             String?       @db.VarChar(500)
+  gallery           Json?
+  status            ProductStatus @default(active)
+  is_featured       Boolean       @default(false)
+  is_variable       Boolean       @default(true)
+  is_digital        Boolean       @default(false)
+  download_limit    Int?
+  meta_title        String?       @db.VarChar(255)
+  meta_description  String?       @db.Text
+  canonical_url     String?       @db.VarChar(500)
+  og_title          String?       @db.VarChar(255)
+  og_description    String?       @db.Text
+  og_image          String?       @db.VarChar(500)
+  group_id          BigInt?       @db.UnsignedBigInt
+  created_user_id   BigInt?       @db.UnsignedBigInt
+  updated_user_id   BigInt?       @db.UnsignedBigInt
+  created_at        DateTime      @default(now()) @db.DateTime(0)
+  updated_at        DateTime      @updatedAt @db.DateTime(0)
+  deleted_at        DateTime?     @db.DateTime(0)
+
+  categories ProductProductCategory[]
+  variants   ProductVariant[]
+  reviews    ProductReview[]
+  carts      Cart[]
+  order_items OrderItem[]
+
+  @@index([name], map: "idx_products_name")
+  @@index([status], map: "idx_products_status")
+  @@index([is_featured], map: "idx_products_is_featured")
+  @@index([group_id], map: "idx_products_group_id")
+  @@index([deleted_at], map: "idx_products_deleted_at")
+  @@map("products")
+}
+
+model ProductProductCategory {
+  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id          BigInt   @db.UnsignedBigInt
+  product_category_id BigInt   @db.UnsignedBigInt
+  created_at          DateTime @default(now()) @db.DateTime(0)
+  updated_at          DateTime @updatedAt @db.DateTime(0)
+
+  product  Product         @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  category ProductCategory @relation(fields: [product_category_id], references: [id], onDelete: Cascade)
+
+  @@unique([product_id, product_category_id], map: "uk_ppc_product_category")
+  @@index([product_id], map: "idx_ppc_product_id")
+  @@index([product_category_id], map: "idx_ppc_category_id")
+  @@map("product_category")
+}
+
+model ProductVariant {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id      BigInt    @db.UnsignedBigInt
+  name            String    @db.VarChar(255)
+  sku             String    @unique @db.VarChar(100)
+  price           Decimal   @default(0) @db.Decimal(15, 2)
+  sale_price      Decimal?  @db.Decimal(15, 2)
+  stock_quantity  Int       @default(0)
+  image           String?   @db.VarChar(500)
+  is_active       Boolean   @default(true)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  product     Product                   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  attributes  ProductVariantAttribute[]
+  carts       Cart[]
+  order_items OrderItem[]
+
+  @@index([product_id], map: "idx_product_variants_product_id")
+  @@index([sku], map: "idx_product_variants_sku")
+  @@map("product_variants")
+}
+
+model ProductAttribute {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String    @db.VarChar(255)
+  code            String    @unique @db.VarChar(100)
+  type            String    @default("text") @db.VarChar(50)
+  is_filterable   Boolean   @default(true)
+  is_required     Boolean   @default(true)
+  sort_order      Int       @default(0)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  values ProductAttributeValue[]
+
+  @@index([code], map: "idx_product_attributes_code")
+  @@map("product_attributes")
+}
+
+model ProductAttributeValue {
+  id                   BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  product_attribute_id BigInt    @db.UnsignedBigInt
+  value                String    @db.VarChar(255)
+  label                String    @db.VarChar(255)
+  color_code           String?   @db.VarChar(100)
+  sort_order           Int       @default(0)
+  created_user_id      BigInt?   @db.UnsignedBigInt
+  updated_user_id      BigInt?   @db.UnsignedBigInt
+  created_at           DateTime  @default(now()) @db.DateTime(0)
+  updated_at           DateTime  @updatedAt @db.DateTime(0)
+  deleted_at           DateTime? @db.DateTime(0)
+
+  attribute          ProductAttribute          @relation(fields: [product_attribute_id], references: [id], onDelete: Cascade)
+  variant_attributes ProductVariantAttribute[]
+
+  @@index([product_attribute_id], map: "idx_product_attribute_values_attr_id")
+  @@map("product_attribute_values")
+}
+
+model ProductVariantAttribute {
+  id                         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  product_variant_id         BigInt    @db.UnsignedBigInt
+  product_attribute_id       BigInt    @db.UnsignedBigInt
+  product_attribute_value_id BigInt    @db.UnsignedBigInt
+  created_user_id            BigInt?   @db.UnsignedBigInt
+  updated_user_id            BigInt?   @db.UnsignedBigInt
+  created_at                 DateTime  @default(now()) @db.DateTime(0)
+  updated_at                 DateTime  @updatedAt @db.DateTime(0)
+  deleted_at                 DateTime? @db.DateTime(0)
+
+  variant         ProductVariant        @relation(fields: [product_variant_id], references: [id], onDelete: Cascade)
+  attribute_value ProductAttributeValue @relation(fields: [product_attribute_value_id], references: [id], onDelete: Cascade)
+
+  @@index([product_variant_id], map: "idx_pva_variant_id")
+  @@index([product_attribute_id], map: "idx_pva_attribute_id")
+  @@index([product_attribute_value_id], map: "idx_pva_value_id")
+  @@map("product_variant_attributes")
+}
+
+// ============================================
+// Ecommerce - Cart
+// ============================================
+
+model CartHeader {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid            String?   @unique @db.VarChar(36)
+  owner_key       String    @db.VarChar(120)
+  user_id         BigInt?   @db.UnsignedBigInt
+  currency        String    @default("VND") @db.VarChar(10)
+  subtotal        Decimal   @default(0) @db.Decimal(15, 2)
+  tax_amount      Decimal   @default(0) @db.Decimal(15, 2)
+  shipping_amount Decimal   @default(0) @db.Decimal(15, 2)
+  discount_amount Decimal   @default(0) @db.Decimal(15, 2)
+  coupon_code     String?   @db.VarChar(50)
+  total_amount    Decimal   @default(0) @db.Decimal(15, 2)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  items Cart[]
+
+  @@index([owner_key], map: "idx_cart_headers_owner_key")
+  @@index([user_id], map: "idx_cart_headers_user_id")
+  @@map("cart_headers")
+}
+
+model Cart {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  cart_header_id     BigInt    @db.UnsignedBigInt
+  product_id         BigInt    @db.UnsignedBigInt
+  product_variant_id BigInt?   @db.UnsignedBigInt
+  product_name       String    @db.VarChar(255)
+  product_sku        String    @db.VarChar(100)
+  variant_name       String?   @db.VarChar(255)
+  quantity           Int       @default(1)
+  unit_price         Decimal   @db.Decimal(15, 2)
+  total_price        Decimal   @db.Decimal(15, 2)
+  product_attributes Json?
+  created_user_id    BigInt?   @db.UnsignedBigInt
+  updated_user_id    BigInt?   @db.UnsignedBigInt
+  created_at         DateTime  @default(now()) @db.DateTime(0)
+  updated_at         DateTime  @updatedAt @db.DateTime(0)
+  deleted_at         DateTime? @db.DateTime(0)
+
+  header  CartHeader      @relation(fields: [cart_header_id], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [product_variant_id], references: [id], onDelete: SetNull)
+
+  @@unique([cart_header_id, product_id, product_variant_id], map: "uk_carts_header_product_variant")
+  @@index([cart_header_id], map: "idx_carts_cart_header_id")
+  @@index([product_id], map: "idx_carts_product_id")
+  @@map("carts")
+}
+
+// ============================================
+// Ecommerce - Coupon & Reviews & Shipping
+// ============================================
+
+model Coupon {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String      @unique @db.VarChar(50)
+  name            String      @db.VarChar(255)
+  description     String?     @db.Text
+  type            String      @default("fixed_amount") @db.VarChar(20)
+  value           Decimal     @db.Decimal(15, 2)
+  min_order_value Decimal     @default(0) @db.Decimal(15, 2)
+  max_discount    Decimal?    @db.Decimal(15, 2)
+  start_date      DateTime?   @db.DateTime(0)
+  end_date        DateTime?   @db.DateTime(0)
+  usage_limit     Int?
+  used_count      Int         @default(0)
+  status          BasicStatus @default(active)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  usages CouponUsage[]
+
+  @@index([code], map: "idx_coupons_code")
+  @@index([status], map: "idx_coupons_status")
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id              BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  coupon_id       BigInt   @db.UnsignedBigInt
+  user_id         BigInt?  @db.UnsignedBigInt
+  order_id        BigInt?  @db.UnsignedBigInt
+  discount_amount Decimal  @db.Decimal(15, 2)
+  created_at      DateTime @default(now()) @db.DateTime(0)
+
+  coupon Coupon @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
+
+  @@index([coupon_id], map: "idx_coupon_usages_coupon_id")
+  @@index([user_id], map: "idx_coupon_usages_user_id")
+  @@map("coupon_usages")
+}
+
+model ProductReview {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id      BigInt      @db.UnsignedBigInt
+  user_id         BigInt?     @db.UnsignedBigInt
+  customer_name   String?     @db.VarChar(255)
+  customer_email  String?     @db.VarChar(255)
+  rating          Int         @db.UnsignedTinyInt
+  comment         String?     @db.Text
+  status          BasicStatus @default(active)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([product_id], map: "idx_product_reviews_product_id")
+  @@index([status], map: "idx_product_reviews_status")
+  @@map("product_reviews")
+}
+
+model ShippingMethod {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String      @db.VarChar(255)
+  code            String      @unique @db.VarChar(50)
+  description     String?     @db.Text
+  price           Decimal     @default(0) @db.Decimal(15, 2)
+  status          BasicStatus @default(active)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  @@index([status], map: "idx_shipping_methods_status")
+  @@map("shipping_methods")
+}
+
+// ============================================
+// Ecommerce - Warehouse
+// ============================================
+
+model Warehouse {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String      @db.VarChar(255)
+  code            String      @unique @db.VarChar(100)
+  address         String?     @db.Text
+  contact_name    String?     @db.VarChar(255)
+  contact_phone   String?     @db.VarChar(20)
+  status          BasicStatus @default(active)
+  created_user_id BigInt?     @db.UnsignedBigInt
+  updated_user_id BigInt?     @db.UnsignedBigInt
+  created_at      DateTime    @default(now()) @db.DateTime(0)
+  updated_at      DateTime    @updatedAt @db.DateTime(0)
+  deleted_at      DateTime?   @db.DateTime(0)
+
+  inventory WarehouseInventory[]
+
+  @@index([code], map: "idx_warehouses_code")
+  @@map("warehouses")
+}
+
+model WarehouseInventory {
+  id                 BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  warehouse_id       BigInt   @db.UnsignedBigInt
+  product_id         BigInt   @db.UnsignedBigInt
+  product_variant_id BigInt?  @db.UnsignedBigInt
+  quantity           Int      @default(0)
+  min_quantity       Int      @default(0)
+  created_user_id    BigInt?  @db.UnsignedBigInt
+  updated_user_id    BigInt?  @db.UnsignedBigInt
+  created_at         DateTime @default(now()) @db.DateTime(0)
+  updated_at         DateTime @updatedAt @db.DateTime(0)
+
+  warehouse Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Cascade)
+
+  @@unique([warehouse_id, product_id, product_variant_id], map: "uk_warehouse_product_variant")
+  @@index([warehouse_id], map: "idx_wi_warehouse_id")
+  @@index([product_id], map: "idx_wi_product_id")
+  @@map("warehouse_inventory")
+}
+
+model StockTransfer {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  from_warehouse_id  BigInt?   @db.UnsignedBigInt
+  to_warehouse_id    BigInt    @db.UnsignedBigInt
+  product_id         BigInt    @db.UnsignedBigInt
+  product_variant_id BigInt?   @db.UnsignedBigInt
+  quantity           Int
+  status             String    @default("pending") @db.VarChar(50)
+  notes              String?   @db.Text
+  created_user_id    BigInt?   @db.UnsignedBigInt
+  updated_user_id    BigInt?   @db.UnsignedBigInt
+  created_at         DateTime  @default(now()) @db.DateTime(0)
+  updated_at         DateTime  @updatedAt @db.DateTime(0)
+  deleted_at         DateTime? @db.DateTime(0)
+
+  @@index([from_warehouse_id], map: "idx_st_from")
+  @@index([to_warehouse_id], map: "idx_st_to")
+  @@index([product_id], map: "idx_st_product")
+  @@map("stock_transfers")
+}
+
+// ============================================
+// Ecommerce - Payment & Order (Relations)
+// ============================================
+
 model PaymentMethod {
   id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
   name            String      @db.VarChar(255)
@@ -1003,7 +1401,7 @@ model PaymentMethod {
   updated_at      DateTime    @updatedAt @db.DateTime(0)
   deleted_at      DateTime?   @db.DateTime(0)
 
-  payments        Payment[]
+  payments Payment[]
 
   @@index([status], map: "idx_payment_methods_status")
   @@index([type], map: "idx_payment_methods_type")
@@ -1066,8 +1464,8 @@ model Order {
   updated_at         DateTime       @updatedAt @db.DateTime(0)
   deleted_at         DateTime?      @db.DateTime(0)
 
-  items              OrderItem[]
-  payments           Payment[]
+  items    OrderItem[]
+  payments Payment[]
 
   @@index([user_id], map: "idx_orders_user_id")
   @@index([status], map: "idx_orders_status")
@@ -1091,7 +1489,9 @@ model OrderItem {
   created_at         DateTime @default(now()) @db.DateTime(0)
   updated_at         DateTime @updatedAt @db.DateTime(0)
 
-  order              Order    @relation(fields: [order_id], references: [id], onDelete: Restrict)
+  order   Order           @relation(fields: [order_id], references: [id], onDelete: Restrict)
+  product Product         @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [product_variant_id], references: [id], onDelete: SetNull)
 
   @@index([order_id], map: "idx_order_items_order_id")
   @@index([product_id], map: "idx_order_items_product_id")
@@ -1121,8 +1521,8 @@ model Payment {
   created_at          DateTime      @default(now()) @db.DateTime(0)
   updated_at          DateTime      @updatedAt @db.DateTime(0)
 
-  order               Order         @relation(fields: [order_id], references: [id], onDelete: Restrict)
-  payment_method      PaymentMethod @relation(fields: [payment_method_id], references: [id], onDelete: Restrict)
+  order          Order         @relation(fields: [order_id], references: [id], onDelete: Restrict)
+  payment_method PaymentMethod @relation(fields: [payment_method_id], references: [id], onDelete: Restrict)
 
   @@index([order_id], map: "idx_payments_order_id")
   @@index([payment_method_id], map: "idx_payments_method_id")
