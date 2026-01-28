@@ -29,6 +29,15 @@ export class AdminProductAttributeValueService extends BaseService<ProductAttrib
       payload.product_attribute_id = BigInt(payload.attribute_id);
       delete payload.attribute_id;
     }
+    // Remove product_variant_id as it's not a field of ProductAttributeValue
+    // product_variant_id belongs to ProductVariantAttribute (junction table)
+    if (payload.product_variant_id !== undefined) {
+      delete payload.product_variant_id;
+    }
+    // If label is not provided, use value as label
+    if (!payload.label && payload.value) {
+      payload.label = payload.value;
+    }
     return payload;
   }
 
@@ -37,6 +46,11 @@ export class AdminProductAttributeValueService extends BaseService<ProductAttrib
     if (payload.attribute_id) {
       payload.product_attribute_id = BigInt(payload.attribute_id);
       delete payload.attribute_id;
+    }
+    // Remove product_variant_id as it's not a field of ProductAttributeValue
+    // product_variant_id belongs to ProductVariantAttribute (junction table)
+    if (payload.product_variant_id !== undefined) {
+      delete payload.product_variant_id;
     }
     return payload;
   }

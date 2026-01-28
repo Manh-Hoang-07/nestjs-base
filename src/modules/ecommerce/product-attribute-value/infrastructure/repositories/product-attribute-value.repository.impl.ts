@@ -14,6 +14,16 @@ export class ProductAttributeValueRepositoryImpl extends PrismaRepository<
 > implements IProductAttributeValueRepository {
     constructor(private readonly prisma: PrismaService) {
         super(prisma.productAttributeValue as any);
+        this.defaultInclude = {
+            attribute: {
+                select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                    type: true,
+                }
+            }
+        };
     }
 
     protected buildWhere(filter: ProductAttributeValueFilter): Prisma.ProductAttributeValueWhereInput {

@@ -9,6 +9,7 @@ import {
   Query,
   ValidationPipe,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
 import { RbacGuard } from '@/common/auth/guards/rbac.guard';
@@ -29,9 +30,18 @@ export class AdminProductAttributeController {
     return this.productAttributeService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('product_attribute.manage')
+  async getSimpleList(@Query() query: any) {
+    return this.productAttributeService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('product_attribute.manage')
   async getOne(@Param('id') id: string) {
+    if (!/^\d+$/.test(id)) {
+      throw new BadRequestException(`Invalid ID format: ${id}. ID must be a number.`);
+    }
     return this.productAttributeService.getOne(id);
   }
 
@@ -49,6 +59,9 @@ export class AdminProductAttributeController {
     @Param('id') id: string,
     @Body(ValidationPipe) dto: UpdateProductAttributeDto,
   ) {
+    if (!/^\d+$/.test(id)) {
+      throw new BadRequestException(`Invalid ID format: ${id}. ID must be a number.`);
+    }
     return this.productAttributeService.update(id, dto);
   }
 
@@ -56,6 +69,9 @@ export class AdminProductAttributeController {
   @Delete(':id')
   @Permission('product_attribute.manage')
   async delete(@Param('id') id: string) {
+    if (!/^\d+$/.test(id)) {
+      throw new BadRequestException(`Invalid ID format: ${id}. ID must be a number.`);
+    }
     return this.productAttributeService.delete(id);
   }
 }

@@ -54,11 +54,25 @@ export abstract class PrismaRepository<
      */
     protected toPrimaryKey(id: string | number | bigint): any {
         if (typeof id === 'bigint') return id;
-        try {
-            return BigInt(id);
-        } catch {
-            return id;
+        if (typeof id === 'number') {
+            try {
+                return BigInt(id);
+            } catch {
+                return id;
+            }
         }
+        // For string, validate it's a valid number string
+        if (typeof id === 'string') {
+            if (!/^\d+$/.test(id)) {
+                throw new Error(`Invalid ID format: ${id}. Expected a numeric string.`);
+            }
+            try {
+                return BigInt(id);
+            } catch {
+                throw new Error(`Invalid ID format: ${id}. Cannot convert to BigInt.`);
+            }
+        }
+        return id;
     }
 
     async findAll(options: IPaginationOptions = {}): Promise<IPaginatedResult<Model>> {
