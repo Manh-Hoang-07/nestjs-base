@@ -62,6 +62,9 @@ export class AdminProductService extends BaseService<Product, IProductRepository
     }
 
     // Tách category_ids ra để xử lý sau (afterCreate)
+    if ((payload as any).category_ids !== undefined) {
+      delete (payload as any).category_ids;
+    }
     return payload;
   }
 
@@ -100,6 +103,12 @@ export class AdminProductService extends BaseService<Product, IProductRepository
       }
     }
 
+    // category_ids là field “ảo” để sync quan hệ m-m, không phải cột của Product
+    // (xử lý trong afterUpdate thông qua this.productRepository.syncCategories)
+    if ((payload as any).category_ids !== undefined) {
+      delete (payload as any).category_ids;
+    }
+
     return payload;
   }
 
@@ -130,5 +139,34 @@ export class AdminProductService extends BaseService<Product, IProductRepository
       verifyGroupOwnership(entity);
     }
     return true;
+  }
+
+  /**
+   * Transform entity để flatten categories và thêm product_category_ids
+   */
+  protected override transform(entity: any): any {
+    if (!entity) return null;
+
+    // Gọi transform của parent để xử lý BigInt
+    const baseTransformed = super.transform(entity as any) as any;
+    if (!baseTransformed) return null;
+
+    const transformed: any = { ...baseTransformed };
+
+    // Transform categories từ nested structure sang flat array
+    if (transformed.categories && Array.isArray(transformed.categories)) {
+      // Flatten: từ [{ category: {...} }] sang [{...}]
+      transformed.categories = transformed.categories
+        .map((item: any) => item?.category)
+        .filter(Boolean);
+      
+      // Thêm product_category_ids (đã được convert BigInt sang number bởi parent transform)
+      transformed.product_category_ids = transformed.categories.map((cat: any) => cat.id);
+    } else {
+      transformed.categories = [];
+      transformed.product_category_ids = [];
+    }
+
+    return transformed;
   }
 }
