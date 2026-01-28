@@ -4,6 +4,17 @@ export interface IPaginationOptions {
     page?: number;
     limit?: number;
     sort?: string;
+    /**
+     * Optional response formatting hint (forwarded from query via prepareQuery)
+     * Example: ?format=simple
+     */
+    format?: string;
+    /**
+     * Prisma-specific overrides (supported by PrismaRepository)
+     * If `select` is provided, `include` will be ignored to satisfy Prisma constraints.
+     */
+    select?: any;
+    include?: any;
     // Generic filter object, implementation specific but kept abstract here
     filter?: Record<string, any>;
 }

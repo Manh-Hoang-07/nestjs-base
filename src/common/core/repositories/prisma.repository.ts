@@ -87,14 +87,35 @@ export abstract class PrismaRepository<
         }
         const orderBy = this.parseSort(sort);
 
+        // Prisma doesn't allow using both select and include at the same time.
+        // Precedence:
+        // - if request provides `select` -> use select
+        // - else if request provides `include` -> use include (and ignore defaultSelect)
+        // - else use defaults
+        const hasRequestSelect = Object.prototype.hasOwnProperty.call(options as any, 'select');
+        const hasRequestInclude = Object.prototype.hasOwnProperty.call(options as any, 'include');
+        const requestSelect = (options as any).select;
+        const requestInclude = (options as any).include;
+
+        const effectiveSelect =
+            hasRequestSelect ? requestSelect
+                : hasRequestInclude ? undefined
+                    : this.defaultSelect;
+
+        const effectiveInclude =
+            hasRequestInclude ? requestInclude : this.defaultInclude;
+
+        const select = effectiveSelect ? effectiveSelect : undefined;
+        const include = !select && effectiveInclude ? effectiveInclude : undefined;
+
         const [data, total] = await Promise.all([
             this.delegate.findMany({
                 where,
                 orderBy,
                 skip: (page - 1) * limit,
                 take: limit,
-                select: this.defaultSelect,
-                include: this.defaultInclude,
+                select,
+                include,
             }),
             this.delegate.count({ where }),
         ]);
@@ -106,18 +127,22 @@ export abstract class PrismaRepository<
     }
 
     async findById(id: string | number | bigint): Promise<Model | null> {
+        const select = this.defaultSelect ? this.defaultSelect : undefined;
+        const include = !select && this.defaultInclude ? this.defaultInclude : undefined;
         return this.delegate.findFirst({
             where: { id: this.toPrimaryKey(id) } as any,
-            select: this.defaultSelect,
-            include: this.defaultInclude,
+            select,
+            include,
         });
     }
 
     async findManyByIds(ids: (string | number | bigint)[]): Promise<Model[]> {
+        const select = this.defaultSelect ? this.defaultSelect : undefined;
+        const include = !select && this.defaultInclude ? this.defaultInclude : undefined;
         return this.delegate.findMany({
             where: { id: { in: ids.map(id => this.toPrimaryKey(id)) } } as any,
-            select: this.defaultSelect,
-            include: this.defaultInclude,
+            select,
+            include,
         });
     }
 
@@ -126,10 +151,12 @@ export abstract class PrismaRepository<
         if (this.isSoftDelete) {
             where.deleted_at = null;
         }
+        const select = this.defaultSelect ? this.defaultSelect : undefined;
+        const include = !select && this.defaultInclude ? this.defaultInclude : undefined;
         return this.delegate.findFirst({
             where,
-            select: this.defaultSelect,
-            include: this.defaultInclude,
+            select,
+            include,
         });
     }
 
@@ -140,13 +167,29 @@ export abstract class PrismaRepository<
         }
         const orderBy = options.sort ? this.parseSort(options.sort) : undefined;
 
+        const hasRequestSelect = Object.prototype.hasOwnProperty.call(options as any, 'select');
+        const hasRequestInclude = Object.prototype.hasOwnProperty.call(options as any, 'include');
+        const requestSelect = (options as any).select;
+        const requestInclude = (options as any).include;
+
+        const effectiveSelect =
+            hasRequestSelect ? requestSelect
+                : hasRequestInclude ? undefined
+                    : this.defaultSelect;
+
+        const effectiveInclude =
+            hasRequestInclude ? requestInclude : this.defaultInclude;
+
+        const select = effectiveSelect ? effectiveSelect : undefined;
+        const include = !select && effectiveInclude ? effectiveInclude : undefined;
+
         return this.delegate.findMany({
             where,
             orderBy,
             take: options.limit,
             skip: options.page && options.limit ? (options.page - 1) * options.limit : undefined,
-            select: this.defaultSelect,
-            include: this.defaultInclude,
+            select,
+            include,
         });
     }
 

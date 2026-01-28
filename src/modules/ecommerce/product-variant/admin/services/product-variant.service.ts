@@ -51,4 +51,87 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
     // Placeholder implementation
     return this.getList({ product_id: productId });
   }
+
+  /**
+   * FE-friendly minimal payload (no nested attributes)
+   */
+  getSimpleSelect() {
+    return {
+      id: true,
+      product_id: true,
+      name: true,
+      sku: true,
+      price: true,
+      sale_price: true,
+      stock_quantity: true,
+      image: true,
+      is_active: true,
+      created_at: true,
+      updated_at: true,
+    };
+  }
+
+  /**
+   * Default payload: includes a lightweight attribute summary so FE can identify the variant.
+   */
+  getDefaultSelect() {
+    return {
+      ...this.getSimpleSelect(),
+      attributes: {
+        select: {
+          id: true,
+          product_attribute_id: true,
+          product_attribute_value_id: true,
+        },
+      },
+    };
+  }
+
+  getAttributesInclude() {
+    return {
+      attributes: {
+        include: {
+          attribute_value: {
+            include: {
+              attribute: true,
+            },
+          },
+        },
+      },
+    };
+  }
+
+  override async getOne(id: string | number | bigint, options: any = {}): Promise<any> {
+    const includeAttributes = options?.include_attributes === true || options?.include_attributes === 'true';
+
+    const entity = await this.repository.findFirstRaw({
+      where: { id } as any,
+      ...(includeAttributes
+        ? { include: this.getAttributesInclude() }
+        : { select: this.getDefaultSelect() }),
+    });
+
+    if (!entity) {
+      throw new NotFoundException(`Product Variant with ID ${id} not found`);
+    }
+
+    return entity;
+  }
+
+  async getBySku(sku: string, options: any = {}): Promise<any> {
+    const includeAttributes = options?.include_attributes === true || options?.include_attributes === 'true';
+
+    const entity = await this.repository.findFirstRaw({
+      where: { sku, deleted_at: null } as any,
+      ...(includeAttributes
+        ? { include: this.getAttributesInclude() }
+        : { select: this.getDefaultSelect() }),
+    });
+
+    if (!entity) {
+      throw new NotFoundException(`Product Variant with SKU ${sku} not found`);
+    }
+
+    return entity;
+  }
 }

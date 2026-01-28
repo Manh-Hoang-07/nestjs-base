@@ -30,21 +30,38 @@ export class AdminProductVariantController {
   @Permission('product_variant.manage')
   async getList(@Query(ValidationPipe) query: any) {
     const { filter, options } = prepareQuery(query);
-    return this.productVariantService.getList({ ...filter, ...options });
+    const includeAttributes = query?.include_attributes === 'true' || query?.include_attributes === true;
+    return this.productVariantService.getList({
+      ...filter,
+      ...options,
+      ...(includeAttributes
+        ? { include: this.productVariantService.getAttributesInclude() }
+        : { select: this.productVariantService.getDefaultSelect() }),
+    });
   }
 
   @Get('simple')
   @Permission('product_variant.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
     const { filter, options } = prepareQuery(query);
-    return this.productVariantService.getList({ ...filter, ...options });
+    return this.productVariantService.getList({ ...filter, ...options, select: this.productVariantService.getSimpleSelect() });
   }
 
   @Get('product/:productId')
   @Permission('product_variant.manage')
-  async getByProduct(@Param('productId', ParseIntPipe) productId: number) {
+  async getByProduct(
+    @Param('productId', ParseIntPipe) productId: number,
+    @Query('include_attributes') includeAttributes?: string,
+  ) {
     return this.productVariantService.getList(
-      { product_id: productId, sort: 'created_at:DESC', limit: 1000 }
+      {
+        product_id: productId,
+        sort: 'created_at:DESC',
+        limit: 1000,
+        ...(includeAttributes === 'true'
+          ? { include: this.productVariantService.getAttributesInclude() }
+          : { select: this.productVariantService.getDefaultSelect() }),
+      }
     );
   }
 
@@ -56,14 +73,20 @@ export class AdminProductVariantController {
 
   @Get('sku/:sku')
   @Permission('product_variant.manage')
-  async getBySku(@Param('sku') sku: string) {
-    return this.productVariantService.getOne({ sku } as any);
+  async getBySku(
+    @Param('sku') sku: string,
+    @Query('include_attributes') includeAttributes?: string,
+  ) {
+    return this.productVariantService.getBySku(sku, { include_attributes: includeAttributes === 'true' });
   }
 
   @Get(':id')
   @Permission('product_variant.manage')
-  async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productVariantService.getOne(id);
+  async getOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('include_attributes') includeAttributes?: string,
+  ) {
+    return this.productVariantService.getOne(id, { include_attributes: includeAttributes === 'true' });
   }
 
   @LogRequest()

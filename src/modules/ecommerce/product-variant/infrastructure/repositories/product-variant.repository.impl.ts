@@ -26,15 +26,6 @@ export class ProductVariantRepositoryImpl extends PrismaRepository<
             is_active: true,
             created_at: true,
             updated_at: true,
-            attributes: {
-                include: {
-                    attribute_value: {
-                        include: {
-                            attribute: true
-                        }
-                    }
-                }
-            }
         };
     }
 
