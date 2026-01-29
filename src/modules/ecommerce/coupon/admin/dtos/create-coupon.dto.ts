@@ -10,7 +10,7 @@ import {
   Max,
   MaxLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export enum CouponType {
   FIXED_AMOUNT = 'fixed_amount',
@@ -32,38 +32,48 @@ export class CreateCouponDto {
   description?: string;
 
   @IsEnum(CouponType)
+  @Transform(({ value }) => value === 'percent' ? CouponType.PERCENTAGE : value)
   type: CouponType;
 
   @IsNumber()
   @Min(0)
+  @Type(() => Number)
   value: number;
 
   @IsNumber()
   @Min(0)
+  @Type(() => Number)
   min_order_value: number;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  max_discount_amount?: number;
+  @Type(() => Number)
+  max_discount?: number;
 
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Type(() => Number)
   usage_limit?: number;
 
   @IsNumber()
   @Min(1)
   @Max(100)
+  @Type(() => Number)
   usage_per_customer: number;
 
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsDate()
   @Type(() => Date)
-  start_date: Date;
+  start_date?: Date;
 
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsDate()
   @Type(() => Date)
-  end_date: Date;
+  end_date?: Date;
 
   @IsOptional()
   @IsArray()
