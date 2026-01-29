@@ -17,7 +17,7 @@ import { RedisUtil } from '@/core/utils/redis.util';
         return {
           throttlers: [{
             ttl: 60000, // 60 seconds = 1 phút
-            limit: 50, // Default limit: 50 request mỗi phút cho mỗi IP
+            limit: 100, // Default limit: 50 request mỗi phút cho mỗi IP
           }],
           storage,
         };

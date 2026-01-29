@@ -1,5 +1,14 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, Min, MaxLength, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean, Min, MaxLength, IsEnum, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { BasicStatus } from '@/shared/enums';
+
+class VariantAttributeDto {
+  @IsNumber()
+  attribute_id: number;
+
+  @IsNumber()
+  value_id: number;
+}
 
 export class CreateProductVariantDto {
   @IsNumber()
@@ -45,4 +54,11 @@ export class CreateProductVariantDto {
   @IsEnum(BasicStatus)
   @IsOptional()
   status?: BasicStatus = BasicStatus.active;
+
+  // Danh sách thuộc tính của biến thể (attribute/value đã chọn)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VariantAttributeDto)
+  attributes?: VariantAttributeDto[];
 }
