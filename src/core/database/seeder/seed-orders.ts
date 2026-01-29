@@ -5,7 +5,7 @@ import { PrismaService } from '@/core/database/prisma/prisma.service';
 export class SeedOrders {
   private readonly logger = new Logger(SeedOrders.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async seed(): Promise<void> {
     this.logger.log('Seeding orders (orders, items, payments, tracking)...');
@@ -81,11 +81,11 @@ export class SeedOrders {
         const attrs =
           Array.isArray(v.attributes) && v.attributes.length
             ? v.attributes.map((a: any) => ({
-                attribute_id: a.product_attribute_id,
-                value_id: a.product_attribute_value_id,
-                label: a.attribute_value?.label,
-                value: a.attribute_value?.value,
-              }))
+              attribute_id: a.product_attribute_id,
+              value_id: a.product_attribute_value_id,
+              label: a.attribute_value?.label,
+              value: a.attribute_value?.value,
+            }))
             : null;
 
         items.push({
@@ -115,15 +115,12 @@ export class SeedOrders {
       const order = await this.prisma.order.create({
         data: {
           order_number: orderNumber,
-          user_id: user ? user.id : null,
           session_token: user ? null : `seed-session-${orderNumber}`,
           customer_name: user?.name ?? address.name,
           customer_email: user?.email ?? address.email,
           customer_phone: user?.phone ?? address.phone,
           shipping_address: address as any,
           billing_address: address as any,
-          shipping_method_id: isDigitalOrder ? null : shippingMethodId,
-          payment_method_id: paymentMethod.id,
           order_type: isDigitalOrder ? 'digital' : 'physical',
           status: isDigitalOrder && paymentStatus === 'completed' ? 'delivered' : 'pending',
           payment_status: paymentStatus as any,
@@ -137,6 +134,9 @@ export class SeedOrders {
           notes: i % 5 === 0 ? 'Ghi chú đơn hàng seed' : null,
           created_at: createdAt as any,
           updated_at: createdAt as any,
+          user: user ? { connect: { id: user.id } } : undefined,
+          shipping_method: isDigitalOrder || !shippingMethodId ? undefined : { connect: { id: shippingMethodId } },
+          payment_method: { connect: { id: paymentMethod.id } },
         } as any,
       });
 

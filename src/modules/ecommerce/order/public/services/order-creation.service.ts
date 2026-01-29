@@ -30,7 +30,7 @@ export class OrderCreationService {
       orderType: string;
     },
   ): Promise<any> {
-    const orderData: Prisma.OrderCreateInput = {
+    const orderData: any = {
       order_number: this.generateOrderNumber(),
       customer_name: data.customerName,
       customer_email: data.customerEmail,
@@ -47,10 +47,16 @@ export class OrderCreationService {
       billing_address: data.billingAddress
         ? JSON.stringify(data.billingAddress)
         : JSON.stringify(data.shippingAddress),
-      shipping_method_id: data.shippingMethodId ? BigInt(data.shippingMethodId) : null,
-      payment_method_id: data.paymentMethodId ? BigInt(data.paymentMethodId) : null,
+      shipping_method: data.shippingMethodId
+        ? { connect: { id: BigInt(data.shippingMethodId) } }
+        : undefined,
+      payment_method: data.paymentMethodId
+        ? { connect: { id: BigInt(data.paymentMethodId) } }
+        : undefined,
       notes: data.notes || null,
-      user_id: data.userId ? BigInt(data.userId) : null,
+      user: data.userId
+        ? { connect: { id: BigInt(data.userId) } }
+        : undefined,
       session_token: null,
     };
 

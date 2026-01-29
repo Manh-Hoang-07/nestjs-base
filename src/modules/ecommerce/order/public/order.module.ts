@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PublicOrderController } from './controllers/order.controller';
+import { OrderConstantsController } from './controllers/order-constants.controller';
 import { PublicOrderService } from './services/order.service';
 import { OrderAutomationService } from './services/order-automation.service';
 import { OrderValidationService } from './services/order-validation.service';
@@ -24,7 +25,7 @@ import { ShippingMethodRepositoryModule } from '../../shipping-method/shipping-m
     AppMailModule,
     PublicPaymentModule,
   ],
-  controllers: [PublicOrderController],
+  controllers: [PublicOrderController, OrderConstantsController],
   providers: [
     PublicOrderService,
     OrderAutomationService,

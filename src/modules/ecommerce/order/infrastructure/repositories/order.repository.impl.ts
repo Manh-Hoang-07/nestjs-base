@@ -41,6 +41,14 @@ export class OrderRepositoryImpl extends PrismaRepository<
             delivered_at: true,
             created_at: true,
             updated_at: true,
+            shipping_method_id: true,
+            payment_method_id: true,
+            shipping_method: {
+                select: { name: true, code: true, price: true }
+            },
+            payment_method: {
+                select: { name: true, code: true, type: true }
+            },
             items: {
                 include: {
                     product: { select: { name: true, image: true } },

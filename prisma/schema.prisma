@@ -58,6 +58,7 @@ model User {
   user_role_assignments UserRoleAssignment[]
   notifications         Notification[]
   post_comments         PostComment[]
+  orders               Order[]
 
   @@index([deleted_at], map: "idx_deleted_at")
   @@map("users")
@@ -1327,6 +1328,8 @@ model ShippingMethod {
 
   @@index([status], map: "idx_shipping_methods_status")
   @@map("shipping_methods")
+
+  orders Order[]
 }
 
 // ============================================
@@ -1429,6 +1432,8 @@ model PaymentMethod {
   @@index([type], map: "idx_payment_methods_type")
   @@index([deleted_at], map: "idx_deleted_at")
   @@map("payment_methods")
+
+  orders Order[]
 }
 
 enum OrderStatus {
@@ -1489,6 +1494,9 @@ model Order {
   items            OrderItem[]
   payments         Payment[]
   tracking_history TrackingHistory[]
+  shipping_method  ShippingMethod? @relation(fields: [shipping_method_id], references: [id], onDelete: SetNull)
+  payment_method   PaymentMethod?  @relation(fields: [payment_method_id], references: [id], onDelete: SetNull)
+  user             User?           @relation(fields: [user_id], references: [id], onDelete: SetNull)
 
   @@index([user_id], map: "idx_orders_user_id")
   @@index([status], map: "idx_orders_status")

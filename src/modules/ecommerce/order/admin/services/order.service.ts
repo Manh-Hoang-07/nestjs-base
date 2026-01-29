@@ -6,6 +6,11 @@ import { UpdateOrderStatusDto } from '../dtos/update-order-status.dto';
 import { UpdateOrderDto } from '../dtos/update-order.dto';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
 import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import {
+  getOrderStatusMetadata,
+  getPaymentStatusMetadata,
+  getShippingStatusMetadata
+} from '../../utils/order-status.config';
 
 @Injectable()
 export class AdminOrderService extends BaseService<Order, IOrderRepository> {
@@ -21,7 +26,16 @@ export class AdminOrderService extends BaseService<Order, IOrderRepository> {
   }
 
   async getOrderById(id: string | number | bigint) {
-    return this.getOne(id);
+    const order = await this.getOne(id);
+
+    // Add status metadata
+    return {
+      ...order,
+      available_statuses: getOrderStatusMetadata(order.status).availableTransitions,
+      all_order_statuses: getOrderStatusMetadata(order.status).allStatuses,
+      all_payment_statuses: getPaymentStatusMetadata().allStatuses,
+      all_shipping_statuses: getShippingStatusMetadata().allStatuses,
+    };
   }
 
   async softDelete(id: string | number | bigint) {
