@@ -21,6 +21,8 @@ import { SeedFaqs } from '@/core/database/seeder/seed-faqs';
 import { SeedPosts } from '@/core/database/seeder/seed-posts';
 import { SeedContentTemplates } from '@/core/database/seeder/seed-content-templates';
 import { SeedEcommerce } from '@/core/database/seeder/seed-ecommerce';
+import { SeedWarehouseInventory } from '@/core/database/seeder/seed-warehouse-inventory';
+import { SeedOrders } from '@/core/database/seeder/seed-orders';
 
 @Injectable()
 export class SeedService {
@@ -40,6 +42,8 @@ export class SeedService {
     private readonly seedGroups: SeedGroups,
     private readonly seedContentTemplates: SeedContentTemplates,
     private readonly seedEcommerce: SeedEcommerce,
+    private readonly seedWarehouseInventory: SeedWarehouseInventory,
+    private readonly seedOrders: SeedOrders,
     // Introduction Seeders
     private readonly seedProjects: SeedProjects,
     private readonly seedAboutSections: SeedAboutSections,
@@ -98,6 +102,12 @@ export class SeedService {
 
       // Ecommerce (products, categories, variants, attributes, coupons, shipping, payment)
       await this.seedEcommerce.seed();
+
+      // Ecommerce - Warehouse & Inventory (tồn kho)
+      await this.seedWarehouseInventory.seed();
+
+      // Ecommerce - Orders (đơn hàng)
+      await this.seedOrders.seed();
 
       this.logger.log('Database seeding completed successfully');
     } catch (error) {
@@ -158,6 +168,15 @@ export class SeedService {
       await this.prisma.post.deleteMany({});
       await this.prisma.postTag.deleteMany({});
       await this.prisma.postCategory.deleteMany({});
+
+      // Ecommerce - Orders & Warehouse (clear children -> parents)
+      await this.prisma.trackingHistory.deleteMany({});
+      await this.prisma.payment.deleteMany({});
+      await this.prisma.orderItem.deleteMany({});
+      await this.prisma.order.deleteMany({});
+      await this.prisma.warehouseInventory.deleteMany({});
+      await this.prisma.stockTransfer.deleteMany({});
+      await this.prisma.warehouse.deleteMany({});
 
       this.logger.log('Database cleared successfully');
     } catch (error) {

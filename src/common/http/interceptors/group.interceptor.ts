@@ -34,7 +34,13 @@ export class GroupInterceptor implements NestInterceptor {
     if (groupIdFromHeader || groupIdFromQuery) {
       // Nếu có group_id trong request
       const groupId = Number(groupIdFromHeader || groupIdFromQuery);
-      const group = await this.groupService.findById(groupId);
+      let group: any = null;
+      try {
+        // AdminGroupService.findById() dùng BaseService.getOne() và có thể throw NotFoundException (404)
+        group = await this.groupService.findById(groupId);
+      } catch (e) {
+        group = null;
+      }
 
       if (!group) {
         // ✅ Nếu là public endpoint, không quăng lỗi nếu group không tồn tại

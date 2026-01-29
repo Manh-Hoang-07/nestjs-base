@@ -52,7 +52,13 @@ export abstract class PrismaRepository<
     /**
      * Helper to convert input to primary key type (default BigInt)
      */
-    protected toPrimaryKey(id: string | number | bigint): any {
+    protected toPrimaryKey(id: any): any {
+        // Defensive: some callers accidentally pass `{ id: ... }` instead of the raw PK
+        // which would produce `where: { id: { id: ... } }` and Prisma will throw.
+        if (id && typeof id === 'object' && 'id' in id) {
+            return this.toPrimaryKey((id as any).id);
+        }
+
         if (typeof id === 'bigint') return id;
         if (typeof id === 'number') {
             try {

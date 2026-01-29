@@ -81,6 +81,8 @@ export class SeedPermissions {
       { code: 'payment_method.manage', name: 'Quản lý Phương thức thanh toán', status: 'active', parent_code: null },
       { code: 'coupon.manage', name: 'Quản lý Mã khuyến mãi', status: 'active', parent_code: null },
       { code: 'warehouse.manage', name: 'Quản lý Kho hàng', status: 'active', parent_code: null },
+      { code: 'warehouse_inventory.manage', name: 'Quản lý tồn kho kho hàng', status: 'active', parent_code: 'warehouse.manage' },
+      { code: 'warehouse_transfer.manage', name: 'Quản lý điều chuyển kho', status: 'active', parent_code: 'warehouse.manage' },
     ];
 
     const createdPermissions: Map<string, any> = new Map();
