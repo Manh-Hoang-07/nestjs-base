@@ -1,13 +1,33 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, Min, MaxLength, IsEnum, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, MaxLength, IsEnum, IsArray, ValidateNested, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BasicStatus } from '@/shared/enums';
 
 class VariantAttributeDto {
+  /**
+   * Preferred (current FE contract)
+   */
+  @ValidateIf((o) => o.attribute_id === undefined)
   @IsNumber()
-  attribute_id: number;
+  @Type(() => Number)
+  product_attribute_id?: number;
 
+  @ValidateIf((o) => o.value_id === undefined)
   @IsNumber()
-  value_id: number;
+  @Type(() => Number)
+  product_attribute_value_id?: number;
+
+  /**
+   * Backward compatibility (older contract)
+   */
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  attribute_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  value_id?: number;
 }
 
 export class CreateProductVariantDto {

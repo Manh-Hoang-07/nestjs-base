@@ -57,15 +57,29 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
   }
 
   protected override async afterCreate(entity: ProductVariant, data: CreateProductVariantDto): Promise<void> {
-    const attrs = (data as any).attributes as { attribute_id: number; value_id: number }[] | undefined;
+    const attrs = (data as any).attributes as
+      | {
+          product_attribute_id?: number;
+          product_attribute_value_id?: number;
+          attribute_id?: number;
+          value_id?: number;
+        }[]
+      | undefined;
     if (!attrs || !Array.isArray(attrs) || attrs.length === 0) return;
 
     await this.prisma.productVariantAttribute.createMany({
-      data: attrs.map((a) => ({
-        product_variant_id: entity.id,
-        product_attribute_id: BigInt(a.attribute_id),
-        product_attribute_value_id: BigInt(a.value_id),
-      })),
+      data: attrs
+        .map((a) => {
+          const attributeId = a.product_attribute_id ?? a.attribute_id;
+          const valueId = a.product_attribute_value_id ?? a.value_id;
+          if (attributeId === undefined || valueId === undefined) return null;
+          return {
+            product_variant_id: entity.id,
+            product_attribute_id: BigInt(attributeId),
+            product_attribute_value_id: BigInt(valueId),
+          };
+        })
+        .filter(Boolean) as any[],
       skipDuplicates: true,
     });
   }
@@ -115,7 +129,14 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
   }
 
   protected override async afterUpdate(entity: ProductVariant, data: UpdateProductVariantDto): Promise<void> {
-    const attrs = (data as any).attributes as { attribute_id: number; value_id: number }[] | undefined;
+    const attrs = (data as any).attributes as
+      | {
+          product_attribute_id?: number;
+          product_attribute_value_id?: number;
+          attribute_id?: number;
+          value_id?: number;
+        }[]
+      | undefined;
 
     // Nếu FE không gửi attributes thì không động vào bảng junction (giữ nguyên)
     if (!Array.isArray(attrs)) {
@@ -132,11 +153,18 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
     }
 
     await this.prisma.productVariantAttribute.createMany({
-      data: attrs.map((a) => ({
-        product_variant_id: entity.id,
-        product_attribute_id: BigInt(a.attribute_id),
-        product_attribute_value_id: BigInt(a.value_id),
-      })),
+      data: attrs
+        .map((a) => {
+          const attributeId = a.product_attribute_id ?? a.attribute_id;
+          const valueId = a.product_attribute_value_id ?? a.value_id;
+          if (attributeId === undefined || valueId === undefined) return null;
+          return {
+            product_variant_id: entity.id,
+            product_attribute_id: BigInt(attributeId),
+            product_attribute_value_id: BigInt(valueId),
+          };
+        })
+        .filter(Boolean) as any[],
       skipDuplicates: true,
     });
   }
