@@ -1064,6 +1064,7 @@ model Product {
   reviews     ProductReview[]
   carts       Cart[]
   order_items OrderItem[]
+  inventory   WarehouseInventory[]
 
   @@index([name], map: "idx_products_name")
   @@index([status], map: "idx_products_status")
@@ -1109,6 +1110,7 @@ model ProductVariant {
   attributes  ProductVariantAttribute[]
   carts       Cart[]
   order_items OrderItem[]
+  inventory   WarehouseInventory[]
 
   @@index([product_id], map: "idx_product_variants_product_id")
   @@index([sku], map: "idx_product_variants_sku")
@@ -1372,6 +1374,8 @@ model WarehouseInventory {
   updated_at         DateTime @updatedAt @db.DateTime(0)
 
   warehouse Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  variant   ProductVariant? @relation(fields: [product_variant_id], references: [id], onDelete: SetNull)
 
   @@unique([warehouse_id, product_id, product_variant_id], map: "uk_warehouse_product_variant")
   @@index([warehouse_id], map: "idx_wi_warehouse_id")

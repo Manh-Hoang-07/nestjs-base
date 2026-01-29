@@ -84,13 +84,47 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     return this.delete(id);
   }
 
-  async getWarehouseInventory(warehouseId: number, filter?: any): Promise<any> {
-    // Placeholder implementation
-    return [];
+  async getWarehouseInventory(warehouseId: number, options: any = {}): Promise<any> {
+    const { page, limit, sort, ...filter } = options;
+
+    return this.inventoryRepository.findAll({
+      page,
+      limit,
+      sort,
+      filter: {
+        warehouseId,
+        lowStock: filter?.low_stock === 'true' || filter?.low_stock === true,
+      },
+      select: {
+        id: true,
+        warehouse_id: true,
+        product_id: true,
+        product_variant_id: true,
+        quantity: true,
+        min_quantity: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            sku: true,
+            image: true,
+          }
+        },
+        variant: {
+          select: {
+            id: true,
+            name: true,
+            sku: true,
+            price: true,
+            image: true,
+          }
+        }
+      }
+    });
   }
 
   async updateInventoryStock(warehouseId: number, variantId: number, quantity: number, minStock?: number): Promise<any> {
-    // Placeholder implementation
+    await this.inventoryRepository.upsertInventory(warehouseId, variantId, quantity, minStock);
     return { success: true };
   }
 

@@ -16,5 +16,5 @@ export class UpdateInventoryDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  min_stock_level?: number;
+  min_quantity?: number;
 }

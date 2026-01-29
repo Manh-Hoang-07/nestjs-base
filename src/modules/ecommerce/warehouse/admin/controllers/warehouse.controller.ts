@@ -52,9 +52,10 @@ export class AdminWarehouseController {
   @Permission('warehouse_inventory.manage')
   async getInventory(
     @Param('id', ParseIntPipe) id: number,
-    @Query('low_stock') lowStock?: string,
+    @Query(ValidationPipe) query: any,
   ) {
-    return this.warehouseService.getWarehouseInventory(id, { low_stock: lowStock === 'true' });
+    const { filter, options } = prepareQuery(query);
+    return this.warehouseService.getWarehouseInventory(id, { ...filter, ...options });
   }
 
   @LogRequest()
@@ -89,7 +90,7 @@ export class AdminWarehouseController {
       dto.warehouse_id,
       dto.product_variant_id,
       dto.quantity,
-      dto.min_stock_level,
+      dto.min_quantity,
     );
   }
 

@@ -12,4 +12,5 @@ export interface WarehouseInventoryFilter {
 
 export interface IWarehouseInventoryRepository extends IRepository<WarehouseInventory> {
     findByWarehouseAndProduct(warehouseId: number | bigint, productId: number | bigint, variantId?: number | bigint): Promise<WarehouseInventory | null>;
+    upsertInventory(warehouseId: number | bigint, variantId: number | bigint, quantity: number, minQuantity?: number): Promise<WarehouseInventory>;
 }
