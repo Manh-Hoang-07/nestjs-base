@@ -20,6 +20,7 @@ export class StockTransferRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: any): Prisma.StockTransferWhereInput {
         const where: Prisma.StockTransferWhereInput = {};
         if (filter.status) where.status = filter.status;
+        if (filter.type) where.type = filter.type;
         if (filter.from_warehouse_id) where.from_warehouse_id = filter.from_warehouse_id;
         if (filter.to_warehouse_id) where.to_warehouse_id = filter.to_warehouse_id;
         if (filter.product_variant_id) where.product_variant_id = filter.product_variant_id;
@@ -31,6 +32,29 @@ export class StockTransferRepositoryImpl extends PrismaRepository<
         const options: Prisma.StockTransferFindManyArgs = {
             where,
             orderBy: typeof orderBy === 'string' ? this.parseSort(orderBy) : orderBy,
+            include: {
+                from_warehouse: {
+                    select: {
+                        id: true,
+                        name: true,
+                        code: true,
+                    }
+                },
+                to_warehouse: {
+                    select: {
+                        id: true,
+                        name: true,
+                        code: true,
+                    }
+                },
+                variant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        sku: true,
+                    }
+                }
+            }
         };
 
         if (skip !== undefined) {

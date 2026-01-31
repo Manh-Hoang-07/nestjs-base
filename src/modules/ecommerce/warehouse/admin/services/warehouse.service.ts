@@ -4,6 +4,7 @@ import { BaseService } from '@/common/core/services';
 import { IWarehouseRepository, WAREHOUSE_REPOSITORY } from '../../domain/warehouse.repository';
 import { IWarehouseInventoryRepository, WAREHOUSE_INVENTORY_REPOSITORY } from '../../domain/warehouse-inventory.repository';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { PrismaService } from '@/core/database/prisma/prisma.service';
 
 @Injectable()
 export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepository> {
@@ -14,6 +15,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     private readonly inventoryRepository: IWarehouseInventoryRepository,
     @Inject('STOCK_TRANSFER_REPOSITORY')
     private readonly stockTransferRepository: any, // Use interface if imported
+    private readonly prisma: PrismaService,
   ) {
     super(warehouseRepository);
   }
@@ -118,17 +120,150 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     });
   }
 
+
+
+  // ==========================================
+  // IMPORT Logic
+  // ==========================================
+  async createImport(warehouseId: number, items: any[], userId: number, notes?: string): Promise<any> {
+    // Note: This logic assumes 1 item per request for now based on current structure.
+    // Ideally we should support multiple items, but existing code structure suggests loop or single item.
+    // Let's implement single item for simplicity or loop if caller handles it.
+    // Re-reading logic: The system seems to be designed around single "StockTransfer" record per item transaction?
+    // StockTransfer table has 1 product_id, 1 variant_id. So it is 1 Item per Record.
+    // If the API accepts multiple items, we should create multiple records.
+    // But here I'll implement a single item creation helper, controller will loop.
+
+    // Actually, let's stick to the pattern.
+    // Code below creates 1 record.
+    let { product_id, product_variant_id, quantity } = items[0]; // Simplified for single item
+
+    // Auto-fill product_id if missing
+    if (!product_id && product_variant_id) {
+      const variant = await this.prisma.productVariant.findUnique({ where: { id: product_variant_id } });
+      if (variant) product_id = variant.product_id;
+    }
+
+    if (!product_id) throw new Error('Product ID is required or Invalid Variant ID');
+
+    return this.stockTransferRepository.create({
+      from_warehouse_id: null,
+      to_warehouse_id: warehouseId,
+      product_id: product_id,
+      product_variant_id: product_variant_id,
+      quantity: quantity,
+      type: 'import',
+      status: 'pending',
+      notes: notes,
+      created_user_id: userId
+    });
+  }
+
+  async approveImport(id: number, userId: number): Promise<any> {
+    const transfer = await this.stockTransferRepository.findById(id);
+    if (!transfer || transfer.status !== 'pending' || transfer.type !== 'import') {
+      throw new Error('Invalid import state');
+    }
+
+    // Add to destination (warehouse_id in 'to')
+    await this.addToInventory(Number(transfer.to_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
+
+    return this.stockTransferRepository.update(id, {
+      status: 'approved',
+      updated_user_id: userId
+    });
+  }
+
+  // ==========================================
+  // EXPORT Logic
+  // ==========================================
+  async createExport(warehouseId: number, items: any[], userId: number, notes?: string): Promise<any> {
+    let { product_id, product_variant_id, quantity } = items[0];
+
+    // Validate stock
+    const sourceInv = await this.inventoryRepository.findOne({
+      where: { warehouse_id: warehouseId, product_variant_id: product_variant_id }
+    });
+    if (!sourceInv || sourceInv.quantity < quantity) {
+      throw new Error('Not enough stock to export');
+    }
+
+    if (!product_id && sourceInv) {
+      product_id = sourceInv.product_id;
+    }
+
+    return this.stockTransferRepository.create({
+      from_warehouse_id: warehouseId,
+      to_warehouse_id: null,
+      product_id: product_id,
+      product_variant_id: product_variant_id,
+      quantity: quantity,
+      type: 'export',
+      status: 'pending',
+      notes: notes,
+      created_user_id: userId
+    });
+  }
+
+  async approveExport(id: number, userId: number): Promise<any> {
+    const transfer = await this.stockTransferRepository.findById(id);
+    if (!transfer || transfer.status !== 'pending' || transfer.type !== 'export') {
+      throw new Error('Invalid export state');
+    }
+
+    // Deduct from source
+    await this.deductFromInventory(Number(transfer.from_warehouse_id), Number(transfer.product_variant_id), transfer.quantity);
+
+    return this.stockTransferRepository.update(id, {
+      status: 'approved',
+      updated_user_id: userId
+    });
+  }
+
+
+  // Helper methods
+  private async addToInventory(warehouseId: number, productId: number, variantId: number, quantity: number) {
+    const destInv = await this.inventoryRepository.findOne({
+      where: { warehouse_id: warehouseId, product_variant_id: variantId }
+    });
+    if (destInv) {
+      await this.inventoryRepository.update(destInv.id, { quantity: destInv.quantity + quantity });
+    } else {
+      await this.inventoryRepository.create({
+        warehouse_id: warehouseId,
+        product_id: productId,
+        product_variant_id: variantId,
+        quantity: quantity,
+        min_quantity: 0
+      });
+    }
+  }
+
+  private async deductFromInventory(warehouseId: number, variantId: number, quantity: number) {
+    const sourceInv = await this.inventoryRepository.findOne({
+      where: { warehouse_id: warehouseId, product_variant_id: variantId }
+    });
+    if (sourceInv) {
+      await this.inventoryRepository.update(sourceInv.id, { quantity: sourceInv.quantity - quantity });
+    }
+  }
+
   async cancelStockTransfer(id: number): Promise<any> {
     const transfer = await this.stockTransferRepository.findById(id);
     if (!transfer) throw new Error('Transfer not found');
 
-    // If approved, rollback source?
+    const type = transfer.type || 'transfer';
+
     if (transfer.status === 'approved') {
-      const sourceInv = await this.inventoryRepository.findOne({
-        where: { warehouse_id: Number(transfer.from_warehouse_id), product_variant_id: Number(transfer.product_variant_id) }
-      });
-      if (sourceInv) {
-        await this.inventoryRepository.update(sourceInv.id, { quantity: sourceInv.quantity + transfer.quantity });
+      if (type === 'transfer') {
+        // Rollback source
+        await this.addToInventory(Number(transfer.from_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
+      } else if (type === 'import') {
+        // Import approved -> Stock Added. Rollback = Deduct
+        await this.deductFromInventory(Number(transfer.to_warehouse_id), Number(transfer.product_variant_id), transfer.quantity);
+      } else if (type === 'export') {
+        // Export approved -> Stock Deducted. Rollback = Add
+        await this.addToInventory(Number(transfer.from_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
       }
     }
 

@@ -83,6 +83,8 @@ export class SeedPermissions {
       { code: 'warehouse.manage', name: 'Quản lý Kho hàng', status: 'active', parent_code: null },
       { code: 'warehouse_inventory.manage', name: 'Quản lý tồn kho kho hàng', status: 'active', parent_code: 'warehouse.manage' },
       { code: 'warehouse_transfer.manage', name: 'Quản lý điều chuyển kho', status: 'active', parent_code: 'warehouse.manage' },
+      { code: 'warehouse_import.manage', name: 'Quản lý nhập kho', status: 'active', parent_code: 'warehouse.manage' },
+      { code: 'warehouse_export.manage', name: 'Quản lý xuất kho', status: 'active', parent_code: 'warehouse.manage' },
     ];
 
     const createdPermissions: Map<string, any> = new Map();
