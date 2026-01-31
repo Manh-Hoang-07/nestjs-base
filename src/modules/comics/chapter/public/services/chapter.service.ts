@@ -14,51 +14,50 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
     super(repository);
   }
 
-  /**
-   * Override để chỉ lấy chapters có status public
-   */
   protected override async prepareFilters(filters?: any) {
-    return {
-      ...(filters || {}),
-      status: { in: PUBLIC_CHAPTER_STATUSES }
-    };
+    const prepared: any = { ...(filters || {}) };
+
+    if (!prepared.status) {
+      prepared.status = { in: PUBLIC_CHAPTER_STATUSES };
+    }
+
+    return prepared;
   }
 
-  /**
-   * Override để load relations
-   * Ưu tiên: select > include mặc định
-   */
   protected override async prepareOptions(options: any = {}) {
     const base = await super.prepareOptions(options);
 
-    // Nếu có select trong options, trả về base (repo handle select)
-    if (options?.select) {
-      return {
-        ...base,
-        select: options.select,
-        include: undefined,
-      };
-    }
-
-    // Nếu không có select, dùng include mặc định
-    return {
-      ...base,
-      include: {
-        comic: true,
-        pages: {
-          orderBy: { page_number: 'asc' },
+    const defaultInclude = {
+      comic: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
         },
       },
+      pages: {
+        orderBy: { page_number: 'asc' },
+      },
     };
+
+    return {
+      ...base,
+      include: options?.include ?? defaultInclude,
+      select: options?.select,
+    };
+  }
+
+  protected override transform(entity: any): any {
+    return this.deepConvertBigInt(entity);
   }
 
   /**
    * Lấy danh sách pages của chapter
    */
   async getPages(chapterId: number) {
-    const chapter = await this.prisma.chapter.findUnique({
-      where: { id: BigInt(chapterId), status: { in: PUBLIC_CHAPTER_STATUSES } },
-      select: { id: true },
+    const chapter = await this.repository.findOne({
+      id: chapterId,
+      status: { in: PUBLIC_CHAPTER_STATUSES }
     });
 
     if (!chapter) {
@@ -77,20 +76,14 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
    * Lấy chapter tiếp theo
    */
   async getNext(chapterId: number) {
-    const chapter = await this.prisma.chapter.findUnique({
-      where: { id: BigInt(chapterId) },
-      select: { comic_id: true, chapter_index: true },
-    });
-
-    if (!chapter) {
-      throw new NotFoundException('Chapter not found');
-    }
+    const chapter = await this.repository.findById(chapterId);
+    if (!chapter) throw new NotFoundException('Chapter not found');
 
     const next = await this.prisma.chapter.findFirst({
       where: {
         comic_id: chapter.comic_id,
         chapter_index: { gt: chapter.chapter_index },
-        status: { in: PUBLIC_CHAPTER_STATUSES },
+        status: { in: PUBLIC_CHAPTER_STATUSES as any },
         deleted_at: null,
       },
       orderBy: { chapter_index: 'asc' },
@@ -103,20 +96,14 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
    * Lấy chapter trước đó
    */
   async getPrev(chapterId: number) {
-    const chapter = await this.prisma.chapter.findUnique({
-      where: { id: BigInt(chapterId) },
-      select: { comic_id: true, chapter_index: true },
-    });
-
-    if (!chapter) {
-      throw new NotFoundException('Chapter not found');
-    }
+    const chapter = await this.repository.findById(chapterId);
+    if (!chapter) throw new NotFoundException('Chapter not found');
 
     const prev = await this.prisma.chapter.findFirst({
       where: {
         comic_id: chapter.comic_id,
         chapter_index: { lt: chapter.chapter_index },
-        status: { in: PUBLIC_CHAPTER_STATUSES },
+        status: { in: PUBLIC_CHAPTER_STATUSES as any },
         deleted_at: null,
       },
       orderBy: { chapter_index: 'desc' },

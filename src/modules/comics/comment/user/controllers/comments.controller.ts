@@ -26,8 +26,7 @@ export class UserCommentsController {
     @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 20,
   ) {
-    const userId = 1; // TODO: Get from request context
-    return this.commentsService.getByUser(userId, page, limit);
+    return this.commentsService.getList({ by_current_user: true, page, limit });
   }
 
   @Permission('authenticated')
@@ -50,13 +49,13 @@ export class UserCommentsController {
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) body: { content: string },
   ) {
-    return this.commentsService.update(id, body.content);
+    return this.commentsService.updateComment(id, body.content);
   }
 
   @Permission('authenticated')
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
-    return this.commentsService.delete(id);
+    return this.commentsService.removeComment(id);
   }
 }
 

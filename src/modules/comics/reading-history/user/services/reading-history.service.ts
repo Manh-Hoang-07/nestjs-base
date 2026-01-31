@@ -1,83 +1,77 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext, toPlain } from '@/common/shared/utils';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { ReadingHistory } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IReadingHistoryRepository, READING_HISTORY_REPOSITORY } from '../../domain/reading-history.repository';
+import { RequestContext } from '@/common/shared/utils';
 
 @Injectable()
-export class ReadingHistoryService {
+export class ReadingHistoryService extends BaseService<ReadingHistory, IReadingHistoryRepository> {
   constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+    @Inject(READING_HISTORY_REPOSITORY)
+    protected readonly readingHistoryRepository: IReadingHistoryRepository,
+  ) {
+    super(readingHistoryRepository);
+  }
 
-  async getByUser(userId: number) {
-    const histories = await this.prisma.readingHistory.findMany({
-      where: { user_id: userId },
-      include: {
+  protected override async prepareFilters(filters?: any) {
+    const userId = RequestContext.get<number>('userId');
+    return {
+      ...(filters || {}),
+      user_id: userId,
+    };
+  }
+
+  protected override async prepareOptions(options: any = {}) {
+    const base = await super.prepareOptions(options);
+    return {
+      ...base,
+      include: options?.include ?? {
         comic: true,
         chapter: true,
       },
-      orderBy: { updated_at: 'desc' },
-    });
-
-    return toPlain(histories);
+      sort: options?.sort ?? 'updated_at:desc',
+    };
   }
 
-  async updateOrCreate(comicId: number, chapterId: number) {
+  async updateOrCreate(comicId: number | bigint, chapterId: number | bigint) {
     const userId = RequestContext.get<number>('userId');
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
+    if (!userId) throw new UnauthorizedException();
 
-    const existing = await this.prisma.readingHistory.findFirst({
-      where: {
-        user_id: userId,
-        comic_id: comicId,
-      },
+    const existing = await this.repository.findOne({
+      user_id: userId,
+      comic_id: comicId,
     });
 
     if (existing) {
-      const updated = await this.prisma.readingHistory.update({
-        where: { id: existing.id },
-        data: {
-          chapter_id: chapterId,
-        },
-        include: {
-          comic: true,
-          chapter: true,
-        },
+      const updated = await this.repository.update(existing.id, {
+        chapter_id: chapterId,
       });
-
-      return toPlain(updated);
+      return this.transform(updated);
     }
 
-    const created = await this.prisma.readingHistory.create({
-      data: {
-        user_id: userId,
-        comic_id: comicId,
-        chapter_id: chapterId,
-      },
-      include: {
-        comic: true,
-        chapter: true,
-      },
+    const created = await this.repository.create({
+      user_id: userId,
+      comic_id: comicId,
+      chapter_id: chapterId,
     });
 
-    return toPlain(created);
+    return this.transform(created);
   }
 
-  async delete(comicId: number) {
+  async clearHistory(comicId: number | bigint) {
     const userId = RequestContext.get<number>('userId');
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
+    if (!userId) throw new UnauthorizedException();
 
-    await this.prisma.readingHistory.deleteMany({
-      where: {
-        user_id: userId,
-        comic_id: comicId,
-      },
+    await this.repository.deleteMany({
+      user_id: userId,
+      comic_id: comicId,
     });
 
-    return { deleted: true };
+    return { success: true };
+  }
+
+  protected override transform(entity: any): any {
+    return this.deepConvertBigInt(entity);
   }
 }
 

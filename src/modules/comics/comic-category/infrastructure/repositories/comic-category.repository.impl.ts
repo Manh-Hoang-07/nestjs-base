@@ -20,14 +20,18 @@ export class ComicCategoryRepositoryImpl extends PrismaRepository<
 
     protected buildWhere(filter: any): Prisma.ComicCategoryWhereInput {
         const where: Prisma.ComicCategoryWhereInput = {
-            deleted_at: null,
+            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
         };
 
-        if (filter.search) {
+        if (filter.group_id) {
             where.OR = [
-                { name: { contains: filter.search } },
-                { slug: { contains: filter.search } },
+                { group_id: this.toPrimaryKey(filter.group_id) } as any,
+                { group_id: null } as any,
             ];
+        }
+
+        if (filter.search) {
+            where.name = { contains: filter.search };
         }
 
         return where;

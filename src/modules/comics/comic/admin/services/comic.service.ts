@@ -12,7 +12,7 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
   constructor(
     @Inject(COMIC_REPOSITORY)
     protected readonly comicRepository: IComicRepository,
-    private readonly prisma: PrismaService, // Keep prisma for complex operations like stats creation if needed
+    private readonly prisma: PrismaService,
   ) {
     super(comicRepository);
   }
@@ -97,35 +97,27 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
    * Restore comic
    */
   async restore(id: number | bigint) {
-    const comic = await this.prisma.comic.findFirst({
-      where: {
-        id: BigInt(id),
-        deleted_at: { not: null },
-      },
+    const comic = await this.comicRepository.findOne({
+      id,
+      deleted_at: { not: null }
     });
 
     if (!comic) {
       throw new BadRequestException('Comic not found or not deleted');
     }
 
-    await this.prisma.comic.update({
-      where: { id: BigInt(id) },
-      data: { deleted_at: null },
-    });
+    await this.comicRepository.update(id, { deleted_at: null });
 
     return this.getOne(id);
   }
 
   /**
-   * Override transform to match ecommerce style
+   * Transform to match system standards
    */
   protected override transform(entity: any): any {
     if (!entity) return null;
 
-    const baseTransformed = super.transform(entity);
-    if (!baseTransformed) return null;
-
-    const transformed: any = { ...baseTransformed };
+    const transformed: any = { ...entity };
 
     // Transform categories from nested structure to flat array
     if (transformed.categoryLinks && Array.isArray(transformed.categoryLinks)) {
@@ -135,11 +127,11 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
 
       transformed.category_ids = transformed.categories.map((cat: any) => cat.id);
       delete transformed.categoryLinks;
-    } else {
+    } else if (!transformed.categories) {
       transformed.categories = [];
       transformed.category_ids = [];
     }
 
-    return transformed;
+    return this.deepConvertBigInt(transformed);
   }
 }

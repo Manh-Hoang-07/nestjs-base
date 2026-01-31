@@ -1,161 +1,120 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext, toPlain } from '@/common/shared/utils';
+import { Injectable, Inject, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Comment } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { ICommentRepository, COMMENT_REPOSITORY } from '../../domain/comment.repository';
+import { RequestContext } from '@/common/shared/utils';
 import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class UserCommentsService {
+export class UserCommentsService extends BaseService<Comment, ICommentRepository> {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(COMMENT_REPOSITORY)
+    protected readonly commentRepository: ICommentRepository,
     private readonly notificationService: ComicNotificationService,
-  ) { }
+  ) {
+    super(commentRepository);
+  }
 
-  /**
-   * Tạo comment hoặc reply
-   */
-  async create(data: {
-    comic_id: number;
-    chapter_id?: number;
-    parent_id?: number;
-    content: string;
-  }) {
-    // Lấy userId từ RequestContext hoặc từ user object
-    let userId: number | undefined = RequestContext.get<number>('userId');
-    if (!userId) {
-      const user = RequestContext.get<any>('user');
-      userId = user?.id ? Number(user.id) : undefined;
-    }
-    if (!userId) {
-      throw new BadRequestException('User not authenticated');
+  protected override async prepareFilters(filters?: any) {
+    const userId = RequestContext.get<number>('userId');
+    const prepared: any = { ...(filters || {}) };
+
+    // Nếu gọi getByUser thì lọc theo user, nếu không thì tùy controller pass qua
+    if (prepared.by_current_user) {
+      prepared.user_id = userId;
+      delete prepared.by_current_user;
     }
 
-    // Validate parent_id nếu có
-    if (data.parent_id) {
-      const parent = await this.prisma.comment.findFirst({
-        where: { id: data.parent_id },
-      });
-      if (!parent) {
-        throw new NotFoundException('Parent comment not found');
-      }
-      // Đảm bảo parent comment cùng comic_id
-      if (Number(parent.comic_id) !== data.comic_id) {
+    return prepared;
+  }
+
+  protected override async prepareOptions(options: any = {}) {
+    const base = await super.prepareOptions(options);
+    return {
+      ...base,
+      include: options?.include ?? {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            image: true
+          }
+        },
+        comic: true,
+        chapter: true,
+        replies: {
+          include: {
+            user: true
+          },
+          take: 5
+        }
+      },
+      sort: options?.sort ?? 'created_at:desc',
+    };
+  }
+
+  protected override async beforeCreate(data: any): Promise<any> {
+    const userId = RequestContext.get<number>('userId');
+    if (!userId) throw new UnauthorizedException();
+
+    const payload = { ...data };
+    payload.user_id = userId;
+    payload.created_user_id = userId;
+    payload.status = 'visible';
+
+    // Validate parent
+    if (payload.parent_id) {
+      const parent = await this.repository.findById(payload.parent_id);
+      if (!parent) throw new NotFoundException('Parent comment not found');
+      if (Number(parent.comic_id) !== Number(payload.comic_id)) {
         throw new BadRequestException('Parent comment must be from the same comic');
       }
     }
 
-    const saved = await this.prisma.comment.create({
-      data: {
-        user_id: userId,
-        comic_id: data.comic_id,
-        chapter_id: data.chapter_id || null,
-        parent_id: data.parent_id || null,
-        content: data.content,
-        status: 'visible',
-        created_user_id: userId,
-      },
-    });
-
-    // Notify nếu là reply
-    if (data.parent_id) {
-      await this.notificationService.notifyCommentReply(Number(saved.id), data.parent_id, userId);
-    }
-
-    // Convert BigInt thành number để tránh lỗi JSON serialization
-    return toPlain(saved);
+    return payload;
   }
 
-  /**
-   * Cập nhật comment
-   */
-  async update(commentId: number, content: string) {
-    // Lấy userId từ RequestContext hoặc từ user object
-    let userId: number | undefined = RequestContext.get<number>('userId');
-    if (!userId) {
-      const user = RequestContext.get<any>('user');
-      userId = user?.id ? Number(user.id) : undefined;
+  protected override async afterCreate(entity: Comment, data: any): Promise<void> {
+    if (entity.parent_id) {
+      await this.notificationService.notifyCommentReply(
+        Number(entity.id),
+        Number(entity.parent_id),
+        Number(entity.user_id)
+      );
     }
-    if (!userId) {
-      throw new BadRequestException('User not authenticated');
-    }
-
-    const comment = await this.prisma.comment.findFirst({
-      where: { id: commentId, user_id: userId },
-    });
-
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-
-    const updated = await this.prisma.comment.update({
-      where: { id: commentId },
-      data: {
-        content,
-        updated_user_id: userId,
-      },
-    });
-
-    // Convert BigInt thành number để tránh lỗi JSON serialization
-    return toPlain(updated);
   }
 
-  /**
-   * Xóa comment (soft delete)
-   */
-  async delete(commentId: number) {
-    // Lấy userId từ RequestContext hoặc từ user object
-    let userId: number | undefined = RequestContext.get<number>('userId');
-    if (!userId) {
-      const user = RequestContext.get<any>('user');
-      userId = user?.id ? Number(user.id) : undefined;
-    }
-    if (!userId) {
-      throw new BadRequestException('User not authenticated');
-    }
+  async updateComment(id: number | bigint, content: string) {
+    const userId = RequestContext.get<number>('userId');
+    if (!userId) throw new UnauthorizedException();
 
-    const comment = await this.prisma.comment.findFirst({
-      where: { id: commentId, user_id: userId },
+    const comment = await this.repository.findOne({
+      id,
+      user_id: userId
     });
 
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
+    if (!comment) throw new NotFoundException('Comment not found');
 
-    await this.prisma.comment.update({
-      where: { id: commentId },
-      data: { deleted_at: new Date() },
-    });
-
-    return { deleted: true };
+    return this.update(id, { content, updated_user_id: userId });
   }
 
-  /**
-   * Lấy comments của user
-   */
-  async getByUser(userId: number, page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
+  async removeComment(id: number | bigint) {
+    const userId = RequestContext.get<number>('userId');
+    if (!userId) throw new UnauthorizedException();
 
-    const [data, total] = await Promise.all([
-      this.prisma.comment.findMany({
-        where: { user_id: userId },
-        include: { comic: true, chapter: true },
-        orderBy: { created_at: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.comment.count({ where: { user_id: userId } }),
-    ]);
+    const comment = await this.repository.findOne({
+      id,
+      user_id: userId
+    });
 
-    // Convert BigInt thành number để tránh lỗi JSON serialization
-    return {
-      data: toPlain(data),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    if (!comment) throw new NotFoundException('Comment not found');
+
+    return this.repository.update(id, { deleted_at: new Date() });
+  }
+
+  protected override transform(entity: any): any {
+    return this.deepConvertBigInt(entity);
   }
 }
 

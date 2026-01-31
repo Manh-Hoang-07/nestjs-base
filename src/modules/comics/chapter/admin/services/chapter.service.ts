@@ -25,7 +25,7 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     // Validate chapter_index unique
     if (payload.comic_id && payload.chapter_index !== undefined) {
       const existing = await this.chapterRepository.findByComicIdAndIndex(
-        BigInt(payload.comic_id),
+        payload.comic_id,
         payload.chapter_index
       );
       if (existing) {
@@ -98,8 +98,6 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
   }
 
   protected override async afterDelete(id: string | number | bigint): Promise<void> {
-    // I need the entity to get comic_id, but the base service doesn't pass it to afterDelete by default easily if it's already deleted.
-    // However, in our system delete usually means soft delete.
     const entity = await this.prisma.chapter.findUnique({ where: { id: BigInt(id) } });
     if (entity && entity.comic_id) {
       await this.updateComicLastChapter(entity.comic_id);
@@ -113,10 +111,10 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     const lastChapter = await this.prisma.chapter.findFirst({
       where: {
         comic_id: comicId,
-        status: { in: PUBLIC_CHAPTER_STATUSES },
+        status: { in: PUBLIC_CHAPTER_STATUSES as any },
         deleted_at: null,
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: { chapter_index: 'desc' },
       select: {
         id: true,
         created_at: true,
@@ -136,21 +134,16 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
    * Restore chapter
    */
   async restore(id: string | number | bigint) {
-    const chapter = await this.prisma.chapter.findFirst({
-      where: {
-        id: BigInt(id),
-        deleted_at: { not: null },
-      },
+    const chapter = await this.repository.findOne({
+      id,
+      deleted_at: { not: null }
     });
 
     if (!chapter) {
       throw new BadRequestException('Chapter not found or not deleted');
     }
 
-    await this.prisma.chapter.update({
-      where: { id: BigInt(id) },
-      data: { deleted_at: null },
-    });
+    await this.repository.update(id, { deleted_at: null });
 
     if (chapter.comic_id) {
       await this.updateComicLastChapter(chapter.comic_id);
@@ -163,7 +156,7 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
    * Update pages
    */
   async updatePages(chapterId: string | number | bigint, pages: any[]) {
-    const chapter = await this.getOne(chapterId);
+    await this.getOne(chapterId); // Check exists
 
     await this.prisma.chapterPage.deleteMany({
       where: { chapter_id: BigInt(chapterId) },
@@ -183,5 +176,9 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     }
 
     return this.getOne(chapterId);
+  }
+
+  protected override transform(entity: any): any {
+    return this.deepConvertBigInt(entity);
   }
 }

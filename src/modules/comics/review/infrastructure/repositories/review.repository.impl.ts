@@ -1,0 +1,55 @@
+import { Injectable } from '@nestjs/common';
+import { ComicReview, Prisma } from '@prisma/client';
+import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { PrismaRepository } from '@/common/core/repositories';
+import { IReviewRepository, ReviewFilter } from '../../domain/review.repository';
+
+@Injectable()
+export class ReviewRepositoryImpl extends PrismaRepository<
+    ComicReview,
+    Prisma.ComicReviewWhereInput,
+    Prisma.ComicReviewCreateInput,
+    Prisma.ComicReviewUpdateInput,
+    Prisma.ComicReviewOrderByWithRelationInput
+> implements IReviewRepository {
+    constructor(private readonly prisma: PrismaService) {
+        super(prisma.comicReview as any);
+    }
+
+    protected buildWhere(filter: ReviewFilter): Prisma.ComicReviewWhereInput {
+        const where: Prisma.ComicReviewWhereInput = {};
+        if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);
+        if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);
+        if (filter.rating) where.rating = filter.rating;
+        return where;
+    }
+
+    async syncRatingStats(comicId: number | bigint): Promise<void> {
+        const id = this.toPrimaryKey(comicId);
+
+        // Calculate aggregate
+        const aggregate = await this.prisma.comicReview.aggregate({
+            where: { comic_id: id },
+            _count: { rating: true },
+            _sum: { rating: true },
+        });
+
+        const count = aggregate._count.rating || 0;
+        const sum = aggregate._sum.rating || 0;
+
+        await this.prisma.comicStats.upsert({
+            where: { comic_id: id },
+            create: {
+                comic_id: id,
+                view_count: 0,
+                follow_count: 0,
+                rating_count: BigInt(count),
+                rating_sum: BigInt(sum),
+            },
+            update: {
+                rating_count: BigInt(count),
+                rating_sum: BigInt(sum),
+            },
+        });
+    }
+}

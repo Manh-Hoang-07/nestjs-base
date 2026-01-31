@@ -18,20 +18,19 @@ export class BookmarksController {
   @Permission('authenticated')
   @Get()
   async getList() {
-    const userId = 1; // TODO: Get from request context
-    return this.bookmarksService.getByUser(userId);
+    return this.bookmarksService.getList();
   }
 
   @Permission('authenticated')
   @Post()
   async create(@Body(ValidationPipe) body: { chapter_id: number; page_number: number }) {
-    return this.bookmarksService.create(body.chapter_id, body.page_number);
+    return this.bookmarksService.createBookmark(body.chapter_id, body.page_number);
   }
 
   @Permission('authenticated')
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
-    return this.bookmarksService.delete(id);
+    return this.bookmarksService.removeBookmark(id);
   }
 }
 

@@ -21,8 +21,7 @@ export class ReviewsController {
   @Permission('authenticated')
   @Get()
   async getMyReviews() {
-    const userId = 1; // TODO: Get from request context
-    return this.reviewsService.getByUser(userId);
+    return this.reviewsService.getList({ by_current_user: true });
   }
 
   @Permission('authenticated')
@@ -33,13 +32,13 @@ export class ReviewsController {
     @Param('comicId', ParseIntPipe) comicId: number,
     @Body(ValidationPipe) body: { rating: number; content?: string },
   ) {
-    return this.reviewsService.createOrUpdate(comicId, body.rating, body.content);
+    return this.reviewsService.createOrUpdateReview(comicId, body.rating, body.content);
   }
 
   @Permission('authenticated')
   @Delete('comics/:comicId')
   async delete(@Param('comicId', ParseIntPipe) comicId: number) {
-    return this.reviewsService.delete(comicId);
+    return this.reviewsService.removeReview(comicId);
   }
 }
 

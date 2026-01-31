@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Comic, Prisma } from '@prisma/client';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { PrismaRepository } from '@/common/core/repositories';
-import { IComicRepository } from '../../domain/comic.repository';
+import { IComicRepository, ComicFilter } from '../../domain/comic.repository';
 
 @Injectable()
 export class ComicRepositoryImpl extends PrismaRepository<
@@ -39,13 +39,30 @@ export class ComicRepositoryImpl extends PrismaRepository<
         };
     }
 
-    protected buildWhere(filter: any): Prisma.ComicWhereInput {
+    protected buildWhere(filter: ComicFilter): Prisma.ComicWhereInput {
         const where: Prisma.ComicWhereInput = {
-            deleted_at: null,
+            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
         };
 
-        if (filter.status) where.status = filter.status;
-        if (filter.author) where.author = { contains: filter.author };
+        if (filter.group_id !== undefined) {
+            (where as any).group_id = filter.group_id === null ? null : this.toPrimaryKey(filter.group_id);
+        }
+
+        if (filter.status) {
+            if (typeof filter.status === 'string') {
+                where.status = filter.status as any;
+            } else {
+                where.status = filter.status as any;
+            }
+        }
+
+        if (filter.author) {
+            where.author = { contains: filter.author };
+        }
+
+        if (filter.created_user_id) {
+            where.created_user_id = this.toPrimaryKey(filter.created_user_id);
+        }
 
         if (filter.search) {
             where.OR = [
@@ -91,5 +108,47 @@ export class ComicRepositoryImpl extends PrismaRepository<
                 })),
             });
         }
+    }
+
+    async incrementView(id: number | bigint): Promise<void> {
+        await this.prisma.comicStats.upsert({
+            where: { comic_id: this.toPrimaryKey(id) },
+            create: {
+                comic_id: this.toPrimaryKey(id),
+                view_count: 1,
+            },
+            update: {
+                view_count: { increment: 1 },
+            },
+        });
+    }
+
+    async getChapters(id: number | bigint, options: any = {}): Promise<any> {
+        const comicId = this.toPrimaryKey(id);
+        const page = options.page || 1;
+        const limit = options.limit || 50;
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await Promise.all([
+            this.prisma.chapter.findMany({
+                where: { comic_id: comicId, deleted_at: null, status: 'published' },
+                orderBy: { chapter_index: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.chapter.count({
+                where: { comic_id: comicId, deleted_at: null, status: 'published' },
+            }),
+        ]);
+
+        return {
+            data,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
     }
 }

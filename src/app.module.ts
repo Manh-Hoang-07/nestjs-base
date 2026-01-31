@@ -33,6 +33,7 @@ import { MarketingModule } from '@/modules/marketing/marketing.module';
 import { AppMailModule } from '@/core/mail/mail.module';
 import { HomepageModule } from '@/modules/homepage/homepage.module';
 import { PaymentMethodModule } from '@/modules/payment-method/payment-method.module';
+import { ComicsModule } from '@/modules/comics/comic.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { PaymentMethodModule } from '@/modules/payment-method/payment-method.mod
     AppMailModule,
     HomepageModule,
     PaymentMethodModule,
+    ComicsModule,
   ],
   controllers: [],
   providers: [

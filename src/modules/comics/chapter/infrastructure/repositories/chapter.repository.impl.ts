@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Chapter, Prisma } from '@prisma/client';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { PrismaRepository } from '@/common/core/repositories';
-import { IChapterRepository } from '../../domain/chapter.repository';
+import { IChapterRepository, ChapterFilter } from '../../domain/chapter.repository';
 
 @Injectable()
 export class ChapterRepositoryImpl extends PrismaRepository<
@@ -43,13 +43,22 @@ export class ChapterRepositoryImpl extends PrismaRepository<
         };
     }
 
-    protected buildWhere(filter: any): Prisma.ChapterWhereInput {
+    protected buildWhere(filter: ChapterFilter): Prisma.ChapterWhereInput {
         const where: Prisma.ChapterWhereInput = {
-            deleted_at: null,
+            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
         };
 
-        if (filter.comicId) where.comic_id = this.toPrimaryKey(filter.comicId);
-        if (filter.status) where.status = filter.status;
+        if (filter.comic_id) {
+            where.comic_id = this.toPrimaryKey(filter.comic_id);
+        }
+
+        if (filter.status) {
+            if (typeof filter.status === 'string') {
+                where.status = filter.status as any;
+            } else {
+                where.status = filter.status as any;
+            }
+        }
 
         if (filter.search) {
             where.OR = [

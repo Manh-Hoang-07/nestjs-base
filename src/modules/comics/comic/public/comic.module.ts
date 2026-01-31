@@ -3,9 +3,14 @@ import { PublicComicsController } from './controllers/comic.controller';
 import { PublicComicsService } from './services/comic.service';
 import { UserFollowsModule } from '@/modules/comics/follow/user/follow.module';
 import { ComicRepositoryModule } from '../comic.repository.module';
+import { FollowRepositoryModule } from '@/modules/comics/follow/follow.repository.module';
 
 @Module({
-  imports: [UserFollowsModule, ComicRepositoryModule],
+  imports: [
+    UserFollowsModule,
+    ComicRepositoryModule,
+    FollowRepositoryModule,
+  ],
   controllers: [PublicComicsController],
   providers: [PublicComicsService],
   exports: [PublicComicsService],

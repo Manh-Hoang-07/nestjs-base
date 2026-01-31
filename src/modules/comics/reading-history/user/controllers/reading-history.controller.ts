@@ -18,8 +18,7 @@ export class ReadingHistoryController {
   @Permission('authenticated')
   @Get()
   async getList() {
-    const userId = 1; // TODO: Get from request context
-    return this.readingHistoryService.getByUser(userId);
+    return this.readingHistoryService.getList();
   }
 
   @Permission('authenticated')
@@ -31,7 +30,7 @@ export class ReadingHistoryController {
   @Permission('authenticated')
   @Delete(':comicId')
   async delete(@Param('comicId', ParseIntPipe) comicId: number) {
-    return this.readingHistoryService.delete(comicId);
+    return this.readingHistoryService.clearHistory(comicId);
   }
 }
 

@@ -16,8 +16,7 @@ export class FollowsController {
   @Permission('authenticated')
   @Get()
   async getList() {
-    const userId = 1; // TODO: Get from request context
-    return this.followsService.getByUser(userId);
+    return this.followsService.getList();
   }
 
   @Permission('authenticated')

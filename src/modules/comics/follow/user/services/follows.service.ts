@@ -1,103 +1,77 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext, toPlain } from '@/common/shared/utils';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { ComicFollow } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IFollowRepository, FOLLOW_REPOSITORY } from '../../domain/follow.repository';
+import { RequestContext } from '@/common/shared/utils';
 
 @Injectable()
-export class FollowsService {
+export class FollowsService extends BaseService<ComicFollow, IFollowRepository> {
   constructor(
-    private readonly prisma: PrismaService,
-  ) { }
-
-  async getByUser(userId: number) {
-    const follows = await this.prisma.comicFollow.findMany({
-      where: { user_id: userId },
-      include: { comic: true },
-      orderBy: { created_at: 'desc' },
-    });
-
-    return toPlain(follows);
-  }
-
-  async follow(comicId: number) {
-    const userId = RequestContext.get<number>('userId');
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
-
-    const existing = await this.prisma.comicFollow.findFirst({
-      where: { user_id: userId, comic_id: comicId },
-    });
-
-    if (existing) {
-      return toPlain(existing);
-    }
-
-    const saved = await this.prisma.comicFollow.create({
-      data: {
-        user_id: userId,
-        comic_id: comicId,
-      },
-    });
-
-    // Sync follow count
-    await this.syncFollowCount(comicId);
-
-    return toPlain(saved);
-  }
-
-  async unfollow(comicId: number) {
-    const userId = RequestContext.get<number>('userId');
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
-
-    await this.prisma.comicFollow.deleteMany({
-      where: { user_id: userId, comic_id: comicId },
-    });
-
-    // Sync follow count
-    await this.syncFollowCount(comicId);
-
-    return { deleted: true };
+    @Inject(FOLLOW_REPOSITORY)
+    protected readonly followRepository: IFollowRepository,
+  ) {
+    super(followRepository);
   }
 
   /**
-   * Sync follow count vào comic_stats
+   * Automatic user ID filtering
    */
-  private async syncFollowCount(comicId: number) {
-    const followCount = await this.prisma.comicFollow.count({
-      where: { comic_id: comicId },
-    });
-
-    const stats = await this.prisma.comicStats.findUnique({ where: { comic_id: comicId } });
-    if (!stats) {
-      await this.prisma.comicStats.create({
-        data: {
-          comic_id: comicId,
-          view_count: 0,
-          follow_count: followCount,
-          rating_count: 0,
-          rating_sum: 0,
-        },
-      });
-    } else {
-      await this.prisma.comicStats.update({
-        where: { comic_id: comicId },
-        data: { follow_count: followCount },
-      });
-    }
+  protected override async prepareFilters(filters?: any) {
+    const userId = RequestContext.get<number>('userId');
+    return {
+      ...(filters || {}),
+      user_id: userId,
+    };
   }
 
-  async isFollowing(comicId: number): Promise<boolean> {
+  async follow(comicId: number | bigint) {
     const userId = RequestContext.get<number>('userId');
-    if (!userId) {
-      return false;
-    }
+    if (!userId) throw new UnauthorizedException();
 
-    const follow = await this.prisma.comicFollow.findFirst({
-      where: { user_id: userId, comic_id: comicId },
+    const existing = await this.repository.findOne({
+      user_id: userId,
+      comic_id: comicId,
     });
-    return !!follow;
+
+    if (existing) return this.transform(existing);
+
+    const saved = await this.repository.create({
+      user_id: userId,
+      comic_id: comicId,
+    });
+
+    await this.followRepository.syncFollowCount(comicId);
+    return this.transform(saved);
+  }
+
+  async unfollow(comicId: number | bigint) {
+    const userId = RequestContext.get<number>('userId');
+    if (!userId) throw new UnauthorizedException();
+
+    await this.repository.deleteMany({
+      user_id: userId,
+      comic_id: comicId,
+    });
+
+    await this.followRepository.syncFollowCount(comicId);
+    return { success: true };
+  }
+
+  async isFollowing(comicId: number | bigint): Promise<boolean> {
+    const userId = RequestContext.get<number>('userId');
+    if (!userId) return false;
+
+    return this.repository.exists({
+      user_id: userId,
+      comic_id: comicId,
+    });
+  }
+
+  /**
+   * Specific transformation for follows
+   */
+  protected override transform(entity: any): any {
+    return this.deepConvertBigInt(entity);
   }
 }
 
