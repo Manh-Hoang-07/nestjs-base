@@ -12,8 +12,127 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     protected readonly warehouseRepository: IWarehouseRepository,
     @Inject(WAREHOUSE_INVENTORY_REPOSITORY)
     private readonly inventoryRepository: IWarehouseInventoryRepository,
+    @Inject('STOCK_TRANSFER_REPOSITORY')
+    private readonly stockTransferRepository: any, // Use interface if imported
   ) {
     super(warehouseRepository);
+  }
+
+  // ... (existing methods)
+
+  async createStockTransfer(fromId: number, toId: number, variantId: number, quantity: number, userId: number, notes?: string): Promise<any> {
+    const sourceInventory = await this.inventoryRepository.findOne({
+      where: { warehouse_id: fromId, product_variant_id: variantId }
+    });
+
+    if (!sourceInventory || sourceInventory.quantity < quantity) {
+      throw new Error('Not enough stock in source warehouse');
+    }
+
+    return this.stockTransferRepository.create({
+      from_warehouse_id: fromId,
+      to_warehouse_id: toId,
+      product_variant_id: variantId,
+      product_id: sourceInventory.product_id, // Need product_id from inventory
+      quantity: quantity,
+      created_user_id: userId,
+      notes: notes,
+      status: 'pending'
+    });
+  }
+
+  async getStockTransfers(filter: any): Promise<any> {
+    const { page, limit, sort, warehouse_id, ...rest } = filter;
+    const where: any = { ...rest };
+
+    if (warehouse_id) {
+      where.OR = [
+        { from_warehouse_id: warehouse_id },
+        { to_warehouse_id: warehouse_id }
+      ];
+    }
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
+    return this.stockTransferRepository.findAllWithRelations({
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
+      page: pageNum,
+      limit: limitNum,
+      where,
+      orderBy: sort
+    });
+  }
+
+  async approveStockTransfer(id: number, userId: number): Promise<any> {
+    const transfer = await this.stockTransferRepository.findById(id);
+    if (!transfer || transfer.status !== 'pending') {
+      throw new Error('Invalid transfer state');
+    }
+
+    // Deduct from source
+    const sourceInv = await this.inventoryRepository.findOne({
+      where: { warehouse_id: Number(transfer.from_warehouse_id), product_variant_id: Number(transfer.product_variant_id) }
+    });
+
+    if (sourceInv) {
+      await this.inventoryRepository.update(sourceInv.id, {
+        quantity: sourceInv.quantity - transfer.quantity
+      });
+    }
+
+    return this.stockTransferRepository.update(id, {
+      status: 'approved',
+      updated_user_id: userId
+    });
+  }
+
+  async completeStockTransfer(id: number): Promise<any> {
+    const transfer = await this.stockTransferRepository.findById(id);
+    if (!transfer || transfer.status !== 'approved') {
+      throw new Error('Transfer must be approved first');
+    }
+
+    // Add to destination
+    const destInv = await this.inventoryRepository.findOne({
+      where: { warehouse_id: Number(transfer.to_warehouse_id), product_variant_id: Number(transfer.product_variant_id) }
+    });
+
+    if (destInv) {
+      await this.inventoryRepository.update(destInv.id, {
+        quantity: destInv.quantity + transfer.quantity
+      });
+    } else {
+      await this.inventoryRepository.create({
+        warehouse_id: Number(transfer.to_warehouse_id),
+        product_id: Number(transfer.product_id),
+        product_variant_id: Number(transfer.product_variant_id),
+        quantity: transfer.quantity,
+        min_quantity: 0
+      });
+    }
+
+    return this.stockTransferRepository.update(id, {
+      status: 'completed'
+    });
+  }
+
+  async cancelStockTransfer(id: number): Promise<any> {
+    const transfer = await this.stockTransferRepository.findById(id);
+    if (!transfer) throw new Error('Transfer not found');
+
+    // If approved, rollback source?
+    if (transfer.status === 'approved') {
+      const sourceInv = await this.inventoryRepository.findOne({
+        where: { warehouse_id: Number(transfer.from_warehouse_id), product_variant_id: Number(transfer.product_variant_id) }
+      });
+      if (sourceInv) {
+        await this.inventoryRepository.update(sourceInv.id, { quantity: sourceInv.quantity + transfer.quantity });
+      }
+    }
+
+    return this.stockTransferRepository.update(id, { status: 'cancelled' });
   }
 
   protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
@@ -128,30 +247,6 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     return { success: true };
   }
 
-  async createStockTransfer(fromId: number, toId: number, variantId: number, quantity: number, userId: number, notes?: string): Promise<any> {
-    // Placeholder implementation
-    return { success: true };
-  }
-
-  async getStockTransfers(filter: any): Promise<any> {
-    // Placeholder implementation
-    return [];
-  }
-
-  async approveStockTransfer(id: number, userId: number): Promise<any> {
-    // Placeholder implementation
-    return { success: true };
-  }
-
-  async completeStockTransfer(id: number): Promise<any> {
-    // Placeholder implementation
-    return { success: true };
-  }
-
-  async cancelStockTransfer(id: number): Promise<any> {
-    // Placeholder implementation
-    return { success: true };
-  }
 
   // Inventory logic would go here, adapted for Prisma
 }

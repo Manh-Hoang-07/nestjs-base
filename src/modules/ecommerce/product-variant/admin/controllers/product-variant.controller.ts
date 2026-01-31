@@ -71,6 +71,12 @@ export class AdminProductVariantController {
     return this.productVariantService.searchVariants(searchDto.product_id || 0, searchDto.attributes);
   }
 
+  @Get('search')
+  @Permission('product_variant.manage')
+  async search(@Query(ValidationPipe) query: any) {
+    return this.getList(query);
+  }
+
   @Get('sku/:sku')
   @Permission('product_variant.manage')
   async getBySku(

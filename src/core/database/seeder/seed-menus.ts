@@ -567,6 +567,7 @@ export class SeedMenus {
           'payment_method.manage',
           'coupon.manage',
           'warehouse.manage',
+          'warehouse_transfer.manage',
         ],
       },
       // Sản phẩm
@@ -712,6 +713,20 @@ export class SeedMenus {
         is_public: false,
         show_in_menu: true,
         permission_code: 'warehouse.manage',
+      },
+      {
+        code: 'ecommerce-warehouse-transfers',
+        name: 'Chuyển kho',
+        path: '/admin/warehouse-transfers',
+        api_path: 'api/admin/warehouses/transfers',
+        icon: '🚛',
+        type: MenuType.route,
+        status: BasicStatus.active,
+        parent_code: 'ecommerce',
+        sort_order: 90,
+        is_public: false,
+        show_in_menu: true,
+        permission_code: 'warehouse_transfer.manage',
       },
     ];
 
