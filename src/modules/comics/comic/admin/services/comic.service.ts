@@ -1,0 +1,145 @@
+import { BadRequestException, Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Comic } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IComicRepository, COMIC_REPOSITORY } from '../../domain/comic.repository';
+import { CreateComicDto } from '../dtos/create-comic.dto';
+import { UpdateComicDto } from '../dtos/update-comic.dto';
+import { StringUtil } from '@/core/utils/string.util';
+import { PrismaService } from '@/core/database/prisma/prisma.service';
+
+@Injectable()
+export class ComicService extends BaseService<Comic, IComicRepository> {
+  constructor(
+    @Inject(COMIC_REPOSITORY)
+    protected readonly comicRepository: IComicRepository,
+    private readonly prisma: PrismaService, // Keep prisma for complex operations like stats creation if needed
+  ) {
+    super(comicRepository);
+  }
+
+  protected override async beforeCreate(data: CreateComicDto): Promise<any> {
+    const payload = { ...data };
+
+    // Handle slug
+    if (!payload.slug) {
+      payload.slug = StringUtil.toSlug(payload.title);
+    }
+
+    // Check slug duplicate
+    const existing = await this.comicRepository.findBySlug(payload.slug);
+    if (existing) {
+      payload.slug = `${payload.slug}-${Date.now()}`;
+    }
+
+    // Tách category_ids ra để xử lý trong afterCreate
+    if ((payload as any).category_ids !== undefined) {
+      delete (payload as any).category_ids;
+    }
+
+    return payload;
+  }
+
+  protected override async afterCreate(entity: Comic, data: CreateComicDto): Promise<void> {
+    const comicId = entity.id;
+
+    // Create ComicStats record
+    await this.prisma.comicStats.create({
+      data: {
+        comic_id: comicId,
+        view_count: BigInt(0),
+        follow_count: BigInt(0),
+        rating_count: BigInt(0),
+        rating_sum: BigInt(0),
+      },
+    });
+
+    // Handle category_ids
+    if (data.category_ids && data.category_ids.length > 0) {
+      await this.comicRepository.syncCategories(comicId, data.category_ids.map(id => BigInt(id)));
+    }
+  }
+
+  protected override async beforeUpdate(id: string | number | bigint, data: UpdateComicDto): Promise<any> {
+    const entity = await this.repository.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Comic with ID ${id} not found`);
+    }
+
+    const payload = { ...data };
+
+    // Handle slug
+    if (payload.title && !payload.slug) {
+      payload.slug = StringUtil.toSlug(payload.title);
+    }
+
+    if (payload.slug && payload.slug !== entity.slug) {
+      const existing = await this.comicRepository.findBySlug(payload.slug);
+      if (existing && existing.id !== entity.id) {
+        payload.slug = `${payload.slug}-${Date.now()}`;
+      }
+    }
+
+    // Tách category_ids ra để xử lý trong afterUpdate
+    if ((payload as any).category_ids !== undefined) {
+      delete (payload as any).category_ids;
+    }
+
+    return payload;
+  }
+
+  protected override async afterUpdate(entity: Comic, data: UpdateComicDto): Promise<void> {
+    if (data.category_ids) {
+      await this.comicRepository.syncCategories(entity.id, data.category_ids.map(id => BigInt(id)));
+    }
+  }
+
+  /**
+   * Restore comic
+   */
+  async restore(id: number | bigint) {
+    const comic = await this.prisma.comic.findFirst({
+      where: {
+        id: BigInt(id),
+        deleted_at: { not: null },
+      },
+    });
+
+    if (!comic) {
+      throw new BadRequestException('Comic not found or not deleted');
+    }
+
+    await this.prisma.comic.update({
+      where: { id: BigInt(id) },
+      data: { deleted_at: null },
+    });
+
+    return this.getOne(id);
+  }
+
+  /**
+   * Override transform to match ecommerce style
+   */
+  protected override transform(entity: any): any {
+    if (!entity) return null;
+
+    const baseTransformed = super.transform(entity);
+    if (!baseTransformed) return null;
+
+    const transformed: any = { ...baseTransformed };
+
+    // Transform categories from nested structure to flat array
+    if (transformed.categoryLinks && Array.isArray(transformed.categoryLinks)) {
+      transformed.categories = transformed.categoryLinks
+        .map((link: any) => link?.category)
+        .filter(Boolean);
+
+      transformed.category_ids = transformed.categories.map((cat: any) => cat.id);
+      delete transformed.categoryLinks;
+    } else {
+      transformed.categories = [];
+      transformed.category_ids = [];
+    }
+
+    return transformed;
+  }
+}

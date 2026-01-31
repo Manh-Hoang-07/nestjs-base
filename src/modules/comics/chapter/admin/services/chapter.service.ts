@@ -1,0 +1,187 @@
+import { BadRequestException, Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Chapter } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IChapterRepository, CHAPTER_REPOSITORY } from '../../domain/chapter.repository';
+import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
+import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { ChapterStatus } from '@/shared/enums';
+
+const PUBLIC_CHAPTER_STATUSES = [ChapterStatus.published];
+
+@Injectable()
+export class ChapterService extends BaseService<Chapter, IChapterRepository> {
+  constructor(
+    @Inject(CHAPTER_REPOSITORY)
+    protected readonly chapterRepository: IChapterRepository,
+    private readonly prisma: PrismaService,
+    private readonly notificationService: ComicNotificationService,
+  ) {
+    super(chapterRepository);
+  }
+
+  protected override async beforeCreate(data: any): Promise<any> {
+    const payload = { ...data };
+
+    // Validate chapter_index unique
+    if (payload.comic_id && payload.chapter_index !== undefined) {
+      const existing = await this.chapterRepository.findByComicIdAndIndex(
+        BigInt(payload.comic_id),
+        payload.chapter_index
+      );
+      if (existing) {
+        throw new BadRequestException(`Chapter với index ${payload.chapter_index} đã tồn tại trong comic này`);
+      }
+    }
+
+    // Tách pages để xử lý trong afterCreate
+    if (payload.pages !== undefined) {
+      delete payload.pages;
+    }
+
+    return payload;
+  }
+
+  protected override async afterCreate(entity: Chapter, data: any): Promise<void> {
+    // Create pages if provided
+    if (data.pages && Array.isArray(data.pages) && data.pages.length > 0) {
+      await this.prisma.chapterPage.createMany({
+        data: data.pages.map((page: any, index: number) => ({
+          chapter_id: entity.id,
+          page_number: index + 1,
+          image_url: page.image_url,
+          width: page.width,
+          height: page.height,
+          file_size: page.file_size ? BigInt(page.file_size) : null,
+        })),
+      });
+    }
+
+    // Notify followers if published
+    if (entity.status === ChapterStatus.published) {
+      await this.notificationService.notifyNewChapter(entity);
+      await this.updateComicLastChapter(entity.comic_id);
+    }
+  }
+
+  protected override async beforeUpdate(id: string | number | bigint, data: any): Promise<any> {
+    const entity = await this.repository.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Chapter with ID ${id} not found`);
+    }
+
+    const payload = { ...data };
+
+    // Validate chapter_index unique if changed
+    if (payload.chapter_index !== undefined && payload.chapter_index !== entity.chapter_index) {
+      const duplicate = await this.chapterRepository.findByComicIdAndIndex(
+        entity.comic_id,
+        payload.chapter_index
+      );
+      if (duplicate && duplicate.id !== entity.id) {
+        throw new BadRequestException(`Chapter với index ${payload.chapter_index} đã tồn tại trong comic này`);
+      }
+    }
+
+    return payload;
+  }
+
+  protected override async afterUpdate(entity: Chapter, data: any): Promise<void> {
+    // Notify if status changed to published
+    if (data.status === ChapterStatus.published) {
+      await this.notificationService.notifyNewChapter(entity);
+    }
+
+    // Update comic's last chapter info if relevant changes
+    if (data.status === ChapterStatus.published || data.chapter_index !== undefined) {
+      await this.updateComicLastChapter(entity.comic_id);
+    }
+  }
+
+  protected override async afterDelete(id: string | number | bigint): Promise<void> {
+    // I need the entity to get comic_id, but the base service doesn't pass it to afterDelete by default easily if it's already deleted.
+    // However, in our system delete usually means soft delete.
+    const entity = await this.prisma.chapter.findUnique({ where: { id: BigInt(id) } });
+    if (entity && entity.comic_id) {
+      await this.updateComicLastChapter(entity.comic_id);
+    }
+  }
+
+  /**
+   * Helper: Update comic's last chapter info
+   */
+  private async updateComicLastChapter(comicId: bigint): Promise<void> {
+    const lastChapter = await this.prisma.chapter.findFirst({
+      where: {
+        comic_id: comicId,
+        status: { in: PUBLIC_CHAPTER_STATUSES },
+        deleted_at: null,
+      },
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        created_at: true,
+      },
+    });
+
+    await this.prisma.comic.update({
+      where: { id: comicId },
+      data: {
+        last_chapter_id: lastChapter?.id || null,
+        last_chapter_updated_at: lastChapter?.created_at || null,
+      },
+    });
+  }
+
+  /**
+   * Restore chapter
+   */
+  async restore(id: string | number | bigint) {
+    const chapter = await this.prisma.chapter.findFirst({
+      where: {
+        id: BigInt(id),
+        deleted_at: { not: null },
+      },
+    });
+
+    if (!chapter) {
+      throw new BadRequestException('Chapter not found or not deleted');
+    }
+
+    await this.prisma.chapter.update({
+      where: { id: BigInt(id) },
+      data: { deleted_at: null },
+    });
+
+    if (chapter.comic_id) {
+      await this.updateComicLastChapter(chapter.comic_id);
+    }
+
+    return this.getOne(id);
+  }
+
+  /**
+   * Update pages
+   */
+  async updatePages(chapterId: string | number | bigint, pages: any[]) {
+    const chapter = await this.getOne(chapterId);
+
+    await this.prisma.chapterPage.deleteMany({
+      where: { chapter_id: BigInt(chapterId) },
+    });
+
+    if (pages && pages.length > 0) {
+      await this.prisma.chapterPage.createMany({
+        data: pages.map((page, index) => ({
+          chapter_id: BigInt(chapterId),
+          page_number: index + 1,
+          image_url: page.image_url,
+          width: page.width,
+          height: page.height,
+          file_size: page.file_size ? BigInt(page.file_size) : null,
+        })),
+      });
+    }
+
+    return this.getOne(chapterId);
+  }
+}
