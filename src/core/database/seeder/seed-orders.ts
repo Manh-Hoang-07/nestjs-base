@@ -66,6 +66,8 @@ export class SeedOrders {
 
       const isDigitalOrder = i % 6 === 0 && digitalVariants.length > 0;
       const variantPool = isDigitalOrder ? digitalVariants : physicalVariants.length ? physicalVariants : variants;
+      const firstVariant: any = pick(variantPool, i * 7);
+      const orderGroupId = firstVariant.group_id;
 
       const itemCount = 1 + (i % 3);
       const items: any[] = [];
@@ -131,6 +133,7 @@ export class SeedOrders {
           discount_amount: discountAmount,
           total_amount: totalAmount,
           currency: 'VND',
+          group_id: orderGroupId, // ✅ Inherit group_id từ sản phẩm đầu tiên
           notes: i % 5 === 0 ? 'Ghi chú đơn hàng seed' : null,
           created_at: createdAt as any,
           updated_at: createdAt as any,

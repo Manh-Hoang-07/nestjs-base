@@ -36,30 +36,65 @@ export class ProductCategoryRepositoryImpl extends PrismaRepository<
     }
 
     protected buildWhere(filter: ProductCategoryFilter): Prisma.ProductCategoryWhereInput {
-        const where: Prisma.ProductCategoryWhereInput = {};
+        const where: any = {};
 
         if (filter.status) where.status = filter.status as any;
         if (filter.parent_id !== undefined) {
             where.parent_id = filter.parent_id === null ? null : this.toPrimaryKey(filter.parent_id);
         }
 
-        if (filter.search) {
-            where.OR = [
-                { name: { contains: filter.search } },
-                { slug: { contains: filter.search } },
-            ];
+        // ✅ Phân quyền Multi-shop: (Shared OR Specific Shop)
+        if (filter.group_id !== undefined) {
+            if (filter.group_id === null) {
+                where.group_id = null;
+            } else {
+                where.OR = [
+                    { group_id: null },
+                    { group_id: this.toPrimaryKey(filter.group_id) }
+                ];
+            }
         }
 
-        return where;
+        if (filter.search) {
+            const searchCondition = {
+                OR: [
+                    { name: { contains: filter.search } },
+                    { slug: { contains: filter.search } },
+                ]
+            };
+
+            if (where.OR) {
+                // Nếu đã có OR (từ group_id), ta bọc cả hai vào AND để tránh ghi đè
+                const existingOr = where.OR;
+                delete where.OR;
+                where.AND = [
+                    { OR: existingOr },
+                    searchCondition
+                ];
+            } else {
+                where.OR = searchCondition.OR;
+            }
+        }
+
+        return where as Prisma.ProductCategoryWhereInput;
     }
 
     async findBySlug(slug: string): Promise<ProductCategory | null> {
         return this.findOne({ slug });
     }
 
-    async getTree(): Promise<ProductCategory[]> {
+    async getTree(groupId?: number | bigint | null): Promise<ProductCategory[]> {
+        const where: any = { parent_id: null, deleted_at: null };
+
+        if (groupId) {
+            where.OR = [
+                { group_id: null },
+                { group_id: this.toPrimaryKey(groupId) }
+            ];
+        }
+
         return this.prisma.productCategory.findMany({
-            where: { parent_id: null, deleted_at: null },
+            where: where as any,
             include: {
                 children: {
                     where: { deleted_at: null },

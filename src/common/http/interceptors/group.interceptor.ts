@@ -28,7 +28,7 @@ export class GroupInterceptor implements NestInterceptor {
     const isPublicEndpoint = requiredPerms.includes(PUBLIC_PERMISSION);
 
     // ✅ Chỉ dùng group_id, không cần context_id
-    const groupIdFromHeader = request.headers['x-group-id'];
+    const groupIdFromHeader = request.headers['x-group-id'] || request.headers['group-id'] || request.headers['group_id'];
     const groupIdFromQuery = (request.query as any)?.group_id;
 
     if (groupIdFromHeader || groupIdFromQuery) {

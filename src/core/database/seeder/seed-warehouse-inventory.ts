@@ -5,90 +5,42 @@ import { PrismaService } from '@/core/database/prisma/prisma.service';
 export class SeedWarehouseInventory {
   private readonly logger = new Logger(SeedWarehouseInventory.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async seed(): Promise<void> {
     this.logger.log('Seeding warehouses & warehouse inventory...');
 
-    // Production-safe: nếu đã có inventory thì skip
-    const inventoryExists = await this.prisma.warehouseInventory.findFirst();
-    if (inventoryExists) {
-      this.logger.log('Warehouse inventory already exists, skip seeding (production-safe)');
-      return;
-    }
+    // Get shop groups
+    const shop1 = await this.prisma.group.findFirst({ where: { code: 'shop1' } });
 
-    // 1) Warehouses (upsert theo code)
-    const whMain = await this.prisma.warehouse.upsert({
-      where: { code: 'WH_MAIN' },
-      update: {
-        name: 'Kho trung tâm',
-        address: 'TP. Hồ Chí Minh',
-        city: 'TP. Hồ Chí Minh',
-        district: '',
-        latitude: 10.7769,
-        longitude: 106.7009,
-        phone: '0900000000',
-        manager_name: 'Admin',
-        priority: 0,
-        is_active: true,
-        status: 'active',
-        contact_name: 'Kho trung tâm',
-        contact_phone: '0900000000',
-      },
+    // 1) Warehouses
+    const whShared = await this.prisma.warehouse.upsert({
+      where: { code: 'WH_SHARED' },
+      update: {},
       create: {
-        name: 'Kho trung tâm',
-        code: 'WH_MAIN',
-        address: 'TP. Hồ Chí Minh',
+        name: 'Kho dùng chung hệ thống',
+        code: 'WH_SHARED',
+        address: 'Trung tâm Phân phối',
         city: 'TP. Hồ Chí Minh',
-        district: '',
-        latitude: 10.7769,
-        longitude: 106.7009,
-        phone: '0900000000',
-        manager_name: 'Admin',
-        priority: 0,
-        is_active: true,
-        contact_name: 'Kho trung tâm',
-        contact_phone: '0900000000',
         status: 'active',
-      },
+        group_id: null, // ✅ Shared
+      } as any,
     });
 
-    const whHn = await this.prisma.warehouse.upsert({
-      where: { code: 'WH_HN' },
-      update: {
-        name: 'Kho Hà Nội',
-        address: 'Hà Nội',
-        city: 'Hà Nội',
-        district: '',
-        latitude: 21.0278,
-        longitude: 105.8342,
-        phone: '0911111111',
-        manager_name: 'Admin',
-        priority: 0,
-        is_active: true,
-        status: 'active',
-        contact_name: 'Kho Hà Nội',
-        contact_phone: '0911111111',
-      },
+    const whShop1 = await this.prisma.warehouse.upsert({
+      where: { code: 'WH_SHOP1' },
+      update: {},
       create: {
-        name: 'Kho Hà Nội',
-        code: 'WH_HN',
-        address: 'Hà Nội',
-        city: 'Hà Nội',
-        district: '',
-        latitude: 21.0278,
-        longitude: 105.8342,
-        phone: '0911111111',
-        manager_name: 'Admin',
-        priority: 0,
-        is_active: true,
-        contact_name: 'Kho Hà Nội',
-        contact_phone: '0911111111',
+        name: 'Kho riêng Shop 1',
+        code: 'WH_SHOP1',
+        address: 'Quận 1, TP. HCM',
+        city: 'TP. Hồ Chí Minh',
         status: 'active',
-      },
+        group_id: shop1?.id, // ✅ Shop 1 only
+      } as any,
     });
 
-    // 2) Inventory: ưu tiên tạo tồn theo biến thể để khớp luồng variant-stock
+    // 2) Inventory
     const variants = await this.prisma.productVariant.findMany({
       include: { product: true },
     });
@@ -98,38 +50,35 @@ export class SeedWarehouseInventory {
       return;
     }
 
-    const inventoryData = variants
-      .filter((v) => v.product?.is_digital !== true) // digital: không cần tồn kho vật lý
-      .flatMap((v, idx) => {
-        const baseQty = Number(v.stock_quantity ?? 0);
-        const qtyMain = Math.max(0, baseQty);
-        const qtyHn = Math.max(0, Math.floor(baseQty / 2));
-        const minQty = 5 + (idx % 5);
-
-        return [
-          {
-            warehouse_id: whMain.id,
-            product_id: v.product_id,
-            product_variant_id: v.id,
-            quantity: qtyMain,
-            min_quantity: minQty,
-          },
-          {
-            warehouse_id: whHn.id,
-            product_id: v.product_id,
-            product_variant_id: v.id,
-            quantity: qtyHn,
-            min_quantity: minQty,
-          },
-        ];
+    for (const v of variants) {
+      // Tồn kho trong kho dùng chung (kế thừa group_id từ variant/product)
+      await this.prisma.warehouseInventory.create({
+        data: {
+          warehouse_id: whShared.id,
+          product_id: v.product_id,
+          product_variant_id: v.id,
+          quantity: 100,
+          min_quantity: 10,
+          group_id: (v as any).group_id, // ✅ Inherit
+        } as any
       });
 
-    await this.prisma.warehouseInventory.createMany({
-      data: inventoryData as any,
-      skipDuplicates: true,
-    });
+      // Nếu variant thuộc shop 1, tạo tồn kho trong kho của shop 1
+      if (shop1 && Number((v as any).group_id) === Number(shop1.id)) {
+        await this.prisma.warehouseInventory.create({
+          data: {
+            warehouse_id: whShop1.id,
+            product_id: v.product_id,
+            product_variant_id: v.id,
+            quantity: 50,
+            min_quantity: 5,
+            group_id: shop1.id,
+          } as any
+        });
+      }
+    }
 
-    this.logger.log(`Seeded ${2} warehouses and ${inventoryData.length} inventory rows`);
+    this.logger.log(`Seeded 2 warehouses and inventory records`);
   }
 }
 

@@ -5,6 +5,7 @@ import { IWarehouseRepository, WAREHOUSE_REPOSITORY } from '../../domain/warehou
 import { IWarehouseInventoryRepository, WAREHOUSE_INVENTORY_REPOSITORY } from '../../domain/warehouse-inventory.repository';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepository> {
@@ -21,6 +22,30 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
   }
 
   // ... (existing methods)
+
+  async syncVariantStock(variantId: number | bigint): Promise<void> {
+    const inventories = await this.prisma.warehouseInventory.findMany({
+      where: { product_variant_id: BigInt(variantId) },
+      select: { quantity: true }
+    });
+
+    const totalQuantity = inventories.reduce((sum, inv) => sum + Number(inv.quantity), 0);
+
+    await this.prisma.productVariant.update({
+      where: { id: BigInt(variantId) },
+      data: { stock_quantity: totalQuantity }
+    });
+  }
+
+  async findDefaultWarehouse(groupId: number | bigint | null): Promise<any> {
+    return this.prisma.warehouse.findFirst({
+      where: {
+        group_id: groupId ? BigInt(groupId) : null,
+        status: 'active'
+      },
+      orderBy: { priority: 'desc' }
+    });
+  }
 
   async createStockTransfer(fromId: number, toId: number, variantId: number, quantity: number, userId: number, notes?: string): Promise<any> {
     const sourceInventory = await this.inventoryRepository.findOne({
@@ -82,6 +107,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
       await this.inventoryRepository.update(sourceInv.id, {
         quantity: sourceInv.quantity - transfer.quantity
       });
+      await this.syncVariantStock(Number(transfer.product_variant_id));
     }
 
     return this.stockTransferRepository.update(id, {
@@ -105,15 +131,9 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
       await this.inventoryRepository.update(destInv.id, {
         quantity: destInv.quantity + transfer.quantity
       });
-    } else {
-      await this.inventoryRepository.create({
-        warehouse_id: Number(transfer.to_warehouse_id),
-        product_id: Number(transfer.product_id),
-        product_variant_id: Number(transfer.product_variant_id),
-        quantity: transfer.quantity,
-        min_quantity: 0
-      });
     }
+
+    await this.syncVariantStock(Number(transfer.product_variant_id));
 
     return this.stockTransferRepository.update(id, {
       status: 'completed'
@@ -167,6 +187,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
 
     // Add to destination (warehouse_id in 'to')
     await this.addToInventory(Number(transfer.to_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
+    await this.syncVariantStock(Number(transfer.product_variant_id));
 
     return this.stockTransferRepository.update(id, {
       status: 'approved',
@@ -213,6 +234,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
 
     // Deduct from source
     await this.deductFromInventory(Number(transfer.from_warehouse_id), Number(transfer.product_variant_id), transfer.quantity);
+    await this.syncVariantStock(Number(transfer.product_variant_id));
 
     return this.stockTransferRepository.update(id, {
       status: 'approved',
@@ -267,13 +289,19 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
       }
     }
 
+    await this.syncVariantStock(Number(transfer.product_variant_id));
+
     return this.stockTransferRepository.update(id, { status: 'cancelled' });
   }
 
   protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
     const prepared = { ...(filters || {}) };
     if (prepared.group_id === undefined) {
-      // Warehouse doesn't have group_id currently
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
+      }
     }
     return prepared;
   }
@@ -303,6 +331,17 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     if (data.contact_name !== undefined) sanitized.contact_name = data.contact_name;
     if (data.contact_phone !== undefined) sanitized.contact_phone = data.contact_phone;
 
+    // ✅ Thêm group_id vào sanitize list
+    if (data.group_id !== undefined) sanitized.group_id = data.group_id;
+
+    // Gán group_id mặc định từ RequestContext nếu đang là create (không có group_id trong payload)
+    if (sanitized.group_id === undefined) {
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (groupId) {
+        sanitized.group_id = groupId;
+      }
+    }
+
     // Keep status + is_active consistent
     if (data.is_active !== undefined) {
       sanitized.status = data.is_active ? 'active' : 'inactive';
@@ -320,17 +359,24 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     return this.sanitizeWarehouseInput(data);
   }
 
-  protected override async beforeUpdate(_id: string | number | bigint, data: any): Promise<any> {
+  protected override async beforeUpdate(id: string | number | bigint, data: any): Promise<any> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException(`Warehouse with ID ${id} not found`);
+    verifyGroupOwnership(entity as any);
     return this.sanitizeWarehouseInput(data);
   }
 
   override async getOne(id: string | number | bigint): Promise<Warehouse> {
     const warehouse = await super.getOne(id);
+    verifyGroupOwnership(warehouse as any);
     return warehouse;
   }
 
   protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
     const warehouse = await this.repository.findById(id);
+    if (warehouse) {
+      verifyGroupOwnership(warehouse as any);
+    }
     return true;
   }
 
@@ -379,6 +425,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
 
   async updateInventoryStock(warehouseId: number, variantId: number, quantity: number, minStock?: number): Promise<any> {
     await this.inventoryRepository.upsertInventory(warehouseId, variantId, quantity, minStock);
+    await this.syncVariantStock(variantId);
     return { success: true };
   }
 

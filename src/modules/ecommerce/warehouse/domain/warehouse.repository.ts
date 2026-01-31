@@ -8,6 +8,7 @@ export interface WarehouseFilter {
     code?: string;
     status?: 'active' | 'inactive';
     deleted_at?: Date | null;
+    group_id?: number | bigint | null;
 }
 
 export interface IWarehouseRepository extends IRepository<Warehouse> {

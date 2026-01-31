@@ -8,9 +8,10 @@ export interface ProductCategoryFilter {
     search?: string;
     parent_id?: number | bigint;
     deleted_at?: Date | null;
+    group_id?: number | bigint | null; // ✅ Thêm group_id
 }
 
 export interface IProductCategoryRepository extends IRepository<ProductCategory> {
     findBySlug(slug: string): Promise<ProductCategory | null>;
-    getTree(): Promise<ProductCategory[]>;
+    getTree(groupId?: number | bigint | null): Promise<ProductCategory[]>;
 }

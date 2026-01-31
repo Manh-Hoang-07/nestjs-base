@@ -178,6 +178,20 @@ export class SeedService {
       await this.prisma.stockTransfer.deleteMany({});
       await this.prisma.warehouse.deleteMany({});
 
+      // Ecommerce - Product & Config (clear children -> parents)
+      await this.prisma.productReview.deleteMany({});
+      await this.prisma.productVariantAttribute.deleteMany({});
+      await this.prisma.productVariant.deleteMany({});
+      await this.prisma.productProductCategory.deleteMany({});
+      await this.prisma.product.deleteMany({});
+      await this.prisma.productCategory.deleteMany({});
+      await this.prisma.productAttributeValue.deleteMany({});
+      await this.prisma.productAttribute.deleteMany({});
+      await this.prisma.coupon.deleteMany({});
+      await this.prisma.shippingMethod.deleteMany({});
+      await this.prisma.paymentMethod.deleteMany({});
+      await this.prisma.cart.deleteMany({});
+
       this.logger.log('Database cleared successfully');
     } catch (error) {
       this.logger.error('Database clearing failed', error);

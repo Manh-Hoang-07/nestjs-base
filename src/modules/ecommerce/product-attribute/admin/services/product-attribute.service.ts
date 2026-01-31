@@ -5,6 +5,8 @@ import { IProductAttributeRepository, PRODUCT_ATTRIBUTE_REPOSITORY } from '../..
 import { CreateProductAttributeDto } from '../dtos/create-product-attribute.dto';
 import { UpdateProductAttributeDto } from '../dtos/update-product-attribute.dto';
 import { slugify } from '@/common/shared/utils/string.util';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class AdminProductAttributeService extends BaseService<ProductAttribute, IProductAttributeRepository> {
@@ -19,6 +21,18 @@ export class AdminProductAttributeService extends BaseService<ProductAttribute, 
     return this.getList({ ...query, limit: 1000 });
   }
 
+  protected override async prepareFilters(filters?: any): Promise<any> {
+    const prepared = { ...(filters || {}) };
+    if (prepared.group_id === undefined) {
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
+      }
+    }
+    return prepared;
+  }
+
   protected override async beforeCreate(data: CreateProductAttributeDto): Promise<any> {
     const payload = { ...data };
     if (!payload.code) {
@@ -30,14 +44,22 @@ export class AdminProductAttributeService extends BaseService<ProductAttribute, 
       payload.code = `${payload.code}_${Date.now()}`;
     }
 
+    // Gán group_id nếu có
+    const groupId = RequestContext.get<number | null>('groupId');
+    if (groupId) {
+      (payload as any).group_id = groupId;
+    }
+
     return payload;
   }
 
   protected override async beforeUpdate(id: string | number | bigint, data: UpdateProductAttributeDto): Promise<any> {
-    const entity = await this.repository.findById(id);
+    const entity = await this.productAttributeRepository.findById(id);
     if (!entity) {
       throw new NotFoundException(`Product Attribute with ID ${id} not found`);
     }
+
+    verifyGroupOwnership(entity as any);
 
     const payload = { ...data };
     if (payload.code && payload.code !== entity.code) {
@@ -48,5 +70,17 @@ export class AdminProductAttributeService extends BaseService<ProductAttribute, 
     }
 
     return payload;
+  }
+
+  override async getOne(id: string | number | bigint): Promise<ProductAttribute> {
+    const entity = await super.getOne(id);
+    verifyGroupOwnership(entity as any);
+    return entity;
+  }
+
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const entity = await this.repository.findById(id);
+    if (entity) verifyGroupOwnership(entity as any);
+    return true;
   }
 }

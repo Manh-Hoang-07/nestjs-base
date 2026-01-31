@@ -1014,6 +1014,7 @@ model ProductCategory {
   meta_description String?     @db.Text
   canonical_url    String?     @db.VarChar(500)
   og_image         String?     @db.VarChar(500)
+  group_id         BigInt?     @db.UnsignedBigInt // NULL = global category, có giá trị = riêng của group
   created_user_id  BigInt?     @db.UnsignedBigInt
   updated_user_id  BigInt?     @db.UnsignedBigInt
   created_at       DateTime    @default(now()) @db.DateTime(0)
@@ -1028,6 +1029,7 @@ model ProductCategory {
   @@index([parent_id], map: "idx_product_categories_parent_id")
   @@index([status], map: "idx_product_categories_status")
   @@index([sort_order], map: "idx_product_categories_sort_order")
+  @@index([group_id], map: "idx_product_categories_group_id")
   @@index([deleted_at], map: "idx_product_categories_deleted_at")
   @@map("product_categories")
 }
@@ -1102,6 +1104,7 @@ model ProductVariant {
   stock_quantity  Int       @default(0)
   image           String?   @db.VarChar(500)
   is_active       Boolean   @default(true)
+  group_id        BigInt?   @db.UnsignedBigInt // Inherit từ product, NULL nếu product global
   created_user_id BigInt?   @db.UnsignedBigInt
   updated_user_id BigInt?   @db.UnsignedBigInt
   created_at      DateTime  @default(now()) @db.DateTime(0)
@@ -1117,6 +1120,7 @@ model ProductVariant {
 
   @@index([product_id], map: "idx_product_variants_product_id")
   @@index([sku], map: "idx_product_variants_sku")
+  @@index([group_id], map: "idx_product_variants_group_id")
   @@map("product_variants")
 }
 
@@ -1302,6 +1306,7 @@ model ProductReview {
   helpful_count        Int         @default(0)
   is_verified_purchase Boolean     @default(false)
   status               BasicStatus @default(active)
+  group_id             BigInt?     @db.UnsignedBigInt // Inherit từ product
   created_user_id      BigInt?     @db.UnsignedBigInt
   updated_user_id      BigInt?     @db.UnsignedBigInt
   created_at           DateTime    @default(now()) @db.DateTime(0)
@@ -1312,6 +1317,7 @@ model ProductReview {
 
   @@index([product_id], map: "idx_product_reviews_product_id")
   @@index([status], map: "idx_product_reviews_status")
+  @@index([group_id], map: "idx_product_reviews_group_id")
   @@map("product_reviews")
 }
 
@@ -1354,6 +1360,7 @@ model Warehouse {
   contact_name    String?     @db.VarChar(255)
   contact_phone   String?     @db.VarChar(20)
   status          BasicStatus @default(active)
+  group_id        BigInt?     @db.UnsignedBigInt // NULL = shared warehouse, có giá trị = riêng của group
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
   created_at      DateTime    @default(now()) @db.DateTime(0)
@@ -1365,6 +1372,7 @@ model Warehouse {
   stock_transfers_to   StockTransfer[]      @relation("ToWarehouse")
 
   @@index([code], map: "idx_warehouses_code")
+  @@index([group_id], map: "idx_warehouses_group_id")
   @@map("warehouses")
 }
 
@@ -1375,6 +1383,7 @@ model WarehouseInventory {
   product_variant_id BigInt?  @db.UnsignedBigInt
   quantity           Int      @default(0)
   min_quantity       Int      @default(0)
+  group_id           BigInt?  @db.UnsignedBigInt // Inherit từ warehouse hoặc product
   created_user_id    BigInt?  @db.UnsignedBigInt
   updated_user_id    BigInt?  @db.UnsignedBigInt
   created_at         DateTime @default(now()) @db.DateTime(0)
@@ -1387,6 +1396,7 @@ model WarehouseInventory {
   @@unique([warehouse_id, product_id, product_variant_id], map: "uk_warehouse_product_variant")
   @@index([warehouse_id], map: "idx_wi_warehouse_id")
   @@index([product_id], map: "idx_wi_product_id")
+  @@index([group_id], map: "idx_wi_group_id")
   @@map("warehouse_inventory")
 }
 
@@ -1400,6 +1410,7 @@ model StockTransfer {
   type               String    @default("transfer") @db.VarChar(50) // transfer, import, export
   status             String    @default("pending") @db.VarChar(50)
   notes              String?   @db.Text
+  group_id           BigInt?   @db.UnsignedBigInt // Inherit từ warehouse hoặc product
   created_user_id    BigInt?   @db.UnsignedBigInt
   updated_user_id    BigInt?   @db.UnsignedBigInt
   created_at         DateTime  @default(now()) @db.DateTime(0)
@@ -1410,6 +1421,7 @@ model StockTransfer {
   @@index([to_warehouse_id], map: "idx_st_to")
   @@index([product_id], map: "idx_st_product")
   @@index([type], map: "idx_st_type")
+  @@index([group_id], map: "idx_st_group_id")
   @@map("stock_transfers")
 
   from_warehouse   Warehouse?      @relation("FromWarehouse", fields: [from_warehouse_id], references: [id], onDelete: SetNull)

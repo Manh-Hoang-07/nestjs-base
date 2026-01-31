@@ -17,18 +17,44 @@ export class WarehouseRepositoryImpl extends PrismaRepository<
     }
 
     protected buildWhere(filter: WarehouseFilter): Prisma.WarehouseWhereInput {
-        const where: Prisma.WarehouseWhereInput = {};
+        const where: any = {};
 
         if (filter.code) where.code = filter.code;
         if (filter.status) where.status = filter.status as any;
-        if (filter.search) {
-            where.OR = [
-                { name: { contains: filter.search } },
-                { code: { contains: filter.search } },
-            ];
+
+        // ✅ Phân quyền Multi-shop: (Shared OR Specific Shop)
+        if (filter.group_id !== undefined) {
+            if (filter.group_id === null) {
+                where.group_id = null;
+            } else {
+                where.OR = [
+                    { group_id: null },
+                    { group_id: this.toPrimaryKey(filter.group_id) }
+                ];
+            }
         }
 
-        return where;
+        if (filter.search) {
+            const searchCondition = {
+                OR: [
+                    { name: { contains: filter.search } },
+                    { code: { contains: filter.search } },
+                ]
+            };
+
+            if (where.OR) {
+                const existingOr = where.OR;
+                delete where.OR;
+                where.AND = [
+                    { OR: existingOr },
+                    searchCondition
+                ];
+            } else {
+                where.OR = searchCondition.OR;
+            }
+        }
+
+        return where as Prisma.WarehouseWhereInput;
     }
 
     async findByCode(code: string): Promise<Warehouse | null> {

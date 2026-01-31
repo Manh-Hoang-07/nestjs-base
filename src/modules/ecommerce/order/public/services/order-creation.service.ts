@@ -72,7 +72,13 @@ export class OrderCreationService {
     cartItems: any[],
     variantMap: Map<number | bigint, any>,
   ): Promise<void> {
-    // 1. Tạo tất cả order items
+    // 0. Get order details to know group_id
+    const order = await tx.order.findUnique({
+      where: { id: BigInt(orderId) },
+      select: { group_id: true }
+    });
+
+    // 1. Tạo tất cả order items (Batch create is better but here we also need to deduct stock)
     const orderItemsData = cartItems.map(cartItem => ({
       order_id: BigInt(orderId),
       product_id: BigInt(cartItem.product_id),
@@ -88,16 +94,47 @@ export class OrderCreationService {
 
     await tx.orderItem.createMany({ data: orderItemsData });
 
-    // 2. Deduct stock atomically cho tất cả variants
+    // 2. Find default warehouse for deduction
+    const warehouse = await tx.warehouse.findFirst({
+      where: {
+        group_id: order?.group_id ? BigInt(order.group_id) : null,
+        status: 'active'
+      },
+      orderBy: { priority: 'desc' }
+    });
+
+    // 3. Deduct stock atomically cho tất cả variants
     for (const cartItem of cartItems) {
       if (cartItem.product_variant_id) {
         const variantId = BigInt(cartItem.product_variant_id);
+        const quantity = Number(cartItem.quantity);
+
+        // Update Variant total stock
         await tx.productVariant.update({
           where: { id: variantId },
           data: {
-            stock_quantity: { decrement: cartItem.quantity },
+            stock_quantity: { decrement: quantity },
           },
         });
+
+        // Update Warehouse inventory
+        if (warehouse) {
+          const where = {
+            warehouse_id_product_id_product_variant_id: {
+              warehouse_id: warehouse.id,
+              product_id: BigInt(cartItem.product_id),
+              product_variant_id: variantId
+            }
+          };
+
+          const existing = await tx.warehouseInventory.findUnique({ where });
+          if (existing) {
+            await tx.warehouseInventory.update({
+              where: { id: existing.id },
+              data: { quantity: { decrement: quantity } }
+            });
+          }
+        }
       }
     }
   }

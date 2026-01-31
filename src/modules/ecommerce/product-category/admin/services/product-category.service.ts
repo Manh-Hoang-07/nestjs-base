@@ -5,6 +5,8 @@ import { IProductCategoryRepository, PRODUCT_CATEGORY_REPOSITORY } from '../../d
 import { CreateProductCategoryDto } from '../dtos/create-product-category.dto';
 import { UpdateProductCategoryDto } from '../dtos/update-product-category.dto';
 import { slugify } from '@/common/shared/utils/string.util';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class AdminProductCategoryService extends BaseService<ProductCategory, IProductCategoryRepository> {
@@ -20,15 +22,39 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
   }
 
   async findTree() {
-    return this.productCategoryRepository.getTree();
+    const groupId = RequestContext.get<number | null>('groupId');
+    return this.productCategoryRepository.getTree(groupId);
   }
 
   async findRootCategories() {
-    return this.productCategoryRepository.findMany({ parent_id: null });
+    const groupId = RequestContext.get<number | null>('groupId');
+    return this.productCategoryRepository.findMany({
+      parent_id: null,
+      group_id: groupId as any // Repository will handle Global OR Specific
+    } as any);
   }
 
   async findChildren(parentId: number | bigint) {
-    return this.productCategoryRepository.findMany({ parent_id: parentId });
+    const groupId = RequestContext.get<number | null>('groupId');
+    return this.productCategoryRepository.findMany({
+      parent_id: parentId,
+      group_id: groupId as any
+    } as any);
+  }
+
+  /**
+   * Chuẩn bị filters theo group/context
+   */
+  protected override async prepareFilters(filters?: any): Promise<any> {
+    const prepared = { ...(filters || {}) };
+    if (prepared.group_id === undefined) {
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
+      }
+    }
+    return prepared;
   }
 
   async restore(id: number | bigint) {
@@ -50,7 +76,19 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
       payload.parent_id = BigInt(payload.parent_id);
     }
 
+    // Gán group_id nếu có
+    const groupId = RequestContext.get<number | null>('groupId');
+    if (groupId) {
+      payload.group_id = groupId;
+    }
+
     return payload;
+  }
+
+  override async getOne(id: string | number | bigint): Promise<ProductCategory> {
+    const entity = await super.getOne(id);
+    verifyGroupOwnership(entity as any);
+    return entity;
   }
 
   protected override async beforeUpdate(id: string | number | bigint, data: UpdateProductCategoryDto): Promise<any> {
@@ -58,6 +96,9 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
     if (!entity) {
       throw new NotFoundException(`Product Category with ID ${id} not found`);
     }
+
+    // Kiểm tra quyền sở hữu
+    verifyGroupOwnership(entity as any);
 
     const payload: any = { ...data };
     if (payload.name && !payload.slug) {
@@ -76,5 +117,13 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
     }
 
     return payload;
+  }
+
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const entity = await this.repository.findById(id);
+    if (entity) {
+      verifyGroupOwnership(entity as any);
+    }
+    return true;
   }
 }
