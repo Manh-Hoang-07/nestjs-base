@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ReviewsController } from '@/modules/comics/admin/reviews/controllers/reviews.controller';
-import { ReviewsService } from '@/modules/comics/admin/reviews/services/reviews.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { ReviewsController } from './controllers/reviews.controller';
+import { ReviewsService } from './services/reviews.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [

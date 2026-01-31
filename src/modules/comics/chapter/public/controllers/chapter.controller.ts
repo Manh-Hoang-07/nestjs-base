@@ -10,10 +10,10 @@ import {
   Req,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { PublicChaptersService } from '@/modules/comics/public/chapters/services/chapters.service';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
+import { PublicChaptersService } from '@/modules/comics/chapter/public/services/chapter.service';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { ViewTrackingService } from '@/modules/comics/core/services/view-tracking.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('public/chapters')
 export class PublicChaptersController {
@@ -25,14 +25,14 @@ export class PublicChaptersController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.chaptersService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.chaptersService.getList({ filter, options });
   }
 
   @Permission('public')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.chaptersService.getOne({ id });
+    return this.chaptersService.getOne(id);
   }
 
   @Permission('public')
@@ -60,13 +60,13 @@ export class PublicChaptersController {
     @Param('id', ParseIntPipe) id: number,
     @Req() req: any,
   ) {
-    const chapter = await this.chaptersService.getOne({ id });
+    const chapter = await this.chaptersService.getOne(id);
     if (!chapter) {
       return { tracked: false };
     }
 
     return this.viewTrackingService.trackView({
-      comic_id: chapter.comic_id,
+      comic_id: Number(chapter.comic_id),
       chapter_id: id,
       user_id: req.user?.id,
       ip: req.ip,

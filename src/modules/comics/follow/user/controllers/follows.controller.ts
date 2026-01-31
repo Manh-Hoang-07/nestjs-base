@@ -6,8 +6,8 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
-import { FollowsService } from '@/modules/comics/user/follows/services/follows.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { FollowsService } from '../services/follows.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('user/follows')
 export class FollowsController {

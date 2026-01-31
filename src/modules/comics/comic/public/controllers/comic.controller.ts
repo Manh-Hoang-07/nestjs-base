@@ -1,17 +1,17 @@
 import { Controller, Get, Param, ParseIntPipe, Query, ValidationPipe } from '@nestjs/common';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { PublicComicsService } from '@/modules/comics/public/comics/services/comics.service';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { PublicComicsService } from '../services/comic.service';
 
 @Controller('public/comics')
 export class PublicComicsController {
-  constructor(private readonly comicsService: PublicComicsService) {}
+  constructor(private readonly comicsService: PublicComicsService) { }
 
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.comicsService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.comicsService.getList({ filter, ...options });
   }
 
   @Permission('public')

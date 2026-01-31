@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AnalyticsController } from '@/modules/comics/admin/analytics/controllers/analytics.controller';
-import { AnalyticsService } from '@/modules/comics/admin/analytics/services/analytics.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { AnalyticsController } from '@/modules/comics/analytics/admin/controllers/analytics.controller';
+import { AnalyticsService } from '@/modules/comics/analytics/admin/services/analytics.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { RbacModule } from '@/modules/rbac/rbac.module';
   providers: [AnalyticsService],
   exports: [AnalyticsService],
 })
-export class AnalyticsModule {}
+export class AnalyticsModule { }
 
 
 

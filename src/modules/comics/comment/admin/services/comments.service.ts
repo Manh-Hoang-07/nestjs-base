@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { createPaginationMeta } from '@/common/base/utils/pagination.helper';
+import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
 
 @Injectable()
 export class CommentsService {

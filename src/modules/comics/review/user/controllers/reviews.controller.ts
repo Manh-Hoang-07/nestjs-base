@@ -10,8 +10,8 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { ReviewsService } from '@/modules/comics/user/reviews/services/reviews.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { ReviewsService } from '../services/reviews.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { SanitizeHtmlPipe } from '@/modules/comics/core/pipes/sanitize-html.pipe';
 
 @Controller('user/reviews')

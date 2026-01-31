@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '@/common/services/cache.service';
-import { PublicComicsService } from '@/modules/comics/public/comics/services/comics.service';
-import { PublicComicCategoriesService } from '@/modules/comics/public/comic-categories/services/comic-categories.service';
+import { CacheService } from '@/common/cache/services/cache.service';
+import { PublicComicsService } from '@/modules/comics/comic/public/services/comic.service';
+import { PublicComicCategoriesService } from '@/modules/comics/comic-category/public/services/comic-category.service';
 
 @Injectable()
 export class HomepageService {
@@ -29,7 +29,7 @@ export class HomepageService {
     private readonly cacheService: CacheService,
     private readonly comicsService: PublicComicsService,
     private readonly comicCategoriesService: PublicComicCategoriesService,
-  ) {}
+  ) { }
 
   /**
    * Lấy tất cả dữ liệu cần thiết cho trang chủ
@@ -50,10 +50,10 @@ export class HomepageService {
       this.cacheService.getOrSet(
         this.CACHE_KEYS.TOP_VIEWED,
         async () => {
-          const result = await this.comicsService.getList(
-            undefined,
-            { limit: 10, sort: 'view_count:DESC' },
-          );
+          const result = await this.comicsService.getList({
+            limit: 10,
+            sort: 'view_count:DESC',
+          });
           return result.data || [];
         },
         this.CACHE_TTL.TOP_VIEWED,
@@ -64,10 +64,10 @@ export class HomepageService {
       this.cacheService.getOrSet(
         this.CACHE_KEYS.TRENDING,
         async () => {
-          const result = await this.comicsService.getList(
-            undefined,
-            { limit: 30, sort: 'view_count:DESC' },
-          );
+          const result = await this.comicsService.getList({
+            limit: 30,
+            sort: 'view_count:DESC',
+          });
           return result.data || [];
         },
         this.CACHE_TTL.TRENDING,
@@ -78,10 +78,10 @@ export class HomepageService {
       this.cacheService.getOrSet(
         this.CACHE_KEYS.POPULAR,
         async () => {
-          const result = await this.comicsService.getList(
-            undefined,
-            { limit: 30, sort: 'follow_count:DESC' },
-          );
+          const result = await this.comicsService.getList({
+            limit: 30,
+            sort: 'follow_count:DESC',
+          });
           return result.data || [];
         },
         this.CACHE_TTL.POPULAR,
@@ -92,10 +92,10 @@ export class HomepageService {
       this.cacheService.getOrSet(
         this.CACHE_KEYS.NEWEST,
         async () => {
-          const result = await this.comicsService.getList(
-            undefined,
-            { limit: 30, sort: 'created_at:DESC' },
-          );
+          const result = await this.comicsService.getList({
+            limit: 30,
+            sort: 'created_at:DESC',
+          });
           return result.data || [];
         },
         this.CACHE_TTL.NEWEST,
@@ -107,9 +107,9 @@ export class HomepageService {
       this.cacheService.getOrSet(
         this.CACHE_KEYS.LATEST_CHAPTERS,
         async () => {
-          const result = await this.comicsService.getList(undefined, {
+          const result = await this.comicsService.getList({
             limit: 10,
-            sort: 'last_chapter_updated_at:DESC', // Sort trực tiếp trên comics table
+            sort: 'last_chapter_updated_at:DESC',
           });
           return result.data || [];
         },
@@ -121,10 +121,9 @@ export class HomepageService {
       this.cacheService.getOrSet(
         this.CACHE_KEYS.COMIC_CATEGORIES,
         async () => {
-          const result = await this.comicCategoriesService.getList(
-            undefined,
-            { limit: 20 },
-          );
+          const result = await this.comicCategoriesService.getList({
+            limit: 20,
+          });
           return result?.data || [];
         },
         this.CACHE_TTL.COMIC_CATEGORIES,

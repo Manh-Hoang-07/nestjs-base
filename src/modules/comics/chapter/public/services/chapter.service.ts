@@ -1,48 +1,45 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { PrismaListService, PrismaListBag } from '@/common/base/services/prisma/prisma-list.service';
-import { toPlain } from '@/common/base/services/prisma/prisma.utils';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { BaseService } from '@/common/core/services/base.service';
+import { Chapter } from '@prisma/client';
+import { IChapterRepository, CHAPTER_REPOSITORY } from '../../domain/chapter.repository';
 import { PUBLIC_CHAPTER_STATUSES } from '@/shared/enums';
-
-type ChapterBag = PrismaListBag & {
-  Model: any;
-  Where: any;
-  Select: any;
-  Include: any;
-  OrderBy: any;
-};
+import { PrismaService } from '@/core/database/prisma/prisma.service';
 
 @Injectable()
-export class PublicChaptersService extends PrismaListService<ChapterBag> {
-  constructor(private readonly prisma: PrismaService) {
-    super(prisma.chapter, ['id', 'created_at', 'chapter_index', 'view_count'], 'created_at:DESC');
+export class PublicChaptersService extends BaseService<Chapter, IChapterRepository> {
+  constructor(
+    @Inject(CHAPTER_REPOSITORY) protected readonly repository: IChapterRepository,
+    private readonly prisma: PrismaService,
+  ) {
+    super(repository);
   }
 
   /**
    * Override để chỉ lấy chapters có status public
    */
-  protected override prepareFilters(filters?: any, _options?: any): boolean | any {
-    const prepared = { ...(filters || {}) };
-    prepared.status = { in: PUBLIC_CHAPTER_STATUSES };
-    return prepared;
+  protected override async prepareFilters(filters?: any) {
+    return {
+      ...(filters || {}),
+      status: { in: PUBLIC_CHAPTER_STATUSES }
+    };
   }
 
   /**
    * Override để load relations
    * Ưu tiên: select > include mặc định
    */
-  protected override prepareOptions(queryOptions: any = {}) {
-    const base = super.prepareOptions(queryOptions);
-    
-    // Nếu có select trong queryOptions, dùng select và bỏ include
-    if (queryOptions?.select) {
+  protected override async prepareOptions(options: any = {}) {
+    const base = await super.prepareOptions(options);
+
+    // Nếu có select trong options, trả về base (repo handle select)
+    if (options?.select) {
       return {
         ...base,
-        select: queryOptions.select,
+        select: options.select,
         include: undefined,
       };
     }
-    
+
     // Nếu không có select, dùng include mặc định
     return {
       ...base,
@@ -60,7 +57,7 @@ export class PublicChaptersService extends PrismaListService<ChapterBag> {
    */
   async getPages(chapterId: number) {
     const chapter = await this.prisma.chapter.findUnique({
-      where: { id: BigInt(chapterId), status: PUBLIC_CHAPTER_STATUSES[0] as any },
+      where: { id: BigInt(chapterId), status: { in: PUBLIC_CHAPTER_STATUSES } },
       select: { id: true },
     });
 
@@ -73,7 +70,7 @@ export class PublicChaptersService extends PrismaListService<ChapterBag> {
       orderBy: { page_number: 'asc' },
     });
 
-    return toPlain(pages);
+    return this.deepConvertBigInt(pages);
   }
 
   /**
@@ -92,13 +89,14 @@ export class PublicChaptersService extends PrismaListService<ChapterBag> {
     const next = await this.prisma.chapter.findFirst({
       where: {
         comic_id: chapter.comic_id,
-        chapter_index: chapter.chapter_index + 1,
-        status: PUBLIC_CHAPTER_STATUSES[0] as any,
+        chapter_index: { gt: chapter.chapter_index },
+        status: { in: PUBLIC_CHAPTER_STATUSES },
+        deleted_at: null,
       },
-      orderBy: { id: 'asc' },
+      orderBy: { chapter_index: 'asc' },
     });
 
-    return next ? toPlain(next) : null;
+    return next ? this.transform(next) : null;
   }
 
   /**
@@ -117,13 +115,14 @@ export class PublicChaptersService extends PrismaListService<ChapterBag> {
     const prev = await this.prisma.chapter.findFirst({
       where: {
         comic_id: chapter.comic_id,
-        chapter_index: chapter.chapter_index - 1,
-        status: PUBLIC_CHAPTER_STATUSES[0] as any,
+        chapter_index: { lt: chapter.chapter_index },
+        status: { in: PUBLIC_CHAPTER_STATUSES },
+        deleted_at: null,
       },
-      orderBy: { id: 'desc' },
+      orderBy: { chapter_index: 'desc' },
     });
 
-    return prev ? toPlain(prev) : null;
+    return prev ? this.transform(prev) : null;
   }
 }
 

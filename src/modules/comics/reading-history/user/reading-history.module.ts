@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ReadingHistoryController } from '@/modules/comics/user/reading-history/controllers/reading-history.controller';
-import { ReadingHistoryService } from '@/modules/comics/user/reading-history/services/reading-history.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { ReadingHistoryController } from './controllers/reading-history.controller';
+import { ReadingHistoryService } from './services/reading-history.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [

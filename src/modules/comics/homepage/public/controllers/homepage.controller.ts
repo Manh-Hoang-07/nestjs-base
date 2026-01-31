@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { HomepageService } from '@/modules/comics/public/homepage/services/homepage.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { HomepageService } from '../services/homepage.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('public/homepage')
 export class HomepageController {

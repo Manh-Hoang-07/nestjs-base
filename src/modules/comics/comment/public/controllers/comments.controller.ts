@@ -5,8 +5,8 @@ import {
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { PublicCommentsService } from '@/modules/comics/public/comments/services/comments.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { PublicCommentsService } from '../services/comments.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('public/comments')
 export class PublicCommentsController {

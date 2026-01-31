@@ -4,8 +4,8 @@ import {
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { DashboardService } from '@/modules/comics/user/dashboard/services/dashboard.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { DashboardService } from '../services/dashboard.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('user/dashboard')
 export class DashboardController {

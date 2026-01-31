@@ -10,10 +10,10 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { CommentsService } from '@/modules/comics/admin/comments/services/comments.service';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
-import { LogRequest } from '@/common/decorators/log-request.decorator';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { CommentsService } from '../services/comments.service';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('admin/comments')
 export class CommentsController {
@@ -22,8 +22,8 @@ export class CommentsController {
   @Permission('comic.manage')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filters, options } = prepareQuery(query);
-    return this.commentsService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.commentsService.getList({ filter, ...options });
   }
 
   @Permission('comic.manage')
@@ -35,7 +35,7 @@ export class CommentsController {
   @Permission('comic.manage')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.commentsService.getOne({ id });
+    return this.commentsService.getOne(id);
   }
 
   @Permission('comic.manage')

@@ -8,8 +8,8 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { ReadingHistoryService } from '@/modules/comics/user/reading-history/services/reading-history.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { ReadingHistoryService } from '../services/reading-history.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('user/reading-history')
 export class ReadingHistoryController {

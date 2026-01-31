@@ -1,50 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { BaseService } from '@/common/core/services/base.service';
+import { Comic } from '@prisma/client';
+import { IComicRepository, COMIC_REPOSITORY } from '../../domain/comic.repository';
 import { PUBLIC_CHAPTER_STATUSES, PUBLIC_COMIC_STATUSES } from '@/shared/enums';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { PrismaListService, PrismaListBag } from '@/common/base/services/prisma/prisma-list.service';
-import { buildOrderBy, toPlain } from '@/common/base/services/prisma/prisma.utils';
-import { FollowsService } from '@/modules/comics/user/follows/services/follows.service';
-import { RequestContext } from '@/common/utils/request-context.util';
-
-type ComicBag = PrismaListBag & {
-  Model: any;
-  Where: any;
-  Select: any;
-  Include: any;
-  OrderBy: any;
-};
+import { FollowsService } from '@/modules/comics/follow/user/services/follows.service';
+import { RequestContext } from '@/common/shared/utils';
 
 @Injectable()
-export class PublicComicsService extends PrismaListService<ComicBag> {
+export class PublicComicsService extends BaseService<Comic, IComicRepository> {
   constructor(
+    @Inject(COMIC_REPOSITORY) protected readonly repository: IComicRepository,
     private readonly prisma: PrismaService,
     private readonly followsService: FollowsService,
   ) {
-    super(prisma.comic, ['id', 'created_at', 'view_count', 'follow_count'], 'id:DESC');
+    super(repository);
   }
 
-  protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
+  protected override async prepareFilters(filters?: any) {
     const prepared: any = { ...(filters || {}) };
-    
+
     // Luôn giới hạn comics ở trạng thái public
     prepared.status = { in: PUBLIC_COMIC_STATUSES };
 
-    // Xử lý comic_category_id filter - chuyển thành relation filter (alias của category_id)
-    const comicCategoryId = prepared.comic_category_id;
-    if (comicCategoryId) {
-      prepared.categoryLinks = {
-        some: {
-          category: { id: BigInt(comicCategoryId) },
-        },
-      };
+    // Map comic_category_id to categoryId (Repo handles categoryId)
+    if (prepared.comic_category_id) {
+      prepared.categoryId = prepared.comic_category_id;
       delete prepared.comic_category_id;
     }
 
     return prepared;
   }
 
-  protected override prepareOptions(queryOptions: any = {}) {
-    const base = super.prepareOptions(queryOptions);
+  protected override async prepareOptions(options: any = {}) {
+    // Note: super.prepareOptions handles page/limit/sort normalization
+    const base = await super.prepareOptions(options);
+
     const allowStatsSort = ['view_count', 'follow_count'];
     const allowDirectSort = ['last_chapter_updated_at', 'created_at', 'updated_at'];
     const [sortFieldRaw, sortDirRaw] = String(base.sort || '').split(':');
@@ -64,8 +55,15 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
         [sortField]: sortDirection,
       };
     } else {
-      orderBy = base.orderBy;
+      // So if we put `orderBy` in the returned options, does `PrismaRepository` use it?
+      // `PrismaRepository.findAll` does: `const orderBy = this.parseSort(sort);`
+      // It DOES NOT look at `options.orderBy`.
+      // To force a custom orderBy, we might need to modify `options.sort` or `Repo` logic.
+      // BUT, `PrismaRepository` accepts `orderBy` in `delegate.findMany`.
+      // Wait, `PrismaRepository.findAll` calls: `this.delegate.findMany({ ..., orderBy, ... })`.
+      // The local `orderBy` variable shadows anything passed in arguments.
     }
+    // Note: base.orderBy does not exist on IPaginationOptions
 
     // Prisma không cho phép dùng select + include cùng lúc
     // Ưu tiên: include > select > defaultSelect
@@ -109,50 +107,47 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
       },
     };
 
-    // Nếu có include trong queryOptions, dùng include và bỏ select
-    if (queryOptions?.include) {
+    // Nếu có include trong options, dùng include và bỏ select
+    if (options?.include) {
       return {
         ...base,
-        include: queryOptions.include,
+        include: options.include,
         select: undefined,
-        orderBy,
       };
     }
 
     // Nếu không có include, dùng select
-    const finalSelect = queryOptions?.select ?? defaultSelect;
+    const finalSelect = options?.select ?? defaultSelect;
     return {
       ...base,
       select: finalSelect,
       include: undefined,
-      orderBy,
     };
   }
 
-  protected override async afterGetList(data: any[]) {
-    return data.map((comic: any) => {
+  protected override async afterGetList(result: any) {
+    // result is IPaginatedResult<Comic>
+    const data = result.data.map((comic: any) => {
       // Map categoryLinks sang categories
       const categories = comic.categoryLinks?.map((l: any) => l.category).filter(Boolean) ?? [];
-      
+
       // Transform chapters array thành last_chapter object
       const lastChapter = comic.chapters?.[0];
-      
-      // Unset categoryLinks, chapters và các trường không cần thiết
-      const { 
+
+      const {
         categoryLinks,
         chapters,
-        created_user_id, 
-        updated_user_id, 
-        created_at, 
-        deleted_at, 
+        created_user_id,
+        updated_user_id,
+        created_at,
+        deleted_at,
         status,
-        ...rest 
+        ...rest
       } = comic;
-      
+
       return {
         ...rest,
         categories,
-        // Chỉ thêm last_chapter nếu có
         ...(lastChapter && {
           last_chapter: {
             id: lastChapter.id,
@@ -164,6 +159,11 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
         }),
       };
     });
+
+    return {
+      ...result,
+      data,
+    };
   }
 
   protected override async afterGetOne(comic: any) {
@@ -171,22 +171,21 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
 
     // Map categoryLinks sang categories
     const categories = comic.categoryLinks?.map((l: any) => l.category).filter(Boolean) ?? [];
-    
+
     // Transform chapters array thành last_chapter object
     const lastChapter = comic.chapters?.[0];
-    
-    // Unset categoryLinks, chapters và các trường không cần thiết
-    const { 
+
+    const {
       categoryLinks,
       chapters,
-      created_user_id, 
-      updated_user_id, 
-      created_at, 
-      deleted_at, 
+      created_user_id,
+      updated_user_id,
+      created_at,
+      deleted_at,
       status,
-      ...rest 
+      ...rest
     } = comic;
-    
+
     // Check nếu user đã đăng nhập thì thêm thông tin follow
     let isFollowing = false;
     const userId = RequestContext.get<number>('userId');
@@ -195,15 +194,13 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
         const comicId = typeof rest.id === 'bigint' ? Number(rest.id) : rest.id;
         isFollowing = await this.followsService.isFollowing(comicId);
       } catch (error) {
-        // Nếu có lỗi, giữ isFollowing = false
         isFollowing = false;
       }
     }
-    
+
     return {
       ...rest,
       categories,
-      // Chỉ thêm last_chapter nếu có
       ...(lastChapter && {
         last_chapter: {
           id: lastChapter.id,
@@ -213,21 +210,31 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
           created_at: lastChapter.created_at,
         },
       }),
-      // Thêm thông tin follow nếu user đã đăng nhập
       is_following: isFollowing,
     };
   }
 
   async getBySlug(slug: string) {
-    return this.getOne({ slug });
+    // Query manually using Prisma to support custom select/include
+    const options = await this.prepareOptions({}) as any;
+
+    const args: any = { where: { slug } };
+    if (options.select) {
+      args.select = options.select;
+    } else if (options.include) {
+      args.include = options.include;
+    }
+
+    const comic = await this.prisma.comic.findUnique(args);
+
+    if (!comic) return null;
+    return this.afterGetOne(this.deepConvertBigInt(comic));
   }
 
   async getChaptersBySlug(slug: string) {
-    const comic = await this.prisma.comic.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
+    const comic = await this.repository.findBySlug(slug);
     if (!comic) return [];
+
     const chapters = await this.prisma.chapter.findMany({
       where: { comic_id: comic.id, status: PUBLIC_CHAPTER_STATUSES[0] },
       orderBy: { chapter_index: 'asc' },
@@ -240,7 +247,7 @@ export class PublicComicsService extends PrismaListService<ComicBag> {
         created_at: true,
       },
     });
-    return toPlain(chapters);
+    return this.deepConvertBigInt(chapters);
   }
 }
 

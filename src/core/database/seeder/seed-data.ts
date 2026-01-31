@@ -23,6 +23,10 @@ import { SeedContentTemplates } from '@/core/database/seeder/seed-content-templa
 import { SeedEcommerce } from '@/core/database/seeder/seed-ecommerce';
 import { SeedWarehouseInventory } from '@/core/database/seeder/seed-warehouse-inventory';
 import { SeedOrders } from '@/core/database/seeder/seed-orders';
+import { SeedComicCategories } from '@/core/database/seeder/seed-comic-categories';
+import { SeedComics } from '@/core/database/seeder/seed-comics';
+import { SeedChapters } from '@/core/database/seeder/seed-chapters';
+import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
 
 @Injectable()
 export class SeedService {
@@ -55,6 +59,10 @@ export class SeedService {
     private readonly seedFaqs: SeedFaqs,
     // Post Module Seeders
     private readonly seedPosts: SeedPosts,
+    private readonly seedComicCategories: SeedComicCategories,
+    private readonly seedComics: SeedComics,
+    private readonly seedChapters: SeedChapters,
+    private readonly seedComicLastChapter: SeedComicLastChapter,
   ) { }
 
   async seedAll(): Promise<void> {
@@ -108,6 +116,12 @@ export class SeedService {
 
       // Ecommerce - Orders (đơn hàng)
       await this.seedOrders.seed();
+      // comics demo
+      await this.seedComicCategories.seed();
+      await this.seedComics.seed();
+      await this.seedChapters.seed();
+      // Backfill last chapter data sau khi seed chapters
+      await this.seedComicLastChapter.seed();
 
       this.logger.log('Database seeding completed successfully');
     } catch (error) {
@@ -127,6 +141,12 @@ export class SeedService {
       await this.prisma.roleHasPermission.deleteMany({});
       await this.prisma.roleContext.deleteMany({});
       await this.prisma.menuPermission.deleteMany({});
+      // Clear main tables
+      await this.prisma.chapterPage.deleteMany({});
+      await this.prisma.chapter.deleteMany({});
+      await this.prisma.comicStats.deleteMany({});
+      await this.prisma.comic.deleteMany({});
+      await this.prisma.comicCategory.deleteMany({});
 
       // Clear main tables
       await this.prisma.banner.deleteMany({});

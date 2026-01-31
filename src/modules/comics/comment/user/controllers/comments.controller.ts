@@ -12,8 +12,8 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { UserCommentsService } from '@/modules/comics/user/comments/services/comments.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { UserCommentsService } from '../services/comments.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { SanitizeHtmlPipe } from '@/modules/comics/core/pipes/sanitize-html.pipe';
 
 @Controller('user/comments')

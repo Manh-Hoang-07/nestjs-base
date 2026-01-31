@@ -6,8 +6,8 @@ import {
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ModerationService } from '@/modules/comics/admin/moderation/services/moderation.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { ModerationService } from '../services/moderation.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('admin/moderation')
 export class ModerationController {

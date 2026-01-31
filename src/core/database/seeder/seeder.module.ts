@@ -24,6 +24,10 @@ import { SeedContentTemplates } from '@/core/database/seeder/seed-content-templa
 import { SeedEcommerce } from '@/core/database/seeder/seed-ecommerce';
 import { SeedWarehouseInventory } from '@/core/database/seeder/seed-warehouse-inventory';
 import { SeedOrders } from '@/core/database/seeder/seed-orders';
+import { SeedComicCategories } from '@/core/database/seeder/seed-comic-categories';
+import { SeedComics } from '@/core/database/seeder/seed-comics';
+import { SeedChapters } from '@/core/database/seeder/seed-chapters';
+import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
 
 @Module({
   imports: [PrismaModule],
@@ -57,6 +61,11 @@ import { SeedOrders } from '@/core/database/seeder/seed-orders';
     // Ecommerce - Warehouse & Orders
     SeedWarehouseInventory,
     SeedOrders,
+    // Comic Seeders
+    SeedComicCategories,
+    SeedComics,
+    SeedChapters,
+    SeedComicLastChapter,
   ],
   exports: [SeedService],
 })

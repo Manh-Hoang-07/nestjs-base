@@ -4,8 +4,8 @@ import {
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { AnalyticsService } from '@/modules/comics/admin/analytics/services/analytics.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { AnalyticsService } from '@/modules/comics/analytics/admin/services/analytics.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('admin/analytics')
 export class AnalyticsController {

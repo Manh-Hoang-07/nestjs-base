@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { PublicChaptersController } from '@/modules/comics/public/chapters/controllers/chapters.controller';
-import { PublicChaptersService } from '@/modules/comics/public/chapters/services/chapters.service';
+import { PublicChaptersController } from '@/modules/comics/chapter/public/controllers/chapter.controller';
+import { PublicChaptersService } from '@/modules/comics/chapter/public/services/chapter.service';
 import { ViewTrackingService } from '@/modules/comics/core/services/view-tracking.service';
+import { ChapterRepositoryModule } from '../chapter.repository.module';
 
 @Module({
-  imports: [],
+  imports: [ChapterRepositoryModule],
   controllers: [PublicChaptersController],
   providers: [PublicChaptersService, ViewTrackingService],
   exports: [PublicChaptersService, ViewTrackingService],
 })
-export class PublicChaptersModule {}
+export class PublicChaptersModule { }
 

@@ -5,11 +5,11 @@ import {
   Param,
   ValidationPipe,
 } from '@nestjs/common';
-import { PublicComicCategoriesService } from '@/modules/comics/public/comic-categories/services/comic-categories.service';
-import { GetComicCategoriesDto } from '@/modules/comics/public/comic-categories/dtos/get-categories.dto';
-import { GetComicCategoryDto } from '@/modules/comics/public/comic-categories/dtos/get-category.dto';
-import { Permission } from '@/common/decorators/rbac.decorators';
-import { prepareQuery } from '@/common/base/utils/list-query.helper';
+import { PublicComicCategoriesService } from '@/modules/comics/comic-category/public/services/comic-category.service';
+import { GetComicCategoriesDto } from '@/modules/comics/comic-category/public/dtos/get-categories.dto';
+import { GetComicCategoryDto } from '@/modules/comics/comic-category/public/dtos/get-category.dto';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
+import { prepareQuery } from '@/common/core/utils/list-query.helper';
 
 @Controller('public/comic-categories')
 export class PublicComicCategoriesController {
@@ -18,8 +18,8 @@ export class PublicComicCategoriesController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: GetComicCategoriesDto) {
-    const { filters, options } = prepareQuery(query);
-    return this.comicCategoriesService.getList(filters, options);
+    const { filter, options } = prepareQuery(query);
+    return this.comicCategoriesService.getList({ filter, options });
   }
 
   @Permission('public')

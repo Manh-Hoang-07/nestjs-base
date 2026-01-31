@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { FollowsController } from '@/modules/comics/user/follows/controllers/follows.controller';
-import { FollowsService } from '@/modules/comics/user/follows/services/follows.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { FollowsController } from './controllers/follows.controller';
+import { FollowsService } from './services/follows.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [

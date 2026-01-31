@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { PublicComicCategoriesController } from '@/modules/comics/public/comic-categories/controllers/comic-categories.controller';
-import { PublicComicCategoriesService } from '@/modules/comics/public/comic-categories/services/comic-categories.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { PublicComicCategoriesController } from './controllers/comic-category.controller';
+import { PublicComicCategoriesService } from './services/comic-category.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
+import { ComicCategoryRepositoryModule } from '../comic-category.repository.module';
 
 @Module({
-  imports: [RbacModule],
+  imports: [RbacModule, ComicCategoryRepositoryModule],
   controllers: [PublicComicCategoriesController],
   providers: [PublicComicCategoriesService],
   exports: [PublicComicCategoriesService],

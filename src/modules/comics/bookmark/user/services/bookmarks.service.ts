@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext } from '@/common/utils/request-context.util';
-import { toPlain } from '@/common/base/services/prisma/prisma.utils';
+import { RequestContext, toPlain } from '@/common/shared/utils';
 
 @Injectable()
 export class BookmarksService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async getByUser(userId: number) {
     const bookmarks = await this.prisma.bookmark.findMany({

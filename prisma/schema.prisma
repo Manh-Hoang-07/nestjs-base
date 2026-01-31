@@ -59,6 +59,12 @@ model User {
   notifications         Notification[]
   post_comments         PostComment[]
   orders               Order[]
+  comments             Comment[]
+  comic_reviews        ComicReview[]
+  comic_views          ComicView[]
+  comic_follows        ComicFollow[]
+  reading_histories    ReadingHistory[]
+  bookmarks            Bookmark[]
 
   @@index([deleted_at], map: "idx_deleted_at")
   @@map("users")
@@ -1613,11 +1619,6 @@ enum ComicStatus {
 enum ChapterStatus {
   draft
   published
-}
-
-enum CommentStatus {
-  visible
-  hidden
 }
 
 model Comic {

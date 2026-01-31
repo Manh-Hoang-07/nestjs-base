@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { CommentsController } from '@/modules/comics/admin/comments/controllers/comments.controller';
-import { CommentsService } from '@/modules/comics/admin/comments/services/comments.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { CommentsController } from './controllers/comments.controller';
+import { CommentsService } from './services/comments.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { RbacModule } from '@/modules/rbac/rbac.module';
   providers: [CommentsService],
   exports: [CommentsService],
 })
-export class AdminCommentsModule {}
+export class AdminCommentsModule { }
 
 
 

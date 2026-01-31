@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext } from '@/common/utils/request-context.util';
+import { RequestContext } from '@/common/shared/utils';
 
 @Injectable()
 export class DashboardService {

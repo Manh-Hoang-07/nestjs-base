@@ -1,37 +1,32 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { PrismaListService, PrismaListBag } from '@/common/base/services/prisma/prisma-list.service';
-
-type ComicCategoryBag = PrismaListBag & {
-  Model: any;
-  Where: any;
-  Select: any;
-  Include: any;
-  OrderBy: any;
-};
+import { Injectable, Inject } from '@nestjs/common';
+import { BaseService } from '@/common/core/services/base.service';
+import { ComicCategory } from '@prisma/client';
+import { IComicCategoryRepository, COMIC_CATEGORY_REPOSITORY } from '../../domain/comic-category.repository';
 
 @Injectable()
-export class PublicComicCategoriesService extends PrismaListService<ComicCategoryBag> {
-  constructor(private readonly prisma: PrismaService) {
-    super(prisma.comicCategory, ['id', 'name', 'slug', 'created_at'], 'created_at:DESC');
+export class PublicComicCategoriesService extends BaseService<ComicCategory, IComicCategoryRepository> {
+  constructor(
+    @Inject(COMIC_CATEGORY_REPOSITORY) protected readonly repository: IComicCategoryRepository,
+  ) {
+    super(repository);
   }
 
-  protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
-    // Luôn trả về object, không trả về undefined
+  protected override async prepareFilters(filters?: any) {
     return filters || {};
   }
 
-  protected override prepareOptions(queryOptions: any = {}) {
-    const base = super.prepareOptions(queryOptions);
+  protected override async prepareOptions(options: any = {}) {
+    const base = await super.prepareOptions(options);
     return {
       ...base,
-      select: {
+      select: options.select || {
         id: true,
         name: true,
         slug: true,
         description: true,
         created_at: true,
       },
+      include: options.include || undefined, // explicit undefined if not present
     };
   }
 }

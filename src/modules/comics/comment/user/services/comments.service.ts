@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext } from '@/common/utils/request-context.util';
+import { RequestContext, toPlain } from '@/common/shared/utils';
 import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
-import { toPlain } from '@/common/base/services/prisma/prisma.utils';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -10,7 +9,7 @@ export class UserCommentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationService: ComicNotificationService,
-  ) {}
+  ) { }
 
   /**
    * Tạo comment hoặc reply

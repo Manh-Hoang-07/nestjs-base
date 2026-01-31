@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { DashboardController } from '@/modules/comics/user/dashboard/controllers/dashboard.controller';
-import { DashboardService } from '@/modules/comics/user/dashboard/services/dashboard.service';
-import { RbacModule } from '@/modules/rbac/rbac.module';
+import { DashboardController } from './controllers/dashboard.controller';
+import { DashboardService } from './services/dashboard.service';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [

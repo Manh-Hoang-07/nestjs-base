@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { PublicComicsController } from '@/modules/comics/public/comics/controllers/comics.controller';
-import { PublicComicsService } from '@/modules/comics/public/comics/services/comics.service';
-import { UserFollowsModule } from '@/modules/comics/user/follows/follows.module';
+import { PublicComicsController } from './controllers/comic.controller';
+import { PublicComicsService } from './services/comic.service';
+import { UserFollowsModule } from '@/modules/comics/follow/user/follow.module';
+import { ComicRepositoryModule } from '../comic.repository.module';
 
 @Module({
-  imports: [UserFollowsModule],
+  imports: [UserFollowsModule, ComicRepositoryModule],
   controllers: [PublicComicsController],
   providers: [PublicComicsService],
   exports: [PublicComicsService],
 })
-export class PublicComicsModule {}
+export class PublicComicsModule { }
 

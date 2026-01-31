@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { toPlain } from '@/common/base/services/prisma/prisma.utils';
+import { toPlain } from '@/common/shared/utils';
 
 @Injectable()
 export class PublicReviewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Lấy danh sách reviews của comic

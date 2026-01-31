@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { createPaginationMeta } from '@/common/base/utils/pagination.helper';
-import { toPlain } from '@/common/base/services/prisma/prisma.utils';
+import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
+import { toPlain } from '@/common/shared/utils';
 
 @Injectable()
 export class PublicCommentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Lấy comments của comic (tree structure)

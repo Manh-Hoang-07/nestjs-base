@@ -23,6 +23,8 @@ export * from './types/post-type.enum';
 export * from './types/template-category.enum';
 export * from './types/template-type.enum';
 export * from './types/payment-type.enum';
+export * from './types/chapter-status.enum';
+export * from './types/comic-status.enum';
 
 // Interfaces
 export { EnumValueMetadata } from './interfaces/enum-metadata.interface';

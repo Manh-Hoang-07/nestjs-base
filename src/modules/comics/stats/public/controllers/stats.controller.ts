@@ -4,8 +4,8 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
-import { StatsService } from '@/modules/comics/public/stats/services/stats.service';
-import { Permission } from '@/common/decorators/rbac.decorators';
+import { StatsService } from '../services/stats.service';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('public/stats')
 export class StatsController {
