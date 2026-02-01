@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext } from '@/common/shared/utils';
+import { RequestContext, toPlain } from '@/common/shared/utils';
+import { createPaginationMeta } from '@/common/core/utils';
 
 @Injectable()
 export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Lấy dashboard data cho user
@@ -49,9 +50,9 @@ export class DashboardService {
     ]);
 
     return {
-      reading_history: readingHistory,
-      follows: follows,
-      bookmarks: bookmarks,
+      reading_history: toPlain(readingHistory),
+      follows: toPlain(follows),
+      bookmarks: toPlain(bookmarks),
       stats: {
         reading_count: readingCount,
         follow_count: followCount,
@@ -82,17 +83,12 @@ export class DashboardService {
     ]);
 
     return {
-      data: history.map(h => ({
+      data: toPlain(history.map(h => ({
         comic: h.comic,
         last_read_chapter: h.chapter,
         last_read_at: h.updated_at,
-      })),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      }))),
+      meta: createPaginationMeta(page, limit, total),
     };
   }
 }

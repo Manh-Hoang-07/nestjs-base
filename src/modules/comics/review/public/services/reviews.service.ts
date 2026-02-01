@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { toPlain } from '@/common/shared/utils';
+import { createPaginationMeta } from '@/common/core/utils';
 
 @Injectable()
 export class PublicReviewsService {
@@ -25,12 +26,7 @@ export class PublicReviewsService {
 
     return {
       data: toPlain(data),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      meta: createPaginationMeta(page, limit, total),
     };
   }
 }

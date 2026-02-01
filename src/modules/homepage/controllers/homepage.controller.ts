@@ -2,9 +2,9 @@ import { Controller, Get } from '@nestjs/common';
 import { HomepageService } from '@/modules/homepage/services/homepage.service';
 import { Permission } from '@/common/auth/decorators';
 
-@Controller('public/homepage')
+@Controller('public/homepage1')
 export class HomepageController {
-  constructor(private readonly homepageService: HomepageService) {}
+  constructor(private readonly homepageService: HomepageService) { }
 
   /**
    * Lấy tất cả dữ liệu cần thiết cho trang chủ

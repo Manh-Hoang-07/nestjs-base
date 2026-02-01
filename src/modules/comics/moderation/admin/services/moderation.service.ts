@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { createPaginationMeta } from '@/common/core/utils';
+import { toPlain } from '@/common/shared/utils';
 
 @Injectable()
 export class ModerationService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Ẩn comment
@@ -93,13 +95,8 @@ export class ModerationService {
     ]);
 
     return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      data: toPlain(data),
+      meta: createPaginationMeta(page, limit, total),
     };
   }
 }

@@ -3,6 +3,7 @@ import { Comic, Prisma } from '@prisma/client';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { PrismaRepository } from '@/common/core/repositories';
 import { IComicRepository, ComicFilter } from '../../domain/comic.repository';
+import { createPaginationMeta } from '@/common/core/utils';
 
 @Injectable()
 export class ComicRepositoryImpl extends PrismaRepository<
@@ -37,6 +38,25 @@ export class ComicRepositoryImpl extends PrismaRepository<
             },
             stats: true,
         };
+    }
+
+    protected override parseSort(sortStr: string): Prisma.ComicOrderByWithRelationInput[] {
+        const sorts = sortStr.split(',');
+        return sorts.map((s) => {
+            const [field, dir] = s.split(':');
+            const direction = dir ? dir.toLowerCase() : 'desc';
+
+            // Handle stats relation sorting
+            if (['view_count', 'follow_count', 'rating_count', 'rating_sum'].includes(field)) {
+                return {
+                    stats: {
+                        [field]: direction,
+                    },
+                } as any;
+            }
+
+            return { [field]: direction } as any;
+        });
     }
 
     protected buildWhere(filter: ComicFilter): Prisma.ComicWhereInput {
@@ -125,8 +145,8 @@ export class ComicRepositoryImpl extends PrismaRepository<
 
     async getChapters(id: number | bigint, options: any = {}): Promise<any> {
         const comicId = this.toPrimaryKey(id);
-        const page = options.page || 1;
-        const limit = options.limit || 50;
+        const page = Math.max(Number(options.page) || 1, 1);
+        const limit = Math.max(Number(options.limit) || 10, 1);
         const skip = (page - 1) * limit;
 
         const [data, total] = await Promise.all([
@@ -143,12 +163,7 @@ export class ComicRepositoryImpl extends PrismaRepository<
 
         return {
             data,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit),
-            },
+            meta: createPaginationMeta(page, limit, total),
         };
     }
 }
