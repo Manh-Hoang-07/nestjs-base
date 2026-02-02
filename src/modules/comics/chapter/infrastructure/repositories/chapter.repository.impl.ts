@@ -30,18 +30,41 @@ export class ChapterRepositoryImpl extends PrismaRepository<
             updated_user_id: true,
             created_at: true,
             updated_at: true,
-            pages: {
-                orderBy: {
-                    page_number: 'asc',
+            _count: {
+                select: {
+                    pages: true,
                 },
             },
             comic: {
                 select: {
+                    id: true,
                     title: true,
                     slug: true,
+                    cover_image: true,
                 },
             },
         };
+    }
+
+    override async findById(id: string | number | bigint): Promise<Chapter | null> {
+        return this.prisma.chapter.findUnique({
+            where: { id: this.toPrimaryKey(id) },
+            include: {
+                pages: {
+                    orderBy: {
+                        page_number: 'asc',
+                    },
+                },
+                comic: {
+                    select: {
+                        id: true,
+                        title: true,
+                        slug: true,
+                        cover_image: true,
+                    },
+                },
+            },
+        }) as any;
     }
 
     protected buildWhere(filter: ChapterFilter): Prisma.ChapterWhereInput {
@@ -49,6 +72,10 @@ export class ChapterRepositoryImpl extends PrismaRepository<
 
         if (filter.comic_id) {
             where.comic_id = this.toPrimaryKey(filter.comic_id);
+        }
+
+        if (filter.chapter_index !== undefined) {
+            where.chapter_index = filter.chapter_index;
         }
 
         if (filter.status) {

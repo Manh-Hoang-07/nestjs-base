@@ -27,6 +27,8 @@ export class SeedPermissions {
       { code: 'post_tag.manage', name: 'Quản lý Thẻ bài viết', status: 'active', parent_code: null },
 
       // ========== USER MODULE ==========
+      { code: 'comic.manage', name: 'Quản lý Truyện tranh', status: 'active', parent_code: null },
+
       { code: 'user.manage', name: 'Quản lý Người dùng', status: 'active', parent_code: null },
 
       // ========== ROLE MODULE ==========

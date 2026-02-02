@@ -5,6 +5,7 @@ export const CHAPTER_REPOSITORY = 'IChapterRepository';
 
 export interface ChapterFilter {
     comic_id?: number | bigint;
+    chapter_index?: number;
     status?: string | { in: string[] };
     search?: string;
 }
