@@ -104,10 +104,5 @@ export class ChapterController {
     return this.chapterService.updatePages(id, body.pages);
   }
 
-  @Permission('comic.manage')
-  @LogRequest({ fileBaseName: 'chapter_restore' })
-  @Post(':id/restore')
-  async restore(@Param('id', ParseIntPipe) id: number) {
-    return this.chapterService.restore(id);
-  }
+
 }

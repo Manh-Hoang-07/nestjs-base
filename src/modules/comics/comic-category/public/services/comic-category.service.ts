@@ -23,10 +23,7 @@ export class PublicComicCategoriesService extends BaseService<ComicCategory, ICo
         id: true,
         name: true,
         slug: true,
-        description: true,
-        created_at: true,
       },
-      include: options.include || undefined, // explicit undefined if not present
     };
   }
 }

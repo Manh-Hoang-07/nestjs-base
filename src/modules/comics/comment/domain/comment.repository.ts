@@ -9,7 +9,6 @@ export interface CommentFilter {
     chapter_id?: number | bigint;
     parent_id?: number | bigint;
     status?: string;
-    deleted_at?: any;
 }
 
 export interface ICommentRepository extends IRepository<Comment> {

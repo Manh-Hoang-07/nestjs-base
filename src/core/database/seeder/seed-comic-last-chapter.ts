@@ -6,7 +6,7 @@ import { PUBLIC_CHAPTER_STATUSES } from '@/shared/enums';
 export class SeedComicLastChapter {
   private readonly logger = new Logger(SeedComicLastChapter.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Backfill last_chapter_id và last_chapter_updated_at cho tất cả comics
@@ -16,9 +16,8 @@ export class SeedComicLastChapter {
     this.logger.log('Backfilling comic last chapter data...');
 
     try {
-      // Lấy tất cả comics (không bị xóa)
       const comics = await this.prisma.comic.findMany({
-        where: { deleted_at: null },
+        where: {},
         select: { id: true, title: true },
         orderBy: { id: 'asc' },
       });
@@ -41,7 +40,6 @@ export class SeedComicLastChapter {
             where: {
               comic_id: comic.id,
               status: { in: PUBLIC_CHAPTER_STATUSES },
-              deleted_at: null,
             },
             orderBy: { created_at: 'desc' },
             select: {

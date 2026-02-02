@@ -14,6 +14,7 @@ export class ReadingHistoryRepositoryImpl extends PrismaRepository<
 > implements IReadingHistoryRepository {
     constructor(private readonly prisma: PrismaService) {
         super(prisma.readingHistory as any);
+        this.isSoftDelete = false;
     }
 
     protected buildWhere(filter: ReadingHistoryFilter): Prisma.ReadingHistoryWhereInput {

@@ -14,6 +14,7 @@ export class BookmarkRepositoryImpl extends PrismaRepository<
 > implements IBookmarkRepository {
     constructor(private readonly prisma: PrismaService) {
         super(prisma.bookmark as any);
+        this.isSoftDelete = false;
     }
 
     protected buildWhere(filter: BookmarkFilter): Prisma.BookmarkWhereInput {

@@ -112,7 +112,6 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
       where: {
         comic_id: comicId,
         status: { in: PUBLIC_CHAPTER_STATUSES as any },
-        deleted_at: null,
       },
       orderBy: { chapter_index: 'desc' },
       select: {
@@ -130,27 +129,7 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     });
   }
 
-  /**
-   * Restore chapter
-   */
-  async restore(id: string | number | bigint) {
-    const chapter = await this.repository.findOne({
-      id,
-      deleted_at: { not: null }
-    });
 
-    if (!chapter) {
-      throw new BadRequestException('Chapter not found or not deleted');
-    }
-
-    await this.repository.update(id, { deleted_at: null });
-
-    if (chapter.comic_id) {
-      await this.updateComicLastChapter(chapter.comic_id);
-    }
-
-    return this.getOne(id);
-  }
 
   /**
    * Update pages

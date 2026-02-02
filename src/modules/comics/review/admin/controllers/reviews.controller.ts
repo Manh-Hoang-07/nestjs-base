@@ -55,12 +55,7 @@ export class ReviewsController {
     return this.reviewsService.delete(id);
   }
 
-  @Permission('comic.manage')
-  @LogRequest({ fileBaseName: 'review_restore' })
-  @Post(':id/restore')
-  async restore(@Param('id', ParseIntPipe) id: number) {
-    return this.reviewsService.restore(id);
-  }
+
 }
 
 

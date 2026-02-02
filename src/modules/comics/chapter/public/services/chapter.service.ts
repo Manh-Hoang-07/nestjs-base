@@ -27,7 +27,16 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
   protected override async prepareOptions(options: any = {}) {
     const base = await super.prepareOptions(options);
 
-    const defaultInclude = {
+    const publicSelect = {
+      id: true,
+      comic_id: true,
+      title: true,
+      chapter_index: true,
+      chapter_label: true,
+      status: true,
+      view_count: true,
+      created_at: true,
+      updated_at: true,
       comic: {
         select: {
           id: true,
@@ -36,14 +45,21 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
         },
       },
       pages: {
-        orderBy: { page_number: 'asc' },
+        orderBy: { page_number: 'asc' as const },
+        select: {
+          id: true,
+          page_number: true,
+          image_url: true,
+          width: true,
+          height: true,
+          file_size: true,
+        }
       },
     };
 
     return {
       ...base,
-      include: options?.include ?? defaultInclude,
-      select: options?.select,
+      select: options?.select ?? publicSelect,
     };
   }
 
@@ -84,7 +100,6 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
         comic_id: chapter.comic_id,
         chapter_index: { gt: chapter.chapter_index },
         status: { in: PUBLIC_CHAPTER_STATUSES as any },
-        deleted_at: null,
       },
       orderBy: { chapter_index: 'asc' },
     });
@@ -104,7 +119,6 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
         comic_id: chapter.comic_id,
         chapter_index: { lt: chapter.chapter_index },
         status: { in: PUBLIC_CHAPTER_STATUSES as any },
-        deleted_at: null,
       },
       orderBy: { chapter_index: 'desc' },
     });

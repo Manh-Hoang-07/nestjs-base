@@ -55,12 +55,7 @@ export class CommentsController {
     return this.commentsService.delete(id);
   }
 
-  @Permission('comic.manage')
-  @LogRequest({ fileBaseName: 'comment_restore' })
-  @Post(':id/restore')
-  async restore(@Param('id', ParseIntPipe) id: number) {
-    return this.commentsService.restore(id);
-  }
+
 }
 
 

@@ -14,6 +14,7 @@ export class FollowRepositoryImpl extends PrismaRepository<
 > implements IFollowRepository {
     constructor(private readonly prisma: PrismaService) {
         super(prisma.comicFollow as any);
+        this.isSoftDelete = false;
     }
 
     protected buildWhere(filter: FollowFilter): Prisma.ComicFollowWhereInput {

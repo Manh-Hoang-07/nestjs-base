@@ -7,7 +7,6 @@ export interface ChapterFilter {
     comic_id?: number | bigint;
     status?: string | { in: string[] };
     search?: string;
-    deleted_at?: Date | null;
 }
 
 export interface IChapterRepository extends IRepository<Chapter> {

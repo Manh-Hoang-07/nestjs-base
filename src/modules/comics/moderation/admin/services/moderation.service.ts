@@ -14,7 +14,7 @@ export class ModerationService {
    */
   async hideComment(commentId: number) {
     const comment = await this.prisma.comment.findFirst({
-      where: { id: commentId, deleted_at: null },
+      where: { id: commentId },
     });
     if (!comment) {
       throw new NotFoundException('Comment not found');
@@ -31,7 +31,7 @@ export class ModerationService {
    */
   async showComment(commentId: number) {
     const comment = await this.prisma.comment.findFirst({
-      where: { id: commentId, deleted_at: null },
+      where: { id: commentId },
     });
     if (!comment) {
       throw new NotFoundException('Comment not found');
@@ -48,16 +48,15 @@ export class ModerationService {
    */
   async hideReview(reviewId: number) {
     const review = await this.prisma.comicReview.findFirst({
-      where: { id: reviewId, deleted_at: null },
+      where: { id: reviewId },
     });
     if (!review) {
       throw new NotFoundException('Review not found');
     }
 
-    // Soft delete review
-    await this.prisma.comicReview.update({
+    // Hard delete review
+    await this.prisma.comicReview.delete({
       where: { id: reviewId },
-      data: { deleted_at: new Date() },
     });
 
     return { hidden: true };
@@ -75,7 +74,6 @@ export class ModerationService {
       this.prisma.comment.findMany({
         where: {
           status: 'visible',
-          deleted_at: null,
         },
         include: {
           user: true,
@@ -89,7 +87,6 @@ export class ModerationService {
       this.prisma.comment.count({
         where: {
           status: 'visible',
-          deleted_at: null,
         },
       }),
     ]);

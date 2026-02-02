@@ -14,12 +14,11 @@ export class CommentRepositoryImpl extends PrismaRepository<
 > implements ICommentRepository {
     constructor(private readonly prisma: PrismaService) {
         super(prisma.comment as any);
+        this.isSoftDelete = false;
     }
 
     protected buildWhere(filter: CommentFilter): Prisma.CommentWhereInput {
-        const where: Prisma.CommentWhereInput = {
-            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
-        };
+        const where: Prisma.CommentWhereInput = {};
 
         if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);
         if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);

@@ -64,12 +64,7 @@ export class ComicController {
     return this.comicService.delete(id);
   }
 
-  @Permission('comic.manage')
-  @LogRequest({ fileBaseName: 'comic_restore' })
-  @Post(':id/restore')
-  async restore(@Param('id', ParseIntPipe) id: number) {
-    return this.comicService.restore(id);
-  }
+
 
   @Permission('comic.manage')
   @Post(':id/cover')

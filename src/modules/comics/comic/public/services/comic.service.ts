@@ -41,24 +41,48 @@ export class PublicComicsService extends BaseService<Comic, IComicRepository> {
   protected override async prepareOptions(options: any = {}) {
     const base = await super.prepareOptions(options);
 
-    // Default includes for public comics
-    const defaultInclude = {
+    // Explicit select to avoid fetching audit fields from DB
+    const publicSelect = {
+      id: true,
+      slug: true,
+      title: true,
+      description: true,
+      cover_image: true,
+      author: true,
+      status: true,
+      created_at: true,
+      updated_at: true,
+      last_chapter_id: true,
+      last_chapter_updated_at: true,
+      stats: true,
       categoryLinks: {
-        include: {
-          category: true,
+        select: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       },
       chapters: {
-        where: { status: 'published' },
-        orderBy: { chapter_index: 'desc' },
+        where: { status: 'published' as const },
+        orderBy: { chapter_index: 'desc' as const },
         take: 1,
+        select: {
+          id: true,
+          title: true,
+          chapter_index: true,
+          chapter_label: true,
+          created_at: true,
+        },
       },
-      stats: true,
     };
 
     return {
       ...base,
-      include: options?.include ?? defaultInclude,
+      select: options?.select ?? publicSelect,
     };
   }
 
@@ -67,7 +91,7 @@ export class PublicComicsService extends BaseService<Comic, IComicRepository> {
 
     const transformed: any = { ...entity };
 
-    // Map categoryLinks to categories
+    // Map categoryLinks to categories (only if select was used)
     if (transformed.categoryLinks && Array.isArray(transformed.categoryLinks)) {
       transformed.categories = transformed.categoryLinks
         .map((link: any) => link?.category)
@@ -146,6 +170,10 @@ export class PublicComicsService extends BaseService<Comic, IComicRepository> {
     // Increment view count khi xem danh sách chapter (tùy logic)
     await this.comicRepository.incrementView(comic.id);
 
-    return this.comicRepository.getChapters(comic.id, options);
+    const finalOptions = {
+      ...options,
+      limit: 10000,
+    };
+    return this.comicRepository.getChapters(comic.id, finalOptions);
   }
 }

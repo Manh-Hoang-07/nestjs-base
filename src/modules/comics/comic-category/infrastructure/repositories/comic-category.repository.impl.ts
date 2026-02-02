@@ -16,12 +16,11 @@ export class ComicCategoryRepositoryImpl extends PrismaRepository<
         private readonly prisma: PrismaService,
     ) {
         super(prisma.comicCategory as any);
+        this.isSoftDelete = false;
     }
 
     protected buildWhere(filter: any): Prisma.ComicCategoryWhereInput {
-        const where: Prisma.ComicCategoryWhereInput = {
-            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
-        };
+        const where: Prisma.ComicCategoryWhereInput = {};
 
         if (filter.group_id) {
             where.OR = [
@@ -38,6 +37,6 @@ export class ComicCategoryRepositoryImpl extends PrismaRepository<
     }
 
     async findBySlug(slug: string): Promise<ComicCategory | null> {
-        return this.findOne({ slug, deleted_at: null });
+        return this.findOne({ slug } as any);
     }
 }

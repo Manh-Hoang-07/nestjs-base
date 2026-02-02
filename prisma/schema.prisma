@@ -1633,7 +1633,6 @@ model Comic {
   updated_user_id         BigInt?     @db.UnsignedBigInt
   created_at              DateTime    @default(now()) @db.DateTime(0)
   updated_at              DateTime    @updatedAt @db.DateTime(0)
-  deleted_at              DateTime?   @db.DateTime(0)
   last_chapter_id         BigInt?     @db.UnsignedBigInt
   last_chapter_updated_at DateTime?   @db.DateTime(0)
 
@@ -1653,7 +1652,6 @@ model Comic {
   @@index([created_at], map: "idx_created_at")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
-  @@index([deleted_at], map: "idx_deleted_at")
   @@index([last_chapter_updated_at], map: "idx_last_chapter_updated_at")
   @@map("comics")
 }
@@ -1687,7 +1685,6 @@ model Chapter {
   updated_user_id BigInt?       @db.UnsignedBigInt
   created_at      DateTime      @default(now()) @db.DateTime(0)
   updated_at      DateTime      @updatedAt @db.DateTime(0)
-  deleted_at      DateTime?     @db.DateTime(0)
 
   comic             Comic            @relation(fields: [comic_id], references: [id], onDelete: Cascade)
   comicsLastChapter Comic[]          @relation("LastChapter")
@@ -1706,7 +1703,6 @@ model Chapter {
   @@index([created_at], map: "idx_created_at")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
-  @@index([deleted_at], map: "idx_deleted_at")
   @@map("chapters")
 }
 
@@ -1719,7 +1715,6 @@ model ComicCategory {
   updated_user_id BigInt?   @db.UnsignedBigInt
   created_at      DateTime  @default(now()) @db.DateTime(0)
   updated_at      DateTime  @updatedAt @db.DateTime(0)
-  deleted_at      DateTime? @db.DateTime(0)
 
   comics ComicCategoryOnComic[]
 
@@ -1728,7 +1723,6 @@ model ComicCategory {
   @@index([created_at], map: "idx_created_at")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
-  @@index([deleted_at], map: "idx_deleted_at")
   @@map("comic_categories")
 }
 
@@ -1754,7 +1748,6 @@ model Comment {
   updated_user_id BigInt?       @db.UnsignedBigInt
   created_at      DateTime      @default(now()) @db.DateTime(0)
   updated_at      DateTime      @updatedAt @db.DateTime(0)
-  deleted_at      DateTime?     @db.DateTime(0)
 
   comic   Comic     @relation(fields: [comic_id], references: [id], onDelete: Cascade)
   chapter Chapter?  @relation(fields: [chapter_id], references: [id], onDelete: SetNull)
@@ -1772,7 +1765,6 @@ model Comment {
   @@index([chapter_id, created_at], map: "idx_chapter_created")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
-  @@index([deleted_at], map: "idx_deleted_at")
   @@map("comments")
 }
 
@@ -1786,7 +1778,6 @@ model ComicReview {
   updated_user_id BigInt?   @db.UnsignedBigInt
   created_at      DateTime  @default(now()) @db.DateTime(0)
   updated_at      DateTime  @updatedAt @db.DateTime(0)
-  deleted_at      DateTime? @db.DateTime(0)
 
   comic Comic @relation(fields: [comic_id], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -1798,7 +1789,6 @@ model ComicReview {
   @@index([created_at], map: "idx_created_at")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
-  @@index([deleted_at], map: "idx_deleted_at")
   @@map("comic_reviews")
 }
 

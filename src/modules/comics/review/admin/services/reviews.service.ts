@@ -7,7 +7,7 @@ import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
 export class ReviewsService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Get list với filter và search
@@ -20,9 +20,7 @@ export class ReviewsService {
     const [sortField, sortOrder] = sort.split(':');
 
     // Build where clause
-    const where: Prisma.ComicReviewWhereInput = {
-      deleted_at: null,
-    };
+    const where: Prisma.ComicReviewWhereInput = {};
 
     if (filters.comic_id) {
       where.comic_id = filters.comic_id;
@@ -63,7 +61,7 @@ export class ReviewsService {
     // Build orderBy
     const prismaSortOrder = sortOrder.toLowerCase() === 'asc' ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
     let orderBy: Prisma.ComicReviewOrderByWithRelationInput;
-    
+
     if (sortField && ['id', 'created_at', 'updated_at', 'rating', 'user_id', 'comic_id'].includes(sortField)) {
       switch (sortField) {
         case 'id':
@@ -116,7 +114,7 @@ export class ReviewsService {
    */
   async getOne(where: any): Promise<any | null> {
     return this.prisma.comicReview.findFirst({
-      where: { ...where, deleted_at: null },
+      where,
       include: {
         user: true,
         comic: true,
@@ -154,42 +152,20 @@ export class ReviewsService {
     });
   }
 
-  /**
-   * Delete review (soft delete)
-   */
   async delete(id: number) {
     const review = await this.getOne({ id });
     if (!review) {
       throw new NotFoundException('Review not found');
     }
 
-    await this.prisma.comicReview.update({
+    await this.prisma.comicReview.delete({
       where: { id },
-      data: { deleted_at: new Date() },
     });
 
     return { deleted: true };
   }
 
-  /**
-   * Restore review
-   */
-  async restore(id: number) {
-    const review = await this.prisma.comicReview.findFirst({
-      where: { id },
-    });
 
-    if (!review) {
-      throw new NotFoundException('Review not found');
-    }
-
-    await this.prisma.comicReview.update({
-      where: { id },
-      data: { deleted_at: null },
-    });
-
-    return this.getOne({ id });
-  }
 
   /**
    * Get review statistics
@@ -202,32 +178,29 @@ export class ReviewsService {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const [total, todayCount, thisWeekCount, thisMonthCount, avgRatingResult, ratingDistribution] = await Promise.all([
-      this.prisma.comicReview.count({ where: { deleted_at: null } }),
+      this.prisma.comicReview.count({ where: {} }),
       this.prisma.comicReview.count({
         where: {
           created_at: { gte: today },
-          deleted_at: null,
         },
       }),
       this.prisma.comicReview.count({
         where: {
           created_at: { gte: startOfWeek },
-          deleted_at: null,
         },
       }),
       this.prisma.comicReview.count({
         where: {
           created_at: { gte: startOfMonth },
-          deleted_at: null,
         },
       }),
       this.prisma.comicReview.aggregate({
-        where: { deleted_at: null },
+        where: {},
         _avg: { rating: true },
       }),
       this.prisma.comicReview.groupBy({
         by: ['rating'],
-        where: { deleted_at: null },
+        where: {},
         _count: { rating: true },
         orderBy: { rating: Prisma.SortOrder.asc },
       }),

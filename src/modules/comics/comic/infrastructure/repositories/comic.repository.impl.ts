@@ -16,7 +16,8 @@ export class ComicRepositoryImpl extends PrismaRepository<
     constructor(
         private readonly prisma: PrismaService,
     ) {
-        super(prisma.comic as any);
+        super(prisma.comic as any, 'updated_at:desc');
+        this.isSoftDelete = false;
         this.defaultSelect = {
             id: true,
             slug: true,
@@ -60,9 +61,7 @@ export class ComicRepositoryImpl extends PrismaRepository<
     }
 
     protected buildWhere(filter: ComicFilter): Prisma.ComicWhereInput {
-        const where: Prisma.ComicWhereInput = {
-            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
-        };
+        const where: Prisma.ComicWhereInput = {};
 
         if (filter.group_id !== undefined) {
             (where as any).group_id = filter.group_id === null ? null : this.toPrimaryKey(filter.group_id);
@@ -108,7 +107,7 @@ export class ComicRepositoryImpl extends PrismaRepository<
     }
 
     async findBySlug(slug: string): Promise<Comic | null> {
-        return this.findOne({ slug, deleted_at: null });
+        return this.findOne({ slug } as any);
     }
 
     async syncCategories(comicId: number | bigint, categoryIds: (number | bigint)[]): Promise<void> {
@@ -151,13 +150,25 @@ export class ComicRepositoryImpl extends PrismaRepository<
 
         const [data, total] = await Promise.all([
             this.prisma.chapter.findMany({
-                where: { comic_id: comicId, deleted_at: null, status: 'published' },
+                where: { comic_id: comicId, status: 'published' },
+                select: {
+                    id: true,
+                    comic_id: true,
+                    title: true,
+                    chapter_index: true,
+                    chapter_label: true,
+                    status: true,
+                    view_count: true,
+                    created_at: true,
+                    updated_at: true,
+                    // team_id, created_user_id, updated_user_id removed
+                },
                 orderBy: { chapter_index: 'desc' },
                 skip,
                 take: limit,
             }),
             this.prisma.chapter.count({
-                where: { comic_id: comicId, deleted_at: null, status: 'published' },
+                where: { comic_id: comicId, status: 'published' },
             }),
         ]);
 

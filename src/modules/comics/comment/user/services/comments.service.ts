@@ -110,7 +110,7 @@ export class UserCommentsService extends BaseService<Comment, ICommentRepository
 
     if (!comment) throw new NotFoundException('Comment not found');
 
-    return this.repository.update(id, { deleted_at: new Date() });
+    return this.repository.delete(id);
   }
 
   protected override transform(entity: any): any {

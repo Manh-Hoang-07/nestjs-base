@@ -6,7 +6,7 @@ import { NotificationType } from '@/shared/enums/types/notification-type.enum';
 export class ComicNotificationService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Notify followers khi có chapter mới được publish
@@ -66,7 +66,7 @@ export class ComicNotificationService {
   async notifyCommentReply(commentId: number, parentCommentId: number, userId: number) {
     // Lấy parent comment để biết user cần notify
     const parentComment = await this.prisma.comment.findFirst({
-      where: { id: BigInt(parentCommentId), deleted_at: null },
+      where: { id: BigInt(parentCommentId) },
     });
 
     if (!parentComment || Number(parentComment.user_id) === userId) {

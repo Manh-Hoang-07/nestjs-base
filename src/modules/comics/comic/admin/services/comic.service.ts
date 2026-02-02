@@ -93,23 +93,7 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     }
   }
 
-  /**
-   * Restore comic
-   */
-  async restore(id: number | bigint) {
-    const comic = await this.comicRepository.findOne({
-      id,
-      deleted_at: { not: null }
-    });
 
-    if (!comic) {
-      throw new BadRequestException('Comic not found or not deleted');
-    }
-
-    await this.comicRepository.update(id, { deleted_at: null });
-
-    return this.getOne(id);
-  }
 
   /**
    * Transform to match system standards

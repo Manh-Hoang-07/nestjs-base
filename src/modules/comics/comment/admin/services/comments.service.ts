@@ -7,7 +7,7 @@ import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
 export class CommentsService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Get list với filter và search
@@ -20,9 +20,7 @@ export class CommentsService {
     const [sortField, sortOrder] = sort.split(':');
 
     // Build where clause
-    const where: Prisma.CommentWhereInput = {
-      deleted_at: null,
-    };
+    const where: Prisma.CommentWhereInput = {};
 
     if (filters.comic_id) {
       where.comic_id = filters.comic_id;
@@ -65,7 +63,7 @@ export class CommentsService {
     // Build orderBy
     const prismaSortOrder = sortOrder.toLowerCase() === 'asc' ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
     let orderBy: Prisma.CommentOrderByWithRelationInput;
-    
+
     if (sortField && ['id', 'created_at', 'updated_at', 'user_id', 'comic_id'].includes(sortField)) {
       switch (sortField) {
         case 'id':
@@ -118,7 +116,7 @@ export class CommentsService {
    */
   async getOne(where: any): Promise<any | null> {
     return this.prisma.comment.findFirst({
-      where: { ...where, deleted_at: null },
+      where,
       include: {
         user: true,
         comic: true,
@@ -159,48 +157,18 @@ export class CommentsService {
     });
   }
 
-  /**
-   * Delete comment (soft delete)
-   */
   async delete(id: number) {
     const comment = await this.getOne({ id });
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
 
-    // Soft delete comment và tất cả replies
-    await this.prisma.comment.update({
+    // Hard delete comment (replies will be deleted via Cascade)
+    await this.prisma.comment.delete({
       where: { id },
-      data: { deleted_at: new Date() },
-    });
-    
-    // Soft delete all replies
-    await this.prisma.comment.updateMany({
-      where: { parent_id: id },
-      data: { deleted_at: new Date() },
     });
 
     return { deleted: true };
-  }
-
-  /**
-   * Restore comment
-   */
-  async restore(id: number) {
-    const comment = await this.prisma.comment.findFirst({
-      where: { id },
-    });
-
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-
-    await this.prisma.comment.update({
-      where: { id },
-      data: { deleted_at: null },
-    });
-
-    return this.getOne({ id });
   }
 
   /**
@@ -214,25 +182,22 @@ export class CommentsService {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const [total, visible, hidden, todayCount, thisWeekCount, thisMonthCount] = await Promise.all([
-      this.prisma.comment.count({ where: { deleted_at: null } }),
-      this.prisma.comment.count({ where: { status: 'visible', deleted_at: null } }),
-      this.prisma.comment.count({ where: { status: 'hidden', deleted_at: null } }),
+      this.prisma.comment.count({ where: {} }),
+      this.prisma.comment.count({ where: { status: 'visible' } }),
+      this.prisma.comment.count({ where: { status: 'hidden' } }),
       this.prisma.comment.count({
         where: {
           created_at: { gte: today },
-          deleted_at: null,
         },
       }),
       this.prisma.comment.count({
         where: {
           created_at: { gte: startOfWeek },
-          deleted_at: null,
         },
       }),
       this.prisma.comment.count({
         where: {
           created_at: { gte: startOfMonth },
-          deleted_at: null,
         },
       }),
     ]);

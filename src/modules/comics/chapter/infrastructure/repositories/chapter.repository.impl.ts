@@ -15,7 +15,8 @@ export class ChapterRepositoryImpl extends PrismaRepository<
     constructor(
         private readonly prisma: PrismaService,
     ) {
-        super(prisma.chapter as any);
+        super(prisma.chapter as any, 'chapter_index:desc');
+        this.isSoftDelete = false;
         this.defaultSelect = {
             id: true,
             comic_id: true,
@@ -44,9 +45,7 @@ export class ChapterRepositoryImpl extends PrismaRepository<
     }
 
     protected buildWhere(filter: ChapterFilter): Prisma.ChapterWhereInput {
-        const where: Prisma.ChapterWhereInput = {
-            deleted_at: filter.deleted_at === undefined ? null : filter.deleted_at,
-        };
+        const where: Prisma.ChapterWhereInput = {};
 
         if (filter.comic_id) {
             where.comic_id = this.toPrimaryKey(filter.comic_id);
@@ -73,15 +72,13 @@ export class ChapterRepositoryImpl extends PrismaRepository<
         return this.findOne({
             comic_id: this.toPrimaryKey(comicId),
             chapter_index: index,
-            deleted_at: null,
-        });
+        } as any);
     }
 
     async getMaxIndex(comicId: number | bigint): Promise<number> {
         const result = await this.prisma.chapter.aggregate({
             where: {
                 comic_id: this.toPrimaryKey(comicId),
-                deleted_at: null,
             },
             _max: {
                 chapter_index: true,

@@ -13,7 +13,8 @@ export class ReviewRepositoryImpl extends PrismaRepository<
     Prisma.ComicReviewOrderByWithRelationInput
 > implements IReviewRepository {
     constructor(private readonly prisma: PrismaService) {
-        super(prisma.comicReview as any);
+        super(prisma.comicReview as any, 'updated_at:desc');
+        this.isSoftDelete = false;
     }
 
     protected buildWhere(filter: ReviewFilter): Prisma.ComicReviewWhereInput {

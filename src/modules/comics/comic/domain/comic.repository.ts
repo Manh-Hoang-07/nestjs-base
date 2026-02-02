@@ -10,7 +10,6 @@ export interface ComicFilter {
     categoryId?: number | bigint;
     excludeId?: number | bigint;
     created_user_id?: number | bigint;
-    deleted_at?: Date | null;
     group_id?: number | bigint;
 }
 
