@@ -103,6 +103,10 @@ export class ComicRepositoryImpl extends PrismaRepository<
             where.id = { not: this.toPrimaryKey(filter.excludeId) };
         }
 
+        if (filter.is_featured !== undefined) {
+            where.is_featured = filter.is_featured === true || (filter.is_featured as any) === 'true';
+        }
+
         return where;
     }
 

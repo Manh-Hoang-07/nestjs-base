@@ -39,6 +39,7 @@ export class SeedComics {
         status: ComicStatus.published,
         cover_image: 'https://via.placeholder.com/300x400?text=One+Piece',
         categorySlugs: ['action', 'adventure', 'shounen'],
+        is_featured: true,
         stats: { view_count: 50000, follow_count: 12000, rating_count: 8500, rating_sum: 42500 },
       },
       {
@@ -49,6 +50,7 @@ export class SeedComics {
         status: ComicStatus.completed,
         cover_image: 'https://via.placeholder.com/300x400?text=Naruto',
         categorySlugs: ['action', 'adventure', 'shounen'],
+        is_featured: true,
         stats: { view_count: 45000, follow_count: 11000, rating_count: 8000, rating_sum: 40000 },
       },
       {
@@ -59,6 +61,7 @@ export class SeedComics {
         status: ComicStatus.completed,
         cover_image: 'https://via.placeholder.com/300x400?text=Attack+on+Titan',
         categorySlugs: ['action', 'drama', 'horror', 'shounen'],
+        is_featured: true,
         stats: { view_count: 40000, follow_count: 10000, rating_count: 7500, rating_sum: 37500 },
       },
       {
@@ -168,6 +171,7 @@ export class SeedComics {
           author: comicData.author,
           status: comicData.status,
           cover_image: comicData.cover_image,
+          is_featured: (comicData as any).is_featured || false,
           created_user_id: defaultUserId,
           updated_user_id: defaultUserId,
           stats: {
@@ -193,16 +197,16 @@ export class SeedComics {
 
   async clear(): Promise<void> {
     this.logger.log('Clearing comics...');
-    
+
     // Clear junction table first
     await this.prisma.comicCategoryOnComic.deleteMany({});
-    
+
     // Clear stats
     await this.prisma.comicStats.deleteMany({});
-    
+
     // Clear comics
     await this.prisma.comic.deleteMany({});
-    
+
     this.logger.log('Comics cleared');
   }
 }

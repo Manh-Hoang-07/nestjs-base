@@ -1635,6 +1635,7 @@ model Comic {
   updated_at              DateTime    @updatedAt @db.DateTime(0)
   last_chapter_id         BigInt?     @db.UnsignedBigInt
   last_chapter_updated_at DateTime?   @db.DateTime(0)
+  is_featured             Boolean     @default(false)
 
   stats             ComicStats?
   chapters          Chapter[]
@@ -1653,6 +1654,7 @@ model Comic {
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
   @@index([last_chapter_updated_at], map: "idx_last_chapter_updated_at")
+  @@index([is_featured], map: "idx_is_featured")
   @@map("comics")
 }
 

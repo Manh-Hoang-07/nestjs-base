@@ -33,5 +33,8 @@ export class CreateComicDto {
   @IsArray()
   @IsNumber({}, { each: true })
   category_ids?: number[];
+
+  @IsOptional()
+  is_featured?: boolean;
 }
 

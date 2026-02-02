@@ -54,6 +54,7 @@ export class PublicComicsService extends BaseService<Comic, IComicRepository> {
       updated_at: true,
       last_chapter_id: true,
       last_chapter_updated_at: true,
+      is_featured: true,
       stats: true,
       categoryLinks: {
         select: {

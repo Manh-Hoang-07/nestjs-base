@@ -11,6 +11,7 @@ export interface ComicFilter {
     excludeId?: number | bigint;
     created_user_id?: number | bigint;
     group_id?: number | bigint;
+    is_featured?: boolean;
 }
 
 export interface IComicRepository extends IRepository<Comic> {
