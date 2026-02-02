@@ -11,13 +11,13 @@ import { Permission } from '@/common/auth/decorators/rbac.decorators';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) { }
 
-  @Permission('comic.read')
+  @Permission('comic.manage')
   @Get('dashboard')
   async getDashboard() {
     return this.analyticsService.getDashboard();
   }
 
-  @Permission('comic.read')
+  @Permission('comic.manage')
   @Get('comics')
   async getTopComics(
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 20,
@@ -26,7 +26,7 @@ export class AnalyticsController {
     return this.analyticsService.getTopComics(limit, sortBy);
   }
 
-  @Permission('comic.read')
+  @Permission('comic.manage')
   @Get('views')
   async getViewsOverTime(
     @Query('startDate') startDate: string,

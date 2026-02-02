@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { Comment, Prisma } from '@prisma/client';
+import { ComicComment, Prisma } from '@prisma/client';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { PrismaRepository } from '@/common/core/repositories';
 import { ICommentRepository, CommentFilter } from '../../domain/comment.repository';
 
 @Injectable()
 export class CommentRepositoryImpl extends PrismaRepository<
-    Comment,
-    Prisma.CommentWhereInput,
-    Prisma.CommentCreateInput,
-    Prisma.CommentUpdateInput,
-    Prisma.CommentOrderByWithRelationInput
+    ComicComment,
+    Prisma.ComicCommentWhereInput,
+    Prisma.ComicCommentCreateInput,
+    Prisma.ComicCommentUpdateInput,
+    Prisma.ComicCommentOrderByWithRelationInput
 > implements ICommentRepository {
     constructor(private readonly prisma: PrismaService) {
-        super(prisma.comment as any);
+        super(prisma.comicComment as any);
         this.isSoftDelete = false;
     }
 
-    protected buildWhere(filter: CommentFilter): Prisma.CommentWhereInput {
-        const where: Prisma.CommentWhereInput = {};
+    protected buildWhere(filter: CommentFilter): Prisma.ComicCommentWhereInput {
+        const where: Prisma.ComicCommentWhereInput = {};
 
         if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);
         if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);

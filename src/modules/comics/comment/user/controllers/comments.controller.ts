@@ -16,7 +16,7 @@ import { UserCommentsService } from '../services/comments.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { SanitizeHtmlPipe } from '@/modules/comics/core/pipes/sanitize-html.pipe';
 
-@Controller('user/comments')
+@Controller('user/comic-comments')
 export class UserCommentsController {
   constructor(private readonly commentsService: UserCommentsService) { }
 
@@ -58,4 +58,3 @@ export class UserCommentsController {
     return this.commentsService.removeComment(id);
   }
 }
-

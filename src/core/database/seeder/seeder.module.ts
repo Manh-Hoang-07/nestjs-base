@@ -28,6 +28,7 @@ import { SeedComicCategories } from '@/core/database/seeder/seed-comic-categorie
 import { SeedComics } from '@/core/database/seeder/seed-comics';
 import { SeedChapters } from '@/core/database/seeder/seed-chapters';
 import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
+import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
 
 @Module({
   imports: [PrismaModule],
@@ -66,6 +67,7 @@ import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-cha
     SeedComics,
     SeedChapters,
     SeedComicLastChapter,
+    SeedComicComments,
   ],
   exports: [SeedService],
 })

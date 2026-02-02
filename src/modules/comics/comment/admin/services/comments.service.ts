@@ -20,7 +20,7 @@ export class CommentsService {
     const [sortField, sortOrder] = sort.split(':');
 
     // Build where clause
-    const where: Prisma.CommentWhereInput = {};
+    const where: Prisma.ComicCommentWhereInput = {};
 
     if (filters.comic_id) {
       where.comic_id = filters.comic_id;
@@ -62,7 +62,7 @@ export class CommentsService {
 
     // Build orderBy
     const prismaSortOrder = sortOrder.toLowerCase() === 'asc' ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
-    let orderBy: Prisma.CommentOrderByWithRelationInput;
+    let orderBy: Prisma.ComicCommentOrderByWithRelationInput;
 
     if (sortField && ['id', 'created_at', 'updated_at', 'user_id', 'comic_id'].includes(sortField)) {
       switch (sortField) {
@@ -89,7 +89,7 @@ export class CommentsService {
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.comment.findMany({
+      this.prisma.comicComment.findMany({
         where,
         include: {
           user: true,
@@ -102,7 +102,7 @@ export class CommentsService {
         skip,
         take: limit,
       }),
-      this.prisma.comment.count({ where }),
+      this.prisma.comicComment.count({ where }),
     ]);
 
     return {
@@ -115,7 +115,7 @@ export class CommentsService {
    * Get one với relations
    */
   async getOne(where: any): Promise<any | null> {
-    return this.prisma.comment.findFirst({
+    return this.prisma.comicComment.findFirst({
       where,
       include: {
         user: true,
@@ -136,7 +136,7 @@ export class CommentsService {
       throw new NotFoundException('Comment not found');
     }
 
-    const updateData: Prisma.CommentUpdateInput = {};
+    const updateData: Prisma.ComicCommentUpdateInput = {};
     if (data.content !== undefined) {
       updateData.content = data.content;
     }
@@ -144,7 +144,7 @@ export class CommentsService {
       updateData.status = data.status as any;
     }
 
-    return this.prisma.comment.update({
+    return this.prisma.comicComment.update({
       where: { id },
       data: updateData,
       include: {
@@ -164,7 +164,7 @@ export class CommentsService {
     }
 
     // Hard delete comment (replies will be deleted via Cascade)
-    await this.prisma.comment.delete({
+    await this.prisma.comicComment.delete({
       where: { id },
     });
 
@@ -182,20 +182,20 @@ export class CommentsService {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const [total, visible, hidden, todayCount, thisWeekCount, thisMonthCount] = await Promise.all([
-      this.prisma.comment.count({ where: {} }),
-      this.prisma.comment.count({ where: { status: 'visible' } }),
-      this.prisma.comment.count({ where: { status: 'hidden' } }),
-      this.prisma.comment.count({
+      this.prisma.comicComment.count({ where: {} }),
+      this.prisma.comicComment.count({ where: { status: 'visible' } }),
+      this.prisma.comicComment.count({ where: { status: 'hidden' } }),
+      this.prisma.comicComment.count({
         where: {
           created_at: { gte: today },
         },
       }),
-      this.prisma.comment.count({
+      this.prisma.comicComment.count({
         where: {
           created_at: { gte: startOfWeek },
         },
       }),
-      this.prisma.comment.count({
+      this.prisma.comicComment.count({
         where: {
           created_at: { gte: startOfMonth },
         },

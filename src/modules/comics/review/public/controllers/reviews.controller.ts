@@ -8,7 +8,7 @@ import {
 import { PublicReviewsService } from '../services/reviews.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
-@Controller('public/reviews')
+@Controller('public/comic-reviews')
 export class PublicReviewsController {
   constructor(private readonly reviewsService: PublicReviewsService) { }
 
@@ -22,6 +22,3 @@ export class PublicReviewsController {
     return this.reviewsService.getByComic(comicId, page, limit);
   }
 }
-
-
-

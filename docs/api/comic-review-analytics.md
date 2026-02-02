@@ -10,7 +10,7 @@ Hệ thống review được chia làm 3 phân vùng: Public (dành cho khách),
 Dùng để hiển thị danh sách đánh giá của một bộ truyện cho mọi đối tượng.
 
 #### Lấy danh sách đánh giá của truyện
-- **URL:** `GET /public/reviews/comics/:comicId`
+- **URL:** `GET /public/comic-reviews/comics/:comicId`
 - **Method:** `GET`
 - **Query Params:**
   - `page` (optional, default: 1): Trang hiện tại.
@@ -49,12 +49,12 @@ Dùng để hiển thị danh sách đánh giá của một bộ truyện cho m�
 Dành cho người dùng thực hiện đánh giá hoặc quản lý đánh giá cá nhân.
 
 #### Lấy danh sách đánh giá của tôi
-- **URL:** `GET /user/reviews`
+- **URL:** `GET /user/comic-reviews`
 - **Method:** `GET`
 - **Response:** Danh sách các review mà user hiện tại đã thực hiện.
 
 #### Gửi hoặc Cập nhật đánh giá
-- **URL:** `POST /user/reviews/comics/:comicId`
+- **URL:** `POST /user/comic-reviews/comics/:comicId`
 - **Method:** `POST`
 - **Body:**
 ```json
@@ -66,7 +66,7 @@ Dành cho người dùng thực hiện đánh giá hoặc quản lý đánh giá
 - **Lưu ý:** Nếu user đã review truyện này rồi, API sẽ tự động cập nhật review cũ.
 
 #### Xóa đánh giá của tôi
-- **URL:** `DELETE /user/reviews/comics/:comicId`
+- **URL:** `DELETE /user/comic-reviews/comics/:comicId`
 - **Method:** `DELETE`
 - **Response:**
 ```json
@@ -75,13 +75,26 @@ Dành cho người dùng thực hiện đánh giá hoặc quản lý đánh giá
 }
 ```
 
+#### Gửi bình luận
+- **URL:** `POST /user/comic-comments`
+- **Method:** `POST`
+- **Body:**
+```json
+{
+  "comic_id": "100", // Bắt buộc
+  "content": "Nội dung bình luận", // Bắt buộc
+  "parent_id": "123" // Tùy chọn, nếu là bình luận trả lời
+}
+```
+- **Lưu ý:** Hỗ trợ reply qua `parent_id`.
+
 ---
 
 ### C. Admin API (Yêu cầu quyền Quản trị)
 Dành cho trang Admin quản lý toàn bộ đánh giá trên hệ thống.
 
 #### Danh sách đánh giá (Có filter)
-- **URL:** `GET /admin/reviews`
+- **URL:** `GET /admin/comic-reviews`
 - **Method:** `GET`
 - **Query Params:**
   - `comic_id`: Lọc theo truyện.
@@ -94,7 +107,7 @@ Dành cho trang Admin quản lý toàn bộ đánh giá trên hệ thống.
 - **Response:** Tương tự Public API nhưng bổ sung thông tin truyện (`comic`).
 
 #### Thống kê đánh giá
-- **URL:** `GET /admin/reviews/statistics`
+- **URL:** `GET /admin/comic-reviews/statistics`
 - **Method:** `GET`
 - **Response:**
 ```json
@@ -112,8 +125,8 @@ Dành cho trang Admin quản lý toàn bộ đánh giá trên hệ thống.
 ```
 
 #### Cập nhật/Xóa Review (Admin)
-- `PUT /admin/reviews/:id`: Sửa nội dung hoặc rating của một review.
-- `DELETE /admin/reviews/:id`: Xóa một review vi phạm.
+- `PUT /admin/comic-reviews/:id`: Sửa nội dung hoặc rating của một review.
+- `DELETE /admin/comic-reviews/:id`: Xóa một review vi phạm.
 
 ---
 

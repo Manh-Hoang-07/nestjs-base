@@ -8,7 +8,7 @@ import {
 import { PublicCommentsService } from '../services/comments.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
-@Controller('public/comments')
+@Controller('public/comic-comments')
 export class PublicCommentsController {
   constructor(private readonly commentsService: PublicCommentsService) { }
 
@@ -36,4 +36,3 @@ export class PublicCommentsController {
     return this.commentsService.getByChapter(chapterId, isNaN(pageNum) ? 1 : pageNum, isNaN(limitNum) ? 20 : limitNum);
   }
 }
-

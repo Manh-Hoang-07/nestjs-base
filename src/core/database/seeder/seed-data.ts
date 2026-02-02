@@ -27,6 +27,7 @@ import { SeedComicCategories } from '@/core/database/seeder/seed-comic-categorie
 import { SeedComics } from '@/core/database/seeder/seed-comics';
 import { SeedChapters } from '@/core/database/seeder/seed-chapters';
 import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
+import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
 
 @Injectable()
 export class SeedService {
@@ -63,6 +64,7 @@ export class SeedService {
     private readonly seedComics: SeedComics,
     private readonly seedChapters: SeedChapters,
     private readonly seedComicLastChapter: SeedComicLastChapter,
+    private readonly seedComicComments: SeedComicComments,
   ) { }
 
   async seedAll(): Promise<void> {
@@ -120,6 +122,7 @@ export class SeedService {
       await this.seedComicCategories.seed();
       await this.seedComics.seed();
       await this.seedChapters.seed();
+      await this.seedComicComments.seed();
       // Backfill last chapter data sau khi seed chapters
       await this.seedComicLastChapter.seed();
 
@@ -146,6 +149,7 @@ export class SeedService {
       await this.prisma.chapter.deleteMany({});
       await this.prisma.comicStats.deleteMany({});
       await this.prisma.comic.deleteMany({});
+      await this.prisma.comicComment.deleteMany({});
       await this.prisma.comicCategory.deleteMany({});
 
       // Clear main tables

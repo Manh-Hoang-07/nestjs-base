@@ -13,14 +13,14 @@ export class ModerationService {
    * Ẩn comment
    */
   async hideComment(commentId: number) {
-    const comment = await this.prisma.comment.findFirst({
+    const comment = await this.prisma.comicComment.findFirst({
       where: { id: commentId },
     });
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
 
-    return this.prisma.comment.update({
+    return this.prisma.comicComment.update({
       where: { id: commentId },
       data: { status: 'hidden' },
     });
@@ -30,14 +30,14 @@ export class ModerationService {
    * Hiện comment
    */
   async showComment(commentId: number) {
-    const comment = await this.prisma.comment.findFirst({
+    const comment = await this.prisma.comicComment.findFirst({
       where: { id: commentId },
     });
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
 
-    return this.prisma.comment.update({
+    return this.prisma.comicComment.update({
       where: { id: commentId },
       data: { status: 'visible' },
     });
@@ -71,7 +71,7 @@ export class ModerationService {
     // Có thể thêm logic để filter comments cần moderation
     // Ví dụ: comments có từ khóa spam, hoặc được report
     const [data, total] = await Promise.all([
-      this.prisma.comment.findMany({
+      this.prisma.comicComment.findMany({
         where: {
           status: 'visible',
         },
@@ -84,7 +84,7 @@ export class ModerationService {
         skip,
         take: limit,
       }),
-      this.prisma.comment.count({
+      this.prisma.comicComment.count({
         where: {
           status: 'visible',
         },

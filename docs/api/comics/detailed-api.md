@@ -118,8 +118,8 @@ API này được tối ưu để lấy toàn bộ các khối dữ liệu trang
 - **Xóa lịch sử của truyện**: `DELETE /user/reading-history/:comicId`
 
 ### 6.3. Đánh giá & Bình luận
-- **Review truyện**: `POST /user/reviews/comics/:comicId` (Body: `{ "rating": 5, "content": "..." }`)
-- **Gửi bình luận**: `POST /user/comments` (Hỗ trợ reply qua `parent_id`)
+- **Review truyện**: `POST /user/comic-reviews/comics/:comicId` (Body: `{ "rating": 5, "content": "..." }`)
+- **Gửi bình luận**: `POST /user/comic-comments` (Hỗ trợ reply qua `parent_id`)
 
 ---
 

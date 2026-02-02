@@ -1,12 +1,12 @@
 import { Injectable, Inject, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Comment } from '@prisma/client';
+import { ComicComment } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { ICommentRepository, COMMENT_REPOSITORY } from '../../domain/comment.repository';
 import { RequestContext } from '@/common/shared/utils';
 import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
 
 @Injectable()
-export class UserCommentsService extends BaseService<Comment, ICommentRepository> {
+export class UserCommentsService extends BaseService<ComicComment, ICommentRepository> {
   constructor(
     @Inject(COMMENT_REPOSITORY)
     protected readonly commentRepository: ICommentRepository,
@@ -75,7 +75,7 @@ export class UserCommentsService extends BaseService<Comment, ICommentRepository
     return payload;
   }
 
-  protected override async afterCreate(entity: Comment, data: any): Promise<void> {
+  protected override async afterCreate(entity: ComicComment, data: any): Promise<void> {
     if (entity.parent_id) {
       await this.notificationService.notifyCommentReply(
         Number(entity.id),

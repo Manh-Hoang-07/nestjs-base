@@ -14,7 +14,7 @@ import { ReviewsService } from '../services/reviews.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { SanitizeHtmlPipe } from '@/modules/comics/core/pipes/sanitize-html.pipe';
 
-@Controller('user/reviews')
+@Controller('user/comic-reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) { }
 
@@ -41,4 +41,3 @@ export class ReviewsController {
     return this.reviewsService.removeReview(comicId);
   }
 }
-

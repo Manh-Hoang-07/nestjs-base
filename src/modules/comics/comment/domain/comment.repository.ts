@@ -1,4 +1,4 @@
-import { Comment } from '@prisma/client';
+import { ComicComment } from '@prisma/client';
 import { IRepository } from '@/common/core/repositories';
 
 export const COMMENT_REPOSITORY = 'ICommentRepository';
@@ -11,5 +11,5 @@ export interface CommentFilter {
     status?: string;
 }
 
-export interface ICommentRepository extends IRepository<Comment> {
+export interface ICommentRepository extends IRepository<ComicComment> {
 }

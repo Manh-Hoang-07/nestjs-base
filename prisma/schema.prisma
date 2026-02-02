@@ -59,7 +59,7 @@ model User {
   notifications         Notification[]
   post_comments         PostComment[]
   orders               Order[]
-  comments             Comment[]
+  comments             ComicComment[]
   comic_reviews        ComicReview[]
   comic_views          ComicView[]
   comic_follows        ComicFollow[]
@@ -1641,7 +1641,7 @@ model Comic {
   chapters          Chapter[]
   lastChapter       Chapter?               @relation("LastChapter", fields: [last_chapter_id], references: [id], onDelete: SetNull)
   categoryLinks     ComicCategoryOnComic[]
-  comments          Comment[]
+  comments          ComicComment[]
   reviews           ComicReview[]
   views             ComicView[]
   follows           ComicFollow[]
@@ -1692,7 +1692,7 @@ model Chapter {
   comicsLastChapter Comic[]          @relation("LastChapter")
   pages             ChapterPage[]
   views             ComicView[]
-  comments          Comment[]
+  comments          ComicComment[]
   reading_histories ReadingHistory[]
   bookmarks         Bookmark[]
 
@@ -1738,7 +1738,7 @@ model ComicCategoryOnComic {
   @@map("comic_category")
 }
 
-model Comment {
+model ComicComment {
   id              BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
   user_id         BigInt        @db.UnsignedBigInt
   comic_id        BigInt        @db.UnsignedBigInt
@@ -1751,11 +1751,11 @@ model Comment {
   created_at      DateTime      @default(now()) @db.DateTime(0)
   updated_at      DateTime      @updatedAt @db.DateTime(0)
 
-  comic   Comic     @relation(fields: [comic_id], references: [id], onDelete: Cascade)
-  chapter Chapter?  @relation(fields: [chapter_id], references: [id], onDelete: SetNull)
-  user    User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  parent  Comment?  @relation("CommentToReplies", fields: [parent_id], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentToReplies")
+  comic   Comic          @relation(fields: [comic_id], references: [id], onDelete: Cascade)
+  chapter Chapter?       @relation(fields: [chapter_id], references: [id], onDelete: SetNull)
+  user    User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  parent  ComicComment?  @relation("CommentToReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies ComicComment[] @relation("CommentToReplies")
 
   @@index([user_id], map: "idx_user_id")
   @@index([comic_id], map: "idx_comic_id")
@@ -1767,7 +1767,7 @@ model Comment {
   @@index([chapter_id, created_at], map: "idx_chapter_created")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
-  @@map("comments")
+  @@map("comic_comments")
 }
 
 model ComicReview {

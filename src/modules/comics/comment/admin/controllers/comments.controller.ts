@@ -15,7 +15,7 @@ import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
-@Controller('admin/comments')
+@Controller('admin/comic-comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) { }
 
@@ -54,9 +54,4 @@ export class CommentsController {
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.commentsService.delete(id);
   }
-
-
 }
-
-
-

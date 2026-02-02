@@ -20,7 +20,7 @@ export class PublicCommentsService {
     };
 
     const [topLevelComments, total] = await Promise.all([
-      this.prisma.comment.findMany({
+      this.prisma.comicComment.findMany({
         where: whereTop,
         include: {
           user: true,
@@ -34,7 +34,7 @@ export class PublicCommentsService {
         skip,
         take: limit,
       }),
-      this.prisma.comment.count({ where: whereTop }),
+      this.prisma.comicComment.count({ where: whereTop }),
     ]);
 
     return {
@@ -55,7 +55,7 @@ export class PublicCommentsService {
     };
 
     const [topLevelComments, total] = await Promise.all([
-      this.prisma.comment.findMany({
+      this.prisma.comicComment.findMany({
         where: whereTop,
         include: {
           user: true,
@@ -69,7 +69,7 @@ export class PublicCommentsService {
         skip,
         take: limit,
       }),
-      this.prisma.comment.count({ where: whereTop }),
+      this.prisma.comicComment.count({ where: whereTop }),
     ]);
 
     return {

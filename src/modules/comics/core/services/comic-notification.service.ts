@@ -65,7 +65,7 @@ export class ComicNotificationService {
    */
   async notifyCommentReply(commentId: number, parentCommentId: number, userId: number) {
     // Lấy parent comment để biết user cần notify
-    const parentComment = await this.prisma.comment.findFirst({
+    const parentComment = await this.prisma.comicComment.findFirst({
       where: { id: BigInt(parentCommentId) },
     });
 
