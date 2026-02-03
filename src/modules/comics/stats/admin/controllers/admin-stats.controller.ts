@@ -4,12 +4,12 @@ import {
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { AnalyticsService } from '@/modules/comics/analytics/admin/services/analytics.service';
+import { AdminStatsService } from '../services/admin-stats.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
-@Controller('admin/analytics')
-export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) { }
+@Controller('admin/stats')
+export class AdminStatsController {
+  constructor(private readonly analyticsService: AdminStatsService) { }
 
   @Permission('comic.manage')
   @Get('dashboard')

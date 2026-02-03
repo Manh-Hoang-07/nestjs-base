@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PublicChaptersController } from '@/modules/comics/chapter/public/controllers/chapter.controller';
 import { PublicChaptersService } from '@/modules/comics/chapter/public/services/chapter.service';
-import { ViewTrackingService } from '@/modules/comics/core/services/view-tracking.service';
+import { ViewTrackingService } from '@/modules/comics/shared/services/view-tracking.service';
 import { ChapterRepositoryModule } from '../chapter.repository.module';
 
 @Module({

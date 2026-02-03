@@ -3,10 +3,10 @@ import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class AnalyticsService {
+export class AdminStatsService {
   constructor(
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   /**
    * Dashboard analytics
@@ -42,11 +42,11 @@ export class AnalyticsService {
    * Top comics
    */
   async getTopComics(limit: number = 20, sortBy: 'views' | 'follows' | 'rating' = 'views') {
-    const orderBy: Prisma.ComicStatsOrderByWithRelationInput = sortBy === 'views' 
+    const orderBy: Prisma.ComicStatsOrderByWithRelationInput = sortBy === 'views'
       ? { view_count: 'desc' }
       : sortBy === 'follows'
-      ? { follow_count: 'desc' }
-      : { rating_sum: 'desc' };
+        ? { follow_count: 'desc' }
+        : { rating_sum: 'desc' };
 
     const stats = await this.prisma.comicStats.findMany({
       orderBy,

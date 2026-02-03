@@ -4,12 +4,12 @@ import {
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { DashboardService } from '../services/dashboard.service';
+import { UserStatsService } from '../services/user-stats.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
-@Controller('user/dashboard')
-export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) { }
+@Controller('user/stats')
+export class UserStatsController {
+  constructor(private readonly dashboardService: UserStatsService) { }
 
   @Permission('authenticated')
   @Get()

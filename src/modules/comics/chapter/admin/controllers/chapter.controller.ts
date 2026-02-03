@@ -19,7 +19,7 @@ import { UpdateChapterDto } from '../dtos/update-chapter.dto';
 import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { UploadService } from '@/modules/storage/file-upload/services/upload.service';
-import { ImageValidator } from '@/modules/comics/core/validators/image-validator';
+import { ImageValidator } from '@/modules/comics/shared/validators/image-validator';
 
 @Controller('admin/chapters')
 export class ChapterController {

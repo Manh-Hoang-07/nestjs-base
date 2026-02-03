@@ -12,7 +12,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { PublicChaptersService } from '@/modules/comics/chapter/public/services/chapter.service';
 import { prepareQuery } from '@/common/core/utils/list-query.helper';
-import { ViewTrackingService } from '@/modules/comics/core/services/view-tracking.service';
+import { ViewTrackingService } from '@/modules/comics/shared/services/view-tracking.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('public/chapters')

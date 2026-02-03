@@ -8,7 +8,7 @@ import { StatsService } from './services/stats.service';
   providers: [StatsService],
   exports: [StatsService],
 })
-export class StatsModule {}
+export class PublicStatsModule { }
 
 
 

@@ -3,7 +3,7 @@ import { ComicComment } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { ICommentRepository, COMMENT_REPOSITORY } from '../../domain/comment.repository';
 import { RequestContext } from '@/common/shared/utils';
-import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
+import { ComicNotificationService } from '@/modules/comics/shared/services/comic-notification.service';
 
 @Injectable()
 export class UserCommentsService extends BaseService<ComicComment, ICommentRepository> {

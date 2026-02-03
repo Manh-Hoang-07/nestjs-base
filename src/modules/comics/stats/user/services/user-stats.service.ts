@@ -4,7 +4,7 @@ import { RequestContext, toPlain } from '@/common/shared/utils';
 import { createPaginationMeta } from '@/common/core/utils';
 
 @Injectable()
-export class DashboardService {
+export class UserStatsService {
   constructor(
     private readonly prisma: PrismaService,
   ) { }

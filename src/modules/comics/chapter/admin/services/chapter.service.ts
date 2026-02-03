@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Inject, NotFoundException } from '@nes
 import { Chapter } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IChapterRepository, CHAPTER_REPOSITORY } from '../../domain/chapter.repository';
-import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
+import { ComicNotificationService } from '@/modules/comics/shared/services/comic-notification.service';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { ChapterStatus } from '@/shared/enums';
 

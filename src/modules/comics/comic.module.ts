@@ -23,17 +23,17 @@ import { PublicReviewsModule } from '@/modules/comics/review/public/review.modul
 import { UserReviewsModule } from '@/modules/comics/review/user/review.module';
 
 // Import other modules
-import { ModerationModule } from '@/modules/comics/moderation/admin/moderation.module';
-import { AnalyticsModule } from '@/modules/comics/analytics/admin/analytics.module';
-import { StatsModule } from '@/modules/comics/stats/public/stats.module';
+
+// Import stats feature modules
+import { AdminStatsModule } from '@/modules/comics/stats/admin/admin-stats.module';
+import { UserStatsModule } from '@/modules/comics/stats/user/user-stats.module';
+import { PublicStatsModule } from '@/modules/comics/stats/public/public-stats.module';
 import { HomepageModule } from '@/modules/comics/homepage/public/homepage.module';
 import { UserReadingHistoryModule } from '@/modules/comics/reading-history/user/reading-history.module';
 import { UserBookmarksModule } from '@/modules/comics/bookmark/user/bookmark.module';
 import { UserFollowsModule } from '@/modules/comics/follow/user/follow.module';
-import { DashboardModule } from '@/modules/comics/dashboard/user/dashboard.module';
 
-import { ComicNotificationService } from '@/modules/comics/core/services/comic-notification.service';
-
+import { ComicNotificationService } from '@/modules/comics/shared/services/comic-notification.service';
 @Module({
   imports: [
     // Comic
@@ -59,14 +59,16 @@ import { ComicNotificationService } from '@/modules/comics/core/services/comic-n
     UserReviewsModule,
 
     // Others
-    ModerationModule,
-    AnalyticsModule,
-    StatsModule,
+
+    // Stats
+    AdminStatsModule,
+    UserStatsModule,
+    PublicStatsModule,
+
     HomepageModule,
     UserReadingHistoryModule,
     UserBookmarksModule,
     UserFollowsModule,
-    DashboardModule,
   ],
   providers: [
     ComicNotificationService,
