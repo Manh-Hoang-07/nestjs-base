@@ -82,3 +82,5 @@ export class PostCommentRepositoryImpl extends PrismaRepository<
         return this.update(id, { status: status as any });
     }
 }
+
+

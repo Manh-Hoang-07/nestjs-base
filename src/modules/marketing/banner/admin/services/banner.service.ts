@@ -61,3 +61,5 @@ export class BannerService extends BaseContentService<Banner, IBannerRepository>
         return item;
     }
 }
+
+

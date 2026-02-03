@@ -48,3 +48,5 @@ export class BannerLocationService extends BaseService<BannerLocation, IBannerLo
         return this.update(id, { status: status as any });
     }
 }
+
+

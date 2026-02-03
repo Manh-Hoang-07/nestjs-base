@@ -14,3 +14,5 @@ export interface CommentFilter {
 
 export interface ICommentRepository extends IRepository<ComicComment> {
 }
+
+

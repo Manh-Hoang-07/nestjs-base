@@ -12,3 +12,5 @@ export interface BannerLocationFilter {
 export interface IBannerLocationRepository extends IRepository<BannerLocation> {
     findByCode(code: string): Promise<BannerLocation | null>;
 }
+
+

@@ -1,8 +1,22 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+﻿import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import 'dotenv/config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PrismaService.name);
+
+  constructor() {
+    const url = process.env.DATABASE_URL;
+    if (!url) {
+      throw new Error('DATABASE_URL is not defined');
+    }
+    const adapter = new PrismaMariaDb(url);
+    super({ adapter: adapter as any });
+    this.logger.log('PrismaService initialized with MariaDB adapter');
+  }
+
   async onModuleInit() {
     await this.$connect();
   }
@@ -12,13 +26,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   /**
-   * Đảm bảo đóng kết nối Prisma khi ứng dụng Nest shutdown.
+   * Ensure Prisma connection is closed when the Nest application shuts down.
    */
   async enableShutdownHooks(app: any) {
-    // Cast để tương thích typing của PrismaClient.$on
     (this as any).$on('beforeExit', async () => {
       await app.close();
     });
   }
 }
-

@@ -5,3 +5,5 @@ export const PAYMENT_METHOD_REPOSITORY = 'IPaymentMethodRepository';
 
 export interface IPaymentMethodRepository extends IRepository<PaymentMethod> {
 }
+
+

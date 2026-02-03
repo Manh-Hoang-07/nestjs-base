@@ -44,3 +44,5 @@ export class ProductReviewRepositoryImpl extends PrismaRepository<
         return this.findMany({ productId });
     }
 }
+
+

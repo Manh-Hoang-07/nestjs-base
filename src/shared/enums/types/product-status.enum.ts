@@ -12,3 +12,5 @@ export const ProductStatusLabels: Record<ProductStatus, string> = {
     [ProductStatus.draft]: 'Nháp',
     [ProductStatus.archived]: 'Lưu trữ',
 };
+
+

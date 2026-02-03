@@ -14,3 +14,5 @@ export interface IProjectRepository extends IRepository<Project> {
     findBySlug(slug: string): Promise<Project | null>;
     incrementViewCount(id: number | bigint): Promise<Project>;
 }
+
+

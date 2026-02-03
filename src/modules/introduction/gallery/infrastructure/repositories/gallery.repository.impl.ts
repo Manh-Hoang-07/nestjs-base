@@ -41,3 +41,5 @@ export class GalleryRepositoryImpl extends PrismaRepository<
         return this.findOne({ slug });
     }
 }
+
+

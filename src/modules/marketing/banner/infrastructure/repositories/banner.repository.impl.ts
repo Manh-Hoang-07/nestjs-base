@@ -61,3 +61,5 @@ export class BannerRepositoryImpl extends PrismaRepository<
         }, { sort: 'sort_order:asc' });
     }
 }
+
+

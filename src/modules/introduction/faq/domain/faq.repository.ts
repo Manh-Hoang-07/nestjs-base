@@ -13,3 +13,5 @@ export interface IFaqRepository extends IRepository<Faq> {
     incrementViewCount(id: number): Promise<Faq>;
     incrementHelpfulCount(id: number): Promise<Faq>;
 }
+
+

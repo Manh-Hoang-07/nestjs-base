@@ -20,3 +20,5 @@ export interface IComicRepository extends IRepository<Comic> {
     incrementView(comicId: number | bigint): Promise<void>;
     getChapters(id: number | bigint, options?: any): Promise<any>;
 }
+
+

@@ -37,3 +37,5 @@ export class PartnerRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

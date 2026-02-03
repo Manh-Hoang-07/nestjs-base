@@ -17,3 +17,5 @@ export interface IContentTemplateRepository extends IRepository<ContentTemplate>
 }
 
 export const CONTENT_TEMPLATE_REPOSITORY = 'CONTENT_TEMPLATE_REPOSITORY';
+
+

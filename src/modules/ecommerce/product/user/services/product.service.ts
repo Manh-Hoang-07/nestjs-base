@@ -44,3 +44,4 @@ export class UserProductService extends BaseService<Product, IProductRepository>
     return (product as any)?.variants || [];
   }
 }
+

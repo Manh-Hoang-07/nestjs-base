@@ -38,3 +38,5 @@ export class StaffRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

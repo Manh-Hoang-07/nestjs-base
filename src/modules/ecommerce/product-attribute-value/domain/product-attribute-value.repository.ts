@@ -12,3 +12,5 @@ export interface ProductAttributeValueFilter {
 export interface IProductAttributeValueRepository extends IRepository<ProductAttributeValue> {
     findByAttributeId(attributeId: number | bigint): Promise<ProductAttributeValue[]>;
 }
+
+

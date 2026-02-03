@@ -16,3 +16,5 @@ export const AboutSectionTypeLabels: Record<AboutSectionType, string> = {
   [AboutSectionType.other]: 'Khác',
 };
 
+
+

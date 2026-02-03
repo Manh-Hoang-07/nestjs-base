@@ -52,3 +52,5 @@ export class PostCategoryRepositoryImpl extends PrismaRepository<
         });
     }
 }
+
+

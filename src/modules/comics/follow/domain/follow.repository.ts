@@ -11,3 +11,5 @@ export interface FollowFilter {
 export interface IFollowRepository extends IRepository<ComicFollow> {
     syncFollowCount(comicId: number | bigint): Promise<void>;
 }
+
+

@@ -66,3 +66,4 @@ export class PublicShippingMethodService extends BaseService<ShippingMethod, ISh
     };
   }
 }
+

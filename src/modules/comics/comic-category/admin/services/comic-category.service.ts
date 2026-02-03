@@ -72,3 +72,5 @@ export class ComicCategoryService extends BaseService<ComicCategory, IComicCateg
     return true;
   }
 }
+
+

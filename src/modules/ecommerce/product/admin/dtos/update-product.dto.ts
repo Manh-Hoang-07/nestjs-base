@@ -99,3 +99,5 @@ export class UpdateProductDto {
   @IsNumber()
   updated_user_id?: number;
 }
+
+

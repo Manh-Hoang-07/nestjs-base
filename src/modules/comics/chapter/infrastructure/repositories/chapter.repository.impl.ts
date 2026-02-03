@@ -117,3 +117,5 @@ export class ChapterRepositoryImpl extends PrismaRepository<
         return result._max.chapter_index || 0;
     }
 }
+
+

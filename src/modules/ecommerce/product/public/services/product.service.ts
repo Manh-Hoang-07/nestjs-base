@@ -46,3 +46,4 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
     return this.productRepository.findVariants(productId);
   }
 }
+

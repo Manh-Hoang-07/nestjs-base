@@ -36,3 +36,5 @@ export class UserGroupRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

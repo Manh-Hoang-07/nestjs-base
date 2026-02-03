@@ -47,3 +47,5 @@ export class ContentTemplateRepositoryImpl
         return this.findOne({ code, deleted_at: null });
     }
 }
+
+

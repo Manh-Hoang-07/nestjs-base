@@ -10,3 +10,5 @@ export interface ChapterPageFilter {
 export interface IChapterPageRepository extends IRepository<ChapterPage> {
     createMany(data: any[]): Promise<void>;
 }
+
+

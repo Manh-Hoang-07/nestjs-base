@@ -11,3 +11,5 @@ export interface BookmarkFilter {
 
 export interface IBookmarkRepository extends IRepository<Bookmark> {
 }
+
+

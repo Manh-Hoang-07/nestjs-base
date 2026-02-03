@@ -14,3 +14,5 @@ export interface WarehouseFilter {
 export interface IWarehouseRepository extends IRepository<Warehouse> {
     findByCode(code: string): Promise<Warehouse | null>;
 }
+
+

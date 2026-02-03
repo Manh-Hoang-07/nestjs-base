@@ -26,3 +26,5 @@ export class PaymentRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

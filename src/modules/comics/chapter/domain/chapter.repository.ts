@@ -15,3 +15,5 @@ export interface IChapterRepository extends IRepository<Chapter> {
     findByComicIdAndIndex(comicId: number | bigint, index: number): Promise<Chapter | null>;
     getMaxIndex(comicId: number | bigint): Promise<number>;
 }
+
+

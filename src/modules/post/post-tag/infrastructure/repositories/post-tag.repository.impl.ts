@@ -38,3 +38,5 @@ export class PostTagRepositoryImpl extends PrismaRepository<
         return this.findOne({ slug });
     }
 }
+
+

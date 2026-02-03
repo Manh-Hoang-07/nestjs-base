@@ -12,3 +12,5 @@ export interface StaffFilter {
 
 export interface IStaffRepository extends IRepository<Staff> {
 }
+
+

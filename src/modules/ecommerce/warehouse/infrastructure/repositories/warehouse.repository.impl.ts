@@ -61,3 +61,5 @@ export class WarehouseRepositoryImpl extends PrismaRepository<
         return this.findOne({ code });
     }
 }
+
+

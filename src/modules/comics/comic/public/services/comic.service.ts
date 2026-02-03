@@ -178,3 +178,5 @@ export class PublicComicsService extends BaseService<Comic, IComicRepository> {
     return this.comicRepository.getChapters(comic.id, finalOptions);
   }
 }
+
+

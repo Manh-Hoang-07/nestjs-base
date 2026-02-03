@@ -14,3 +14,5 @@ export interface PermissionFilter {
 export interface IPermissionRepository extends IRepository<Permission> {
     findByCode(code: string): Promise<Permission | null>;
 }
+
+

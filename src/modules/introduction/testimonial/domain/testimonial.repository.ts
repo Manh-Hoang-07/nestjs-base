@@ -12,3 +12,5 @@ export interface TestimonialFilter {
 
 export interface ITestimonialRepository extends IRepository<Testimonial> {
 }
+
+

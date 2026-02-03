@@ -27,3 +27,5 @@ export class GeneralConfigRepositoryImpl extends PrismaRepository<
         });
     }
 }
+
+

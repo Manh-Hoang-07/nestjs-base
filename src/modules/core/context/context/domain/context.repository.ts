@@ -15,3 +15,5 @@ export interface IContextRepository extends IRepository<Context> {
     findByTypeAndRefId(type: string, refId: number | null): Promise<Context | null>;
     findByCode(code: string): Promise<Context | null>;
 }
+
+

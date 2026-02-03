@@ -38,3 +38,5 @@ export class BannerLocationRepositoryImpl extends PrismaRepository<
         return this.findOne({ code });
     }
 }
+
+

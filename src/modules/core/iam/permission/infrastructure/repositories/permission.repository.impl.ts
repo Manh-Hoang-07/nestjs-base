@@ -59,3 +59,5 @@ export class PermissionRepositoryImpl extends PrismaRepository<
         return this.findOne({ code });
     }
 }
+
+

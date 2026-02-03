@@ -15,3 +15,5 @@ export interface IRoleRepository extends IRepository<Role> {
     syncPermissions(roleId: number | bigint, permissionIds: number[]): Promise<void>;
     syncContexts(roleId: number | bigint, contextIds: number[]): Promise<void>;
 }
+
+

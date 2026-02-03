@@ -19,3 +19,5 @@ export const NotificationTypeLabels: Record<NotificationType, string> = {
   [NotificationType.promotion]: 'Khuyến mãi',
 };
 
+
+

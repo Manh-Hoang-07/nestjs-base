@@ -9,3 +9,5 @@ export interface IRoleHasPermissionRepository {
         include?: any;
     }): Promise<RoleHasPermission[]>;
 }
+
+

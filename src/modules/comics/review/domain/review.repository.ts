@@ -15,3 +15,5 @@ export interface IReviewRepository extends IRepository<ComicReview> {
     getAverageRating(filter?: Record<string, any>): Promise<number>;
     getRatingDistribution(filter?: Record<string, any>): Promise<any[]>;
 }
+
+

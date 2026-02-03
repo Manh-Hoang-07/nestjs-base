@@ -12,3 +12,5 @@ export interface PaymentFilter {
 
 export interface IPaymentRepository extends IRepository<Payment> {
 }
+
+

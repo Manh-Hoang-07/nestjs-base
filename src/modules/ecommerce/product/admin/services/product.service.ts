@@ -165,3 +165,4 @@ export class AdminProductService extends BaseService<Product, IProductRepository
     return transformed;
   }
 }
+

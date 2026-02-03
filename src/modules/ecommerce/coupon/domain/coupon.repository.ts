@@ -13,3 +13,5 @@ export interface CouponFilter {
 export interface ICouponRepository extends IRepository<Coupon> {
     findByCode(code: string): Promise<Coupon | null>;
 }
+
+

@@ -15,3 +15,5 @@ export interface IMenuRepository extends IRepository<Menu> {
     findAllWithChildren(filter?: MenuFilter): Promise<Menu[]>;
     findByCode(code: string): Promise<Menu | null>;
 }
+
+

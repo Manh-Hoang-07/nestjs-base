@@ -16,3 +16,5 @@ export interface IPostCommentRepository extends IRepository<PostComment> {
     findWithReplies(postId: number | bigint): Promise<PostComment[]>;
     updateStatus(id: number | bigint, status: string): Promise<PostComment>;
 }
+
+

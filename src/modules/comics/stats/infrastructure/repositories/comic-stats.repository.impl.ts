@@ -41,3 +41,5 @@ export class ComicStatsRepositoryImpl extends PrismaRepository<
     }
 
 }
+
+

@@ -27,3 +27,5 @@ export class EmailConfigRepositoryImpl extends PrismaRepository<
         });
     }
 }
+
+

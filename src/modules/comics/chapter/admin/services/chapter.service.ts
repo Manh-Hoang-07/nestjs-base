@@ -191,3 +191,5 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     return this.deepConvertBigInt(entity);
   }
 }
+
+

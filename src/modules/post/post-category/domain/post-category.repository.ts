@@ -14,3 +14,5 @@ export interface IPostCategoryRepository extends IRepository<PostCategory> {
     findBySlug(slug: string): Promise<PostCategory | null>;
     findAllWithChildren(): Promise<any[]>;
 }
+
+

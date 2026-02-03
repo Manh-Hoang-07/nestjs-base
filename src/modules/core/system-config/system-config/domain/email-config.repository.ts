@@ -10,3 +10,5 @@ export interface IEmailConfigRepository extends IRepository<EmailConfig> {
 }
 
 export const EMAIL_CONFIG_REPOSITORY = 'EMAIL_CONFIG_REPOSITORY';
+
+

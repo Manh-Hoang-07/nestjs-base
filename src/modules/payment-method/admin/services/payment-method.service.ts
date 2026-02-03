@@ -61,3 +61,4 @@ export class PaymentMethodService extends BaseService<PaymentMethod, IPaymentMet
     return validData;
   }
 }
+

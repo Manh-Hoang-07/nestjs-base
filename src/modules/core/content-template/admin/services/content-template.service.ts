@@ -43,3 +43,5 @@ export class ContentTemplateService extends BaseService<ContentTemplate, IConten
         return data;
     }
 }
+
+

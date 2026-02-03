@@ -127,3 +127,5 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
     return prev ? this.transform(prev) : null;
   }
 }
+
+

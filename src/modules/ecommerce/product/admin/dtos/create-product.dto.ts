@@ -135,3 +135,5 @@ export class CreateProductDto {
   @Length(0, 500)
   og_image?: string;
 }
+
+

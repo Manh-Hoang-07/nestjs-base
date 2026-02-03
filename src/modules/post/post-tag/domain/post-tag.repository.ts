@@ -12,3 +12,5 @@ export interface PostTagFilter {
 export interface IPostTagRepository extends IRepository<PostTag> {
     findBySlug(slug: string): Promise<PostTag | null>;
 }
+
+

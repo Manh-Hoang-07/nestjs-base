@@ -29,3 +29,5 @@ export interface IPostRepository extends IRepository<Post> {
     upsertViewStats(postId: number | bigint, viewDate: Date, count: number): Promise<void>;
 }
 
+
+

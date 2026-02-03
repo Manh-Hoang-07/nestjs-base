@@ -15,3 +15,5 @@ export interface ComicViewFilter {
 
 export interface IComicViewRepository extends IRepository<ComicView> {
 }
+
+

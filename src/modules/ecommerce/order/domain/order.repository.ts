@@ -17,3 +17,5 @@ export interface IOrderRepository extends IRepository<Order> {
     findByOrderNumber(orderNumber: string): Promise<Order | null>;
     getStatistics(): Promise<any>;
 }
+
+

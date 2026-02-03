@@ -32,3 +32,5 @@ export class CertificateRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

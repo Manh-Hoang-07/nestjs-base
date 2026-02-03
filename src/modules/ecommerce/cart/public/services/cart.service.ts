@@ -254,3 +254,4 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
     return this.managementService.getCartSummary(cartHeader);
   }
 }
+

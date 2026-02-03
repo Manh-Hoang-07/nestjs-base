@@ -14,3 +14,5 @@ export class RoleContextRepositoryImpl implements IRoleContextRepository {
         return this.prisma.roleContext.findFirst(options);
     }
 }
+
+

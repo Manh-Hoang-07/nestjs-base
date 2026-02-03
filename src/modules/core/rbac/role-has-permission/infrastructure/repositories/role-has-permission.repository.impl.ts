@@ -15,3 +15,5 @@ export class RoleHasPermissionRepositoryImpl implements IRoleHasPermissionReposi
         return this.prisma.roleHasPermission.findMany(options);
     }
 }
+
+

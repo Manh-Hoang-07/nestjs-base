@@ -59,3 +59,4 @@ export class AdminProductAttributeValueService extends BaseService<ProductAttrib
     return this.productAttributeValueRepository.findByAttributeId(attributeId);
   }
 }
+

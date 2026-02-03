@@ -30,3 +30,5 @@ export class PaymentMethodRepositoryImpl extends PrismaRepository<
         });
     }
 }
+
+

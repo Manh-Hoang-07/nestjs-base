@@ -45,3 +45,5 @@ export interface IUserRepository extends IRepository<User> {
         updated_at: Date;
     } | null>;
 }
+
+

@@ -15,3 +15,5 @@ export interface IReviewRepository extends IRepository<ProductReview> {
     getStats(productId: number | bigint): Promise<any>;
     incrementHelpfulCount(reviewId: number | bigint): Promise<void>;
 }
+
+

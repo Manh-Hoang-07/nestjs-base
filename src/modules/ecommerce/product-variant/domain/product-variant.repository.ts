@@ -14,3 +14,5 @@ export interface ProductVariantFilter {
 export interface IProductVariantRepository extends IRepository<ProductVariant> {
     findBySku(sku: string): Promise<ProductVariant | null>;
 }
+
+

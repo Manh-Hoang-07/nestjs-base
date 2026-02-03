@@ -11,3 +11,5 @@ export interface IGeneralConfigRepository extends IRepository<GeneralConfig> {
 }
 
 export const GENERAL_CONFIG_REPOSITORY = 'GENERAL_CONFIG_REPOSITORY';
+
+

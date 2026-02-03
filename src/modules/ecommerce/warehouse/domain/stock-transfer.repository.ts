@@ -7,3 +7,5 @@ export interface IStockTransferRepository extends IRepository<StockTransfer> {
     // Add custom methods if needed
     findAllWithRelations(params: any): Promise<any>;
 }
+
+

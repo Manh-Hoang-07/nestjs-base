@@ -40,3 +40,5 @@ export class ComicCategoryRepositoryImpl extends PrismaRepository<
         return this.findOne({ slug } as any);
     }
 }
+
+

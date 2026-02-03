@@ -11,3 +11,5 @@ export interface CertificateFilter {
 
 export interface ICertificateRepository extends IRepository<Certificate> {
 }
+
+

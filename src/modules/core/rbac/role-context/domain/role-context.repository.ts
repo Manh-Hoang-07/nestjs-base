@@ -8,3 +8,5 @@ export interface IRoleContextRepository {
         where?: any;
     }): Promise<RoleContext | null>;
 }
+
+

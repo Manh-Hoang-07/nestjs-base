@@ -34,3 +34,5 @@ export class ContactRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

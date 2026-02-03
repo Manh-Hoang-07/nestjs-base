@@ -46,3 +46,5 @@ export class ProductAttributeValueRepositoryImpl extends PrismaRepository<
         return this.findMany({ attributeId });
     }
 }
+
+

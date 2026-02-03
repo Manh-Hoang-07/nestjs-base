@@ -78,3 +78,5 @@ export class StockTransferRepositoryImpl extends PrismaRepository<
         };
     }
 }
+
+

@@ -74,3 +74,4 @@ export class PublicReviewService extends BaseService<ProductReview, IReviewRepos
     });
   }
 }
+

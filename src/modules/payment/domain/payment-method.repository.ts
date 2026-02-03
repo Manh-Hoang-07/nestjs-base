@@ -11,3 +11,5 @@ export interface PaymentMethodFilter {
 export interface IPaymentMethodRepository extends IRepository<PaymentMethod> {
     findByCode(code: string): Promise<PaymentMethod | null>;
 }
+
+

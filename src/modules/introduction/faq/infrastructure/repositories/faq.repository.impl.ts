@@ -41,3 +41,5 @@ export class FaqRepositoryImpl extends PrismaRepository<
         return this.update(id, { helpful_count: { increment: 1 } });
     }
 }
+
+

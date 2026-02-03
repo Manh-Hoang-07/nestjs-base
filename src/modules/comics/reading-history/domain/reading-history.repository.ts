@@ -10,3 +10,5 @@ export interface ReadingHistoryFilter {
 
 export interface IReadingHistoryRepository extends IRepository<ReadingHistory> {
 }
+
+

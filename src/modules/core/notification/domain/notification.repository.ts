@@ -16,3 +16,5 @@ export interface INotificationRepository extends IRepository<Notification> {
     markAsRead(id: number): Promise<Notification>;
     markAllAsRead(userId: number): Promise<void>;
 }
+
+

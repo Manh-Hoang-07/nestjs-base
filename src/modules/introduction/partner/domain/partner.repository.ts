@@ -12,3 +12,5 @@ export interface PartnerFilter {
 
 export interface IPartnerRepository extends IRepository<Partner> {
 }
+
+

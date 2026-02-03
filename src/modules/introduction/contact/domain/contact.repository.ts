@@ -11,3 +11,5 @@ export interface ContactFilter {
 
 export interface IContactRepository extends IRepository<Contact> {
 }
+
+

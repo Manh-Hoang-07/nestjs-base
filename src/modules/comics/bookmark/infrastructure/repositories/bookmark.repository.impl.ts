@@ -24,3 +24,5 @@ export class BookmarkRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

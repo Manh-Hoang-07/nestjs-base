@@ -38,3 +38,5 @@ export class UserRoleAssignmentRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

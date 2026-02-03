@@ -13,3 +13,5 @@ export interface ShippingMethodFilter {
 export interface IShippingMethodRepository extends IRepository<ShippingMethod> {
     findByCode(code: string): Promise<ShippingMethod | null>;
 }
+
+

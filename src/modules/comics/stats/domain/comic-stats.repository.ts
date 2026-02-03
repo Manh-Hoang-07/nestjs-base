@@ -12,3 +12,5 @@ export interface IComicStatsRepository extends IRepository<ComicStats> {
     sum(field: keyof ComicStats, filter?: ComicStatsFilter): Promise<number>;
 }
 
+
+

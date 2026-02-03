@@ -34,3 +34,5 @@ export class AdminPostCommentService extends BaseContentService<PostComment, IPo
         return this.delete(id);
     }
 }
+
+

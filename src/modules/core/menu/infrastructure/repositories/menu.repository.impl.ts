@@ -74,3 +74,5 @@ export class MenuRepositoryImpl extends PrismaRepository<
         return this.findOne({ code });
     }
 }
+
+

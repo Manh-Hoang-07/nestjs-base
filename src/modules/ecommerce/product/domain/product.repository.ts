@@ -23,3 +23,5 @@ export interface IProductRepository extends IRepository<Product> {
     syncCategories(productId: number | bigint, categoryIds: (number | bigint)[]): Promise<void>;
     findVariants(productId: number | bigint): Promise<any[]>;
 }
+
+

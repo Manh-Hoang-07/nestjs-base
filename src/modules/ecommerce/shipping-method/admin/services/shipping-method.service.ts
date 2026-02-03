@@ -37,3 +37,4 @@ export class AdminShippingMethodService extends BaseService<ShippingMethod, IShi
     return this.repository.update(id, { deleted_at: null } as any) as Promise<any>;
   }
 }
+

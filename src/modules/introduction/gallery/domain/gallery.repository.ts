@@ -13,3 +13,5 @@ export interface GalleryFilter {
 export interface IGalleryRepository extends IRepository<Gallery> {
     findBySlug(slug: string): Promise<Gallery | null>;
 }
+
+

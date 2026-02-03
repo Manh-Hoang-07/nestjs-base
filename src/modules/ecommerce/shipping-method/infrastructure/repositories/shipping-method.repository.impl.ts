@@ -35,3 +35,5 @@ export class ShippingMethodRepositoryImpl extends PrismaRepository<
         return this.findOne({ code });
     }
 }
+
+

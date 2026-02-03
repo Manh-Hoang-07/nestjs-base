@@ -10,3 +10,5 @@ export interface TrackingHistoryFilter {
 export interface ITrackingHistoryRepository extends IRepository<TrackingHistory> {
     findByOrderId(orderId: number | bigint): Promise<TrackingHistory[]>;
 }
+
+

@@ -14,3 +14,5 @@ export interface ProductReviewFilter {
 export interface IProductReviewRepository extends IRepository<ProductReview> {
     findByProductId(productId: number | bigint): Promise<ProductReview[]>;
 }
+
+

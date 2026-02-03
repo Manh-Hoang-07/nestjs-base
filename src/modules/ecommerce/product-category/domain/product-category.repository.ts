@@ -15,3 +15,5 @@ export interface IProductCategoryRepository extends IRepository<ProductCategory>
     findBySlug(slug: string): Promise<ProductCategory | null>;
     getTree(groupId?: number | bigint | null): Promise<ProductCategory[]>;
 }
+
+

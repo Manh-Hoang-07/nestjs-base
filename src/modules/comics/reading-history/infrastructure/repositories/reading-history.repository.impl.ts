@@ -24,3 +24,5 @@ export class ReadingHistoryRepositoryImpl extends PrismaRepository<
         return where;
     }
 }
+
+

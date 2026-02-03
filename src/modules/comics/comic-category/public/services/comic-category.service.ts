@@ -28,3 +28,5 @@ export class PublicComicCategoriesService extends BaseService<ComicCategory, ICo
   }
 }
 
+
+

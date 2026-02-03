@@ -12,3 +12,5 @@ export const PartnerTypeLabels: Record<PartnerType, string> = {
   [PartnerType.partner]: 'Đối tác',
 };
 
+
+

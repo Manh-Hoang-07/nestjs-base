@@ -52,3 +52,4 @@ export class UserProductCategoryService extends BaseService<ProductCategory, IPr
     });
   }
 }
+

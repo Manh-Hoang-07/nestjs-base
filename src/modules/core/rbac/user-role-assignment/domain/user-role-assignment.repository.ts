@@ -7,3 +7,5 @@ export interface IUserRoleAssignmentRepository extends IRepository<UserRoleAssig
     findUnique(userId: number | bigint, roleId: number | bigint, groupId: number | bigint): Promise<UserRoleAssignment | null>;
     deleteMany(where: any): Promise<{ count: number }>;
 }
+
+

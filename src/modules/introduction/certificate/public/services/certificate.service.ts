@@ -30,3 +30,5 @@ export class PublicCertificateService extends BaseService<Certificate, ICertific
     return result.data;
   }
 }
+
+

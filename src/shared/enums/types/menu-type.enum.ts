@@ -15,3 +15,5 @@ export const MenuTypeLabels: Record<MenuType, string> = {
   [MenuType.link]: 'Link',
 };
 
+
+

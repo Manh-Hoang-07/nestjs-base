@@ -35,3 +35,5 @@ export class CouponRepositoryImpl extends PrismaRepository<
         return this.findOne({ code });
     }
 }
+
+

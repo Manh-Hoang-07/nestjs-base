@@ -12,3 +12,5 @@ export interface ProductAttributeFilter {
 export interface IProductAttributeRepository extends IRepository<ProductAttribute> {
     findByCode(code: string): Promise<ProductAttribute | null>;
 }
+
+

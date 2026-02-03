@@ -15,3 +15,5 @@ export interface ICartRepository extends IRepository<CartHeader> {
     findByUserId(userId: number | bigint): Promise<CartHeader | null>;
     findByUuid(uuid: string): Promise<CartHeader | null>;
 }
+
+

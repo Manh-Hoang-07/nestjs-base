@@ -12,3 +12,5 @@ export const TemplateTypeLabels: Record<TemplateType, string> = {
     [TemplateType.file_excel]: 'Bảng tính Excel (.xlsx)',
     [TemplateType.file_pdf]: 'Tài liệu PDF có sẵn (.pdf)',
 };
+
+

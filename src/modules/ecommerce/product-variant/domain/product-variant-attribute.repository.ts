@@ -10,3 +10,5 @@ export interface ProductVariantAttributeFilter {
 export interface IProductVariantAttributeRepository extends IRepository<ProductVariantAttribute> {
     createMany(data: any[]): Promise<void>;
 }
+
+

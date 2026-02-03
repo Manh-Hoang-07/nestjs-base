@@ -12,3 +12,5 @@ export interface ICouponRepository extends IRepository<Coupon> {
 export interface ICouponUsageRepository extends IRepository<CouponUsage> {
     findByUser(couponId: number | bigint, userId: number | bigint): Promise<CouponUsage[]>;
 }
+
+
