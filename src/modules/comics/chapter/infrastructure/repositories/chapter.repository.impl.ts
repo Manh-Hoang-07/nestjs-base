@@ -91,6 +91,9 @@ export class ChapterRepositoryImpl extends PrismaRepository<
                 { title: { contains: filter.search } },
             ];
         }
+        if (filter.group_id) {
+            where.group_id = this.toPrimaryKey(filter.group_id);
+        }
 
         return where;
     }

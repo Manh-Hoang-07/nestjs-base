@@ -64,7 +64,7 @@ export class ComicRepositoryImpl extends PrismaRepository<
         const where: Prisma.ComicWhereInput = {};
 
         if (filter.group_id !== undefined) {
-            (where as any).group_id = filter.group_id === null ? null : this.toPrimaryKey(filter.group_id);
+            where.group_id = filter.group_id === null ? null : this.toPrimaryKey(filter.group_id);
         }
 
         if (filter.status) {

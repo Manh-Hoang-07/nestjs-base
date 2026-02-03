@@ -29,6 +29,13 @@ export class ComicViewRepositoryImpl extends PrismaRepository<
             if (filter.date_to) where.created_at.lte = filter.date_to;
         }
 
+        if (filter.group_id) {
+            where.comic = {
+                group_id: this.toPrimaryKey(filter.group_id)
+            };
+        }
+
         return where;
+
     }
 }

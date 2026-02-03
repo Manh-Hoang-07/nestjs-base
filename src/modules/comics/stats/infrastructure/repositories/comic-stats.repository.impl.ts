@@ -20,15 +20,24 @@ export class ComicStatsRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: ComicStatsFilter): Prisma.ComicStatsWhereInput {
         const where: Prisma.ComicStatsWhereInput = {};
         if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);
+        if (filter.group_id) {
+            where.comic = {
+                group_id: this.toPrimaryKey(filter.group_id)
+            } as any;
+        }
+
         return where;
     }
 
-    async sum(field: keyof ComicStats): Promise<number> {
+    async sum(field: keyof ComicStats, filter: ComicStatsFilter = {}): Promise<number> {
+        const where = this.buildWhere(filter);
         const result = await this.prisma.comicStats.aggregate({
+            where,
             _sum: {
                 [field]: true,
             },
         });
         return Number(result._sum[field] || 0);
     }
+
 }

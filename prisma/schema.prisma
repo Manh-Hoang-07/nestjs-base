@@ -1636,6 +1636,7 @@ model Comic {
   last_chapter_id         BigInt?     @db.UnsignedBigInt
   last_chapter_updated_at DateTime?   @db.DateTime(0)
   is_featured             Boolean     @default(false)
+  group_id                BigInt?     @db.UnsignedBigInt
 
   stats             ComicStats?
   chapters          Chapter[]
@@ -1655,6 +1656,7 @@ model Comic {
   @@index([updated_user_id], map: "idx_updated_user_id")
   @@index([last_chapter_updated_at], map: "idx_last_chapter_updated_at")
   @@index([is_featured], map: "idx_is_featured")
+  @@index([group_id], map: "idx_comics_group_id")
   @@map("comics")
 }
 
@@ -1687,6 +1689,7 @@ model Chapter {
   updated_user_id BigInt?       @db.UnsignedBigInt
   created_at      DateTime      @default(now()) @db.DateTime(0)
   updated_at      DateTime      @updatedAt @db.DateTime(0)
+  group_id        BigInt?       @db.UnsignedBigInt
 
   comic             Comic            @relation(fields: [comic_id], references: [id], onDelete: Cascade)
   comicsLastChapter Comic[]          @relation("LastChapter")
@@ -1705,6 +1708,7 @@ model Chapter {
   @@index([created_at], map: "idx_created_at")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
+  @@index([group_id], map: "idx_chapters_group_id")
   @@map("chapters")
 }
 
@@ -1717,6 +1721,7 @@ model ComicCategory {
   updated_user_id BigInt?   @db.UnsignedBigInt
   created_at      DateTime  @default(now()) @db.DateTime(0)
   updated_at      DateTime  @updatedAt @db.DateTime(0)
+  group_id        BigInt?   @db.UnsignedBigInt
 
   comics ComicCategoryOnComic[]
 
@@ -1725,6 +1730,7 @@ model ComicCategory {
   @@index([created_at], map: "idx_created_at")
   @@index([created_user_id], map: "idx_created_user_id")
   @@index([updated_user_id], map: "idx_updated_user_id")
+  @@index([group_id], map: "idx_comic_categories_group_id")
   @@map("comic_categories")
 }
 

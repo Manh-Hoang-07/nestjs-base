@@ -24,8 +24,8 @@ export class ComicCategoryRepositoryImpl extends PrismaRepository<
 
         if (filter.group_id) {
             where.OR = [
-                { group_id: this.toPrimaryKey(filter.group_id) } as any,
-                { group_id: null } as any,
+                { group_id: this.toPrimaryKey(filter.group_id) },
+                { group_id: null },
             ];
         }
 

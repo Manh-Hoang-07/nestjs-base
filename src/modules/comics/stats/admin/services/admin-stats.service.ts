@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 import { IComicRepository, COMIC_REPOSITORY } from '../../../comic/domain/comic.repository';
 import { IComicStatsRepository, COMIC_STATS_REPOSITORY } from '../../domain/comic-stats.repository';
 import { IComicViewRepository, COMIC_VIEW_REPOSITORY } from '../../domain/comic-view.repository';
+import { RequestContext } from '@/common/shared/utils';
+
 
 @Injectable()
 export class AdminStatsService {
@@ -19,11 +21,14 @@ export class AdminStatsService {
    * Dashboard analytics
    */
   async getDashboard() {
+    const groupId = RequestContext.get<number | null>('groupId');
+    const filter = groupId ? { group_id: groupId } : {};
+
     const [totalComics, totalViews, totalFollows, topComics] = await Promise.all([
-      this.comicRepository.count(),
-      this.statsRepository.sum('view_count'),
-      this.statsRepository.sum('follow_count'),
-      this.statsRepository.findMany({}, {
+      this.comicRepository.count(filter as any),
+      this.statsRepository.sum('view_count', filter),
+      this.statsRepository.sum('follow_count', filter),
+      this.statsRepository.findMany(filter, {
         sort: 'view_count:DESC',
         limit: 10,
         include: { comic: true }
@@ -41,17 +46,21 @@ export class AdminStatsService {
     };
   }
 
+
   /**
    * Top comics
    */
   async getTopComics(limit: number = 20, sortBy: 'views' | 'follows' | 'rating' = 'views') {
+    const groupId = RequestContext.get<number | null>('groupId');
+    const filter = groupId ? { group_id: groupId } : {};
+
     const sort = sortBy === 'views'
       ? 'view_count:DESC'
       : sortBy === 'follows'
         ? 'follow_count:DESC'
         : 'rating_sum:DESC';
 
-    const stats = await this.statsRepository.findMany({}, {
+    const stats = await this.statsRepository.findMany(filter, {
       sort,
       take: limit,
       include: { comic: true },
@@ -63,16 +72,20 @@ export class AdminStatsService {
     }));
   }
 
+
   /**
    * Views over time
    */
   async getViewsOverTime(startDate: Date, endDate: Date) {
+    const groupId = RequestContext.get<number | null>('groupId');
     const views = await this.viewRepository.findMany({
       date_from: startDate,
       date_to: endDate,
+      group_id: groupId || undefined,
     }, {
       sort: 'created_at:ASC'
     });
+
 
     // Group by date
     const grouped = views.reduce((acc: Record<string, number>, view) => {

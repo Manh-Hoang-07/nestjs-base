@@ -8,6 +8,7 @@ export interface ChapterFilter {
     chapter_index?: number;
     status?: string | { in: string[] };
     search?: string;
+    group_id?: number | bigint;
 }
 
 export interface IChapterRepository extends IRepository<Chapter> {

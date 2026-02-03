@@ -132,47 +132,8 @@ Dành cho trang Admin quản lý toàn bộ đánh giá trên hệ thống.
 
 ## 2. Comic Analytics API (Thống kê - Admin)
 
-Dành cho Dashboard hoặc trang báo cáo chi tiết trong Admin.
+Vui lòng xem chi tiết tại: [Tài liệu API Thống kê Comic Admin](./comic-admin-stats.md)
 
-### Thống kê tổng quan (Dashboard)
-- **URL:** `GET /admin/analytics/dashboard`
-- **Method:** `GET`
-- **Response:**
-```json
-{
-  "total_comics": 1200,
-  "total_views": 1500000,
-  "total_follows": 25000,
-  "top_comics": [
-    {
-      "comic": { "id": "1", "title": "Bách Luyện Thành Thần", ... },
-      "stats": { "view_count": 50000, "follow_count": 1200, ... }
-    }
-  ]
-}
-```
-
-### Xếp hạng truyện (Top Comics)
-- **URL:** `GET /admin/analytics/comics`
-- **Method:** `GET`
-- **Query Params:**
-  - `limit` (default 20): Số lượng truyện.
-  - `sortBy` (`views` | `follows` | `rating` - default `views`).
-- **Response:** Danh sách truyện kèm các chỉ số thống kê tương ứng.
-
-### Biểu đồ lượt xem theo thời gian
-- **URL:** `GET /admin/analytics/views`
-- **Method:** `GET`
-- **Query Params (Bắt buộc):**
-  - `startDate`: Định dạng ISO (VD: `2024-01-01`).
-  - `endDate`: Định dạng ISO (VD: `2024-02-01`).
-- **Response:**
-```json
-[
-  { "date": "2024-01-01", "count": 150 },
-  { "date": "2024-01-02", "count": 200 }
-]
-```
 
 ---
 **Ghi chú:** Đơn vị Frontend cần gửi Header `Authorization: Bearer <token>` đối với các API thuộc phân vùng **User** và **Admin**.

@@ -9,7 +9,9 @@ export interface ComicViewFilter {
     user_id?: number | bigint;
     date_from?: Date;
     date_to?: Date;
+    group_id?: number | bigint;
 }
+
 
 export interface IComicViewRepository extends IRepository<ComicView> {
 }
