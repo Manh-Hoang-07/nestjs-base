@@ -1,15 +1,16 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { CartHeader, Cart } from '@prisma/client';
+import { CartHeader } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { ICartRepository, CART_REPOSITORY } from '../../domain/cart.repository';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '../../domain/cart-item.repository';
 
 @Injectable()
 export class CartManagementService {
   constructor(
     @Inject(CART_REPOSITORY)
     private readonly cartRepository: ICartRepository,
-    private readonly prisma: PrismaService,
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
   ) { }
 
   /**
@@ -28,9 +29,7 @@ export class CartManagementService {
 
     // Nếu chưa có cart user và có cartUuid (guest)
     if (!cartHeader && cartUuid) {
-      cartHeader = await this.prisma.cartHeader.findUnique({
-        where: { uuid: cartUuid },
-      }) as CartHeader | null;
+      cartHeader = await this.cartRepository.findByUuid(cartUuid);
     }
 
     // Create new cart if not found
@@ -50,7 +49,7 @@ export class CartManagementService {
         shipping_amount: 0,
         discount_amount: 0,
         total_amount: 0,
-      });
+      } as any);
     }
 
     return cartHeader;
@@ -62,10 +61,8 @@ export class CartManagementService {
   async getCartSummary(
     cartHeader: CartHeader,
   ): Promise<any> {
-    // PrismaRepository findBy methods already include items if configured in defaultSelect
-    // But let's be explicit if needed.
-    const fullCart = await this.prisma.cartHeader.findUnique({
-      where: { id: cartHeader.id },
+    const fullCart = await this.cartRepository.findFirstRaw({
+      where: { id: (this.cartRepository as any).toPrimaryKey(cartHeader.id) },
       include: {
         items: {
           include: {
@@ -78,6 +75,8 @@ export class CartManagementService {
 
     if (!fullCart) throw new NotFoundException('Cart not found');
 
+    const items = (fullCart as any).items || [];
+
     return {
       cart_id: Number(fullCart.id),
       cart_uuid: fullCart.uuid,
@@ -88,7 +87,7 @@ export class CartManagementService {
       discount_amount: fullCart.discount_amount,
       coupon_code: fullCart.coupon_code,
       total_amount: fullCart.total_amount,
-      items: fullCart.items.map(item => ({
+      items: items.map((item: any) => ({
         ...item,
         id: Number(item.id),
         cart_header_id: Number(item.cart_header_id),
@@ -102,10 +101,8 @@ export class CartManagementService {
    * Clear cart items
    */
   async clearCartItems(cartHeaderId: number | bigint): Promise<void> {
-    await this.prisma.cart.deleteMany({
-      where: {
-        cart_header_id: BigInt(cartHeaderId),
-      },
+    await this.cartItemRepository.deleteMany({
+      cart_header_id: cartHeaderId,
     });
   }
 
@@ -126,8 +123,8 @@ export class CartManagementService {
    * Get cart by ID with relations
    */
   async getCartByIdWithRelations(cartId: number | bigint): Promise<CartHeader> {
-    const cartHeader = await this.prisma.cartHeader.findUnique({
-      where: { id: BigInt(cartId) },
+    const cartHeader = await this.cartRepository.findFirstRaw({
+      where: { id: (this.cartRepository as any).toPrimaryKey(cartId) },
       include: {
         items: {
           include: {

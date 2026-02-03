@@ -11,4 +11,6 @@ export interface ReviewFilter {
 
 export interface IReviewRepository extends IRepository<ComicReview> {
     syncRatingStats(comicId: number | bigint): Promise<void>;
+    getAverageRating(filter?: Record<string, any>): Promise<number>;
+    getRatingDistribution(filter?: Record<string, any>): Promise<any[]>;
 }

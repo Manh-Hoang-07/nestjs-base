@@ -1,45 +1,41 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
+import { Injectable, Inject } from '@nestjs/common';
 import { toPlain } from '@/common/shared/utils';
+import { ICommentRepository, COMMENT_REPOSITORY } from '../../domain/comment.repository';
 
 @Injectable()
 export class PublicCommentsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    @Inject(COMMENT_REPOSITORY)
+    private readonly commentRepository: ICommentRepository,
+  ) { }
 
   /**
    * Lấy comments của comic (tree structure)
    */
   async getByComic(comicId: number, page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
-    const whereTop = {
-      comic_id: BigInt(comicId),
-      chapter_id: null,
-      parent_id: null,
-      status: 'visible' as const,
-    };
-
-    const [topLevelComments, total] = await Promise.all([
-      this.prisma.comicComment.findMany({
-        where: whereTop,
-        include: {
-          user: true,
-          replies: {
-            where: { status: 'visible' },
-            include: { user: true },
-            orderBy: { created_at: 'asc' },
-          },
+    const { data: comments, meta } = await this.commentRepository.findAll({
+      filter: {
+        comic_id: comicId,
+        chapter_id: null,
+        parent_id: null,
+        status: 'visible',
+      },
+      include: {
+        user: true,
+        replies: {
+          where: { status: 'visible' },
+          include: { user: true },
+          orderBy: { created_at: 'asc' },
         },
-        orderBy: { created_at: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.comicComment.count({ where: whereTop }),
-    ]);
+      },
+      sort: 'created_at:DESC',
+      page,
+      limit,
+    } as any);
 
     return {
-      data: toPlain(topLevelComments),
-      meta: createPaginationMeta(page, limit, total),
+      data: toPlain(comments),
+      meta,
     };
   }
 
@@ -47,34 +43,28 @@ export class PublicCommentsService {
    * Lấy comments của chapter (tree structure)
    */
   async getByChapter(chapterId: number, page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
-    const whereTop = {
-      chapter_id: BigInt(chapterId),
-      parent_id: null,
-      status: 'visible' as const,
-    };
-
-    const [topLevelComments, total] = await Promise.all([
-      this.prisma.comicComment.findMany({
-        where: whereTop,
-        include: {
-          user: true,
-          replies: {
-            where: { status: 'visible' },
-            include: { user: true },
-            orderBy: { created_at: 'asc' },
-          },
+    const { data: comments, meta } = await this.commentRepository.findAll({
+      filter: {
+        chapter_id: chapterId,
+        parent_id: null,
+        status: 'visible',
+      },
+      include: {
+        user: true,
+        replies: {
+          where: { status: 'visible' },
+          include: { user: true },
+          orderBy: { created_at: 'asc' },
         },
-        orderBy: { created_at: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.comicComment.count({ where: whereTop }),
-    ]);
+      },
+      sort: 'created_at:DESC',
+      page,
+      limit,
+    } as any);
 
     return {
-      data: toPlain(topLevelComments),
-      meta: createPaginationMeta(page, limit, total),
+      data: toPlain(comments),
+      meta,
     };
   }
 }

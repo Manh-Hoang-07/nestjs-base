@@ -17,11 +17,22 @@ export class ReviewRepositoryImpl extends PrismaRepository<
         this.isSoftDelete = false;
     }
 
-    protected buildWhere(filter: ReviewFilter): Prisma.ComicReviewWhereInput {
+    protected buildWhere(filter: ReviewFilter & { date_from?: Date; date_to?: Date; search?: string }): Prisma.ComicReviewWhereInput {
         const where: Prisma.ComicReviewWhereInput = {};
         if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);
         if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);
         if (filter.rating) where.rating = filter.rating;
+
+        if (filter.search) {
+            where.content = { contains: filter.search };
+        }
+
+        if (filter.date_from || filter.date_to) {
+            where.created_at = {};
+            if (filter.date_from) where.created_at.gte = filter.date_from;
+            if (filter.date_to) where.created_at.lte = filter.date_to;
+        }
+
         return where;
     }
 
@@ -52,5 +63,28 @@ export class ReviewRepositoryImpl extends PrismaRepository<
                 rating_sum: BigInt(sum),
             },
         });
+    }
+
+    async getAverageRating(filter: Record<string, any> = {}): Promise<number> {
+        const where = this.buildWhere(filter);
+        const result = await this.prisma.comicReview.aggregate({
+            where,
+            _avg: { rating: true },
+        });
+        return result._avg.rating || 0;
+    }
+
+    async getRatingDistribution(filter: Record<string, any> = {}): Promise<any[]> {
+        const where = this.buildWhere(filter);
+        const result = await this.prisma.comicReview.groupBy({
+            by: ['rating'],
+            where,
+            _count: { rating: true },
+            orderBy: { rating: 'asc' },
+        });
+        return result.map(r => ({
+            rating: r.rating,
+            count: r._count.rating,
+        }));
     }
 }

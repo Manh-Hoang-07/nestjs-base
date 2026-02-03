@@ -39,6 +39,7 @@ export class CartRepositoryImpl extends PrismaRepository<
 
         if (filter.ownerKey) where.owner_key = filter.ownerKey;
         if (filter.userId) where.user_id = this.toPrimaryKey(filter.userId);
+        if (filter.uuid) where.uuid = filter.uuid;
 
         return where;
     }
@@ -49,5 +50,9 @@ export class CartRepositoryImpl extends PrismaRepository<
 
     async findByUserId(userId: number | bigint): Promise<CartHeader | null> {
         return this.findOne({ userId });
+    }
+
+    async findByUuid(uuid: string): Promise<CartHeader | null> {
+        return this.findOne({ uuid });
     }
 }

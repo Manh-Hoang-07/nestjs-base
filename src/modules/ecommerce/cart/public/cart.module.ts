@@ -7,10 +7,12 @@ import { CartCalculationService } from './services/cart-calculation.service';
 import { CartManagementService } from './services/cart-management.service';
 import { RbacModule } from '@/modules/core/rbac/rbac.module';
 import { CartRepositoryModule } from '../cart.repository.module';
+import { ProductVariantRepositoryModule } from '../../product-variant/product-variant.repository.module';
 
 @Module({
   imports: [
     CartRepositoryModule,
+    ProductVariantRepositoryModule,
     RbacModule,
   ],
   controllers: [PublicCartController],

@@ -1,9 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { IOrderRepository, ORDER_REPOSITORY } from '../../domain/order.repository';
+import { IOrderItemRepository, ORDER_ITEM_REPOSITORY } from '../../domain/order-item.repository';
+import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '@/modules/ecommerce/product-variant/domain/product-variant.repository';
+import { IWarehouseRepository, WAREHOUSE_REPOSITORY } from '@/modules/ecommerce/warehouse/domain/warehouse.repository';
+import { IWarehouseInventoryRepository, WAREHOUSE_INVENTORY_REPOSITORY } from '@/modules/ecommerce/warehouse/domain/warehouse-inventory.repository';
+import { IPaymentRepository, PAYMENT_REPOSITORY } from '@/modules/payment/domain/payment.repository';
+import { IPaymentMethodRepository, PAYMENT_METHOD_REPOSITORY } from '@/modules/payment/domain/payment-method.repository';
+import { ICartRepository, CART_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart.repository';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart-item.repository';
 
 @Injectable()
 export class OrderCreationService {
+  constructor(
+    @Inject(ORDER_REPOSITORY)
+    private readonly orderRepository: IOrderRepository,
+    @Inject(ORDER_ITEM_REPOSITORY)
+    private readonly orderItemRepository: IOrderItemRepository,
+    @Inject(PRODUCT_VARIANT_REPOSITORY)
+    private readonly productVariantRepository: IProductVariantRepository,
+    @Inject(WAREHOUSE_REPOSITORY)
+    private readonly warehouseRepository: IWarehouseRepository,
+    @Inject(WAREHOUSE_INVENTORY_REPOSITORY)
+    private readonly inventoryRepository: IWarehouseInventoryRepository,
+    @Inject(PAYMENT_REPOSITORY)
+    private readonly paymentRepository: IPaymentRepository,
+    @Inject(PAYMENT_METHOD_REPOSITORY)
+    private readonly paymentMethodRepository: IPaymentMethodRepository,
+    @Inject(CART_REPOSITORY)
+    private readonly cartRepository: ICartRepository,
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
+  ) { }
+
   /**
    * Generate unique order number
    */
@@ -78,7 +108,7 @@ export class OrderCreationService {
       select: { group_id: true }
     });
 
-    // 1. Tạo tất cả order items (Batch create is better but here we also need to deduct stock)
+    // 1. Tạo tất cả order items
     const orderItemsData = cartItems.map(cartItem => ({
       order_id: BigInt(orderId),
       product_id: BigInt(cartItem.product_id),

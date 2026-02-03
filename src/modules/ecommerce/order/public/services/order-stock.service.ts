@@ -1,8 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '@/modules/ecommerce/product-variant/domain/product-variant.repository';
+import { IWarehouseRepository, WAREHOUSE_REPOSITORY } from '@/modules/ecommerce/warehouse/domain/warehouse.repository';
+import { IWarehouseInventoryRepository, WAREHOUSE_INVENTORY_REPOSITORY } from '@/modules/ecommerce/warehouse/domain/warehouse-inventory.repository';
 
 @Injectable()
 export class OrderStockService {
+  constructor(
+    @Inject(PRODUCT_VARIANT_REPOSITORY)
+    private readonly productVariantRepository: IProductVariantRepository,
+    @Inject(WAREHOUSE_REPOSITORY)
+    private readonly warehouseRepository: IWarehouseRepository,
+    @Inject(WAREHOUSE_INVENTORY_REPOSITORY)
+    private readonly inventoryRepository: IWarehouseInventoryRepository,
+  ) { }
+
   /**
    * Restore stock khi cancel order
    */
@@ -22,7 +34,7 @@ export class OrderStockService {
           where: { id: variantId },
           data: {
             stock_quantity: { increment: quantity },
-          },
+          } as any,
         });
 
         // 2. Update Warehouse inventory (Restoring to default warehouse of the group)
@@ -48,7 +60,7 @@ export class OrderStockService {
           if (existing) {
             await tx.warehouseInventory.update({
               where: { id: existing.id },
-              data: { quantity: { increment: quantity } }
+              data: { quantity: { increment: quantity } } as any
             });
           } else {
             await tx.warehouseInventory.create({
@@ -58,7 +70,7 @@ export class OrderStockService {
                 product_variant_id: variantId,
                 quantity: quantity,
                 group_id: order.group_id ? BigInt(order.group_id) : null
-              }
+              } as any
             });
           }
         }

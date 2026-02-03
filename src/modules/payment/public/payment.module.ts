@@ -5,9 +5,15 @@ import { PaymentService } from './services/payment.service';
 import { PaymentGatewayService } from '../shared/payment-gateway.service';
 import { VNPayGateway } from '../shared/gateways/vnpay.gateway';
 import { CODGateway } from '../shared/gateways/cod.gateway';
+import { PaymentRepositoryModule } from '../payment.repository.module';
+import { OrderRepositoryModule } from '../../ecommerce/order/order.repository.module';
 
 @Module({
-    imports: [PrismaModule],
+    imports: [
+        PrismaModule,
+        PaymentRepositoryModule,
+        OrderRepositoryModule,
+    ],
     controllers: [PaymentController],
     providers: [
         PaymentService,

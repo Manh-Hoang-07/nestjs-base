@@ -1,178 +1,129 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { ComicComment, Prisma } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { ICommentRepository, COMMENT_REPOSITORY } from '../../domain/comment.repository';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
+import { IPaginationOptions } from '@/common/core/repositories';
 
 @Injectable()
-export class CommentsService {
+export class CommentsService extends BaseService<ComicComment, ICommentRepository> {
   constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+    @Inject(COMMENT_REPOSITORY)
+    protected readonly commentRepository: ICommentRepository,
+  ) {
+    super(commentRepository);
+  }
 
   /**
-   * Get list với filter và search
+   * Hook: Chuẩn bị filters.
+   * Mặc định chỉ lấy root comments (level 1)
    */
-  async getList(filters: any = {}, options: any = {}) {
-    const page = options.page || 1;
-    const limit = options.limit || 20;
-    const skip = (page - 1) * limit;
-    const sort = options.sort || 'created_at:DESC';
-    const [sortField, sortOrder] = sort.split(':');
+  protected override async prepareFilters(filters: Record<string, any> = {}, _options?: any): Promise<Record<string, any>> {
+    const prepared = { ...filters };
 
-    // Build where clause
-    const where: Prisma.ComicCommentWhereInput = {};
-
-    if (filters.comic_id) {
-      where.comic_id = filters.comic_id;
-    }
-
-    if (filters.chapter_id) {
-      where.chapter_id = filters.chapter_id;
-    }
-
-    if (filters.user_id) {
-      where.user_id = filters.user_id;
-    }
-
-    if (filters.status) {
-      where.status = filters.status as any;
-    }
-
-    if (filters.parent_id !== undefined) {
-      if (filters.parent_id === null || filters.parent_id === 'null') {
-        where.parent_id = null;
+    // Mặc định chỉ lấy root comments (level 1) if parent_id is not specified
+    if (prepared.parent_id !== undefined) {
+      if (prepared.parent_id === null || prepared.parent_id === 'null') {
+        prepared.parent_id = null;
       } else {
-        where.parent_id = filters.parent_id;
-      }
-    }
-
-    if (filters.search) {
-      where.content = { contains: filters.search };
-    }
-
-    if (filters.date_from || filters.date_to) {
-      where.created_at = {};
-      if (filters.date_from) {
-        where.created_at.gte = new Date(filters.date_from);
-      }
-      if (filters.date_to) {
-        where.created_at.lte = new Date(filters.date_to);
-      }
-    }
-
-    // Build orderBy
-    const prismaSortOrder = sortOrder.toLowerCase() === 'asc' ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
-    let orderBy: Prisma.ComicCommentOrderByWithRelationInput;
-
-    if (sortField && ['id', 'created_at', 'updated_at', 'user_id', 'comic_id'].includes(sortField)) {
-      switch (sortField) {
-        case 'id':
-          orderBy = { id: prismaSortOrder };
-          break;
-        case 'created_at':
-          orderBy = { created_at: prismaSortOrder };
-          break;
-        case 'updated_at':
-          orderBy = { updated_at: prismaSortOrder };
-          break;
-        case 'user_id':
-          orderBy = { user_id: prismaSortOrder };
-          break;
-        case 'comic_id':
-          orderBy = { comic_id: prismaSortOrder };
-          break;
-        default:
-          orderBy = { created_at: Prisma.SortOrder.desc };
+        prepared.parent_id = Number(prepared.parent_id);
       }
     } else {
-      orderBy = { created_at: Prisma.SortOrder.desc };
+      prepared.parent_id = null;
     }
 
-    const [data, total] = await Promise.all([
-      this.prisma.comicComment.findMany({
-        where,
+    // Xử lý search content
+    if (prepared.search) {
+      (prepared as any).content = { contains: prepared.search };
+      delete prepared.search;
+    }
+
+    // Xử lý date range
+    if (prepared.date_from || prepared.date_to) {
+      (prepared as any).created_at = {};
+      if (prepared.date_from) {
+        prepared.created_at.gte = new Date(prepared.date_from);
+        delete prepared.date_from;
+      }
+      if (prepared.date_to) {
+        prepared.created_at.lte = new Date(prepared.date_to);
+        delete prepared.date_to;
+      }
+    }
+
+    return prepared;
+  }
+
+  /**
+   * Hook: Chuẩn bị options để lấy kèm replies (dạng cây)
+   */
+  protected override async prepareOptions(options: IPaginationOptions): Promise<IPaginationOptions> {
+    const normalized = await super.prepareOptions(options);
+
+    // Thêm include để lấy cấu trúc cây
+    (normalized as any).include = {
+      user: true,
+      comic: {
+        select: { id: true, title: true, slug: true }
+      },
+      chapter: {
+        select: { id: true, title: true, chapter_index: true }
+      },
+      replies: {
         include: {
           user: true,
-          comic: true,
-          chapter: true,
-          parent: true,
-          replies: true,
-        },
-        orderBy,
-        skip,
-        take: limit,
-      }),
-      this.prisma.comicComment.count({ where }),
-    ]);
-
-    return {
-      data,
-      meta: createPaginationMeta(page, limit, total),
+          replies: {
+            include: {
+              user: true
+            }
+          }
+        }
+      }
     };
+
+    return normalized;
   }
 
   /**
-   * Get one với relations
+   * Override getOne để lấy kèm relations tương tự getList
    */
-  async getOne(where: any): Promise<any | null> {
-    return this.prisma.comicComment.findFirst({
-      where,
-      include: {
-        user: true,
-        comic: true,
-        chapter: true,
-        parent: true,
-        replies: true,
+  override async getOne(id: string | number | bigint, options: IPaginationOptions = {}): Promise<ComicComment> {
+    // Inject include vào options cho repository.findById xử lý (nếu repository hỗ trợ)
+    // Hoặc gọi trực tiếp repository findOne với include
+    const include = {
+      user: true,
+      comic: {
+        select: { id: true, title: true, slug: true }
       },
+      chapter: {
+        select: { id: true, title: true, chapter_index: true }
+      },
+      replies: {
+        include: {
+          user: true,
+          replies: {
+            include: {
+              user: true
+            }
+          }
+        }
+      }
+    };
+
+    const entity = await (this.repository as any).delegate.findFirst({
+      where: { id: (this.repository as any).toPrimaryKey(id) },
+      include
     });
+
+    if (!entity) {
+      throw new NotFoundException(`Comment with ID ${id} not found`);
+    }
+
+    return this.transform(entity) as ComicComment;
   }
 
   /**
-   * Update comment
-   */
-  async update(id: number, data: { content?: string; status?: 'visible' | 'hidden' }) {
-    const comment = await this.getOne({ id });
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-
-    const updateData: Prisma.ComicCommentUpdateInput = {};
-    if (data.content !== undefined) {
-      updateData.content = data.content;
-    }
-    if (data.status !== undefined) {
-      updateData.status = data.status as any;
-    }
-
-    return this.prisma.comicComment.update({
-      where: { id },
-      data: updateData,
-      include: {
-        user: true,
-        comic: true,
-        chapter: true,
-        parent: true,
-        replies: true,
-      },
-    });
-  }
-
-  async delete(id: number) {
-    const comment = await this.getOne({ id });
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-
-    // Hard delete comment (replies will be deleted via Cascade)
-    await this.prisma.comicComment.delete({
-      where: { id },
-    });
-
-    return { deleted: true };
-  }
-
-  /**
-   * Get comment statistics
+   * Lấy thống kê comment
    */
   async getStatistics() {
     const today = new Date();
@@ -182,23 +133,17 @@ export class CommentsService {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
     const [total, visible, hidden, todayCount, thisWeekCount, thisMonthCount] = await Promise.all([
-      this.prisma.comicComment.count({ where: {} }),
-      this.prisma.comicComment.count({ where: { status: 'visible' } }),
-      this.prisma.comicComment.count({ where: { status: 'hidden' } }),
-      this.prisma.comicComment.count({
-        where: {
-          created_at: { gte: today },
-        },
+      this.repository.count({}),
+      this.repository.count({ status: 'visible' }),
+      this.repository.count({ status: 'hidden' }),
+      this.repository.count({
+        date_from: today,
       }),
-      this.prisma.comicComment.count({
-        where: {
-          created_at: { gte: startOfWeek },
-        },
+      this.repository.count({
+        date_from: startOfWeek,
       }),
-      this.prisma.comicComment.count({
-        where: {
-          created_at: { gte: startOfMonth },
-        },
+      this.repository.count({
+        date_from: startOfMonth,
       }),
     ]);
 
@@ -212,4 +157,3 @@ export class CommentsService {
     };
   }
 }
-

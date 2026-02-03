@@ -4,16 +4,17 @@ import { BaseService } from '@/common/core/services';
 import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '../../domain/product-variant.repository';
 import { CreateProductVariantDto } from '../dtos/create-product-variant.dto';
 import { UpdateProductVariantDto } from '../dtos/update-product-variant.dto';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
 import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import { IProductVariantAttributeRepository, PRODUCT_VARIANT_ATTRIBUTE_REPOSITORY } from '../../domain/product-variant-attribute.repository';
 
 @Injectable()
 export class AdminProductVariantService extends BaseService<ProductVariant, IProductVariantRepository> {
   constructor(
     @Inject(PRODUCT_VARIANT_REPOSITORY)
     protected readonly productVariantRepository: IProductVariantRepository,
-    private readonly prisma: PrismaService,
+    @Inject(PRODUCT_VARIANT_ATTRIBUTE_REPOSITORY)
+    private readonly attributeRepository: IProductVariantAttributeRepository,
   ) {
     super(productVariantRepository);
   }
@@ -75,8 +76,8 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
       | undefined;
 
     if (attrs && Array.isArray(attrs) && attrs.length > 0) {
-      await this.prisma.productVariantAttribute.createMany({
-        data: attrs
+      await this.attributeRepository.createMany(
+        attrs
           .map((a) => {
             const attributeId = a.product_attribute_id ?? a.attribute_id;
             const valueId = a.product_attribute_value_id ?? a.value_id;
@@ -87,9 +88,8 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
               product_attribute_value_id: BigInt(valueId),
             };
           })
-          .filter(Boolean) as any[],
-        skipDuplicates: true,
-      });
+          .filter(Boolean) as any[]
+      );
     }
   }
 
@@ -151,13 +151,13 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
       | undefined;
 
     if (Array.isArray(attrs)) {
-      await this.prisma.productVariantAttribute.deleteMany({
-        where: { product_variant_id: entity.id },
+      await this.attributeRepository.deleteMany({
+        product_variant_id: entity.id,
       });
 
       if (attrs.length > 0) {
-        await this.prisma.productVariantAttribute.createMany({
-          data: attrs
+        await this.attributeRepository.createMany(
+          attrs
             .map((a) => {
               const attributeId = a.product_attribute_id ?? a.attribute_id;
               const valueId = a.product_attribute_value_id ?? a.value_id;
@@ -168,9 +168,8 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
                 product_attribute_value_id: BigInt(valueId),
               };
             })
-            .filter(Boolean) as any[],
-          skipDuplicates: true,
-        });
+            .filter(Boolean) as any[]
+        );
       }
     }
   }

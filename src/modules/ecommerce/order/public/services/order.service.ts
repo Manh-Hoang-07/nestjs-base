@@ -125,28 +125,6 @@ export class PublicOrderService {
       // 10. Clear cart
       await this.creationService.clearCart(tx as any, cartHeader.id);
 
-      // 11. Post-process payment URL if online
-      let paymentUrl = null;
-      let paymentId = null;
-      if (payment_method_id) {
-        const paymentMethod = await tx.paymentMethod.findUnique({ where: { id: BigInt(payment_method_id) } });
-        if (paymentMethod) {
-          const paymentCode = paymentMethod.code?.toLowerCase();
-          const onlinePaymentCodes = ['vnpay', 'momo'];
-          if (onlinePaymentCodes.includes(paymentCode)) {
-            try {
-              // Note: paymentService.create handles its own transaction or uses this prisma instance
-              // Since we are inside a transaction, we should be careful. 
-              // But paymentService.create will use this.prisma.
-              // To be safe, we might want to call it AFTER the transaction or pass the tx.
-              // However, paymentService.create is not designed to take tx.
-            } catch (e) {
-              console.error('Failed to generate payment URL', e);
-            }
-          }
-        }
-      }
-
       // Generate access key
       const hashKey = generateOrderAccessKey({
         id: savedOrder.id,
@@ -167,11 +145,6 @@ export class PublicOrderService {
         access_url: orderAccessUrl,
       };
     });
-  }
-
-  // Helper to handle payment activation AFTER order creation
-  async completeOrderCreation(orderId: number | bigint, paymentMethodId?: number | bigint, customerInfo?: any) {
-    // Implement if needed to call paymentService.create outside main transaction
   }
 
   /**

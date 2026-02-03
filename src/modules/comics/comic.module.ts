@@ -32,6 +32,9 @@ import { HomepageModule } from '@/modules/comics/homepage/public/homepage.module
 import { UserReadingHistoryModule } from '@/modules/comics/reading-history/user/reading-history.module';
 import { UserBookmarksModule } from '@/modules/comics/bookmark/user/bookmark.module';
 import { UserFollowsModule } from '@/modules/comics/follow/user/follow.module';
+import { FollowRepositoryModule } from '@/modules/comics/follow/follow.repository.module';
+import { CommentRepositoryModule } from '@/modules/comics/comment/comment.repository.module';
+import { NotificationRepositoryModule } from '@/modules/core/notification/notification.repository.module';
 
 import { ComicNotificationService } from '@/modules/comics/shared/services/comic-notification.service';
 @Module({
@@ -69,6 +72,9 @@ import { ComicNotificationService } from '@/modules/comics/shared/services/comic
     UserReadingHistoryModule,
     UserBookmarksModule,
     UserFollowsModule,
+    FollowRepositoryModule,
+    CommentRepositoryModule,
+    NotificationRepositoryModule,
   ],
   providers: [
     ComicNotificationService,

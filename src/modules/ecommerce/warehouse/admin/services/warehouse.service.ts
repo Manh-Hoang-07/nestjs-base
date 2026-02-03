@@ -3,8 +3,9 @@ import { Warehouse } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IWarehouseRepository, WAREHOUSE_REPOSITORY } from '../../domain/warehouse.repository';
 import { IWarehouseInventoryRepository, WAREHOUSE_INVENTORY_REPOSITORY } from '../../domain/warehouse-inventory.repository';
+import { IStockTransferRepository, STOCK_TRANSFER_REPOSITORY } from '../../domain/stock-transfer.repository';
+import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '../../../product-variant/domain/product-variant.repository';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
@@ -14,43 +15,35 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     protected readonly warehouseRepository: IWarehouseRepository,
     @Inject(WAREHOUSE_INVENTORY_REPOSITORY)
     private readonly inventoryRepository: IWarehouseInventoryRepository,
-    @Inject('STOCK_TRANSFER_REPOSITORY')
-    private readonly stockTransferRepository: any, // Use interface if imported
-    private readonly prisma: PrismaService,
+    @Inject(STOCK_TRANSFER_REPOSITORY)
+    private readonly stockTransferRepository: IStockTransferRepository,
+    @Inject(PRODUCT_VARIANT_REPOSITORY)
+    private readonly productVariantRepository: IProductVariantRepository,
   ) {
     super(warehouseRepository);
   }
 
-  // ... (existing methods)
-
   async syncVariantStock(variantId: number | bigint): Promise<void> {
-    const inventories = await this.prisma.warehouseInventory.findMany({
-      where: { product_variant_id: BigInt(variantId) },
-      select: { quantity: true }
+    const inventories = await this.inventoryRepository.findMany({
+      productVariantId: variantId
     });
 
     const totalQuantity = inventories.reduce((sum, inv) => sum + Number(inv.quantity), 0);
 
-    await this.prisma.productVariant.update({
-      where: { id: BigInt(variantId) },
-      data: { stock_quantity: totalQuantity }
+    await this.productVariantRepository.update(variantId, {
+      stock_quantity: totalQuantity
     });
   }
 
   async findDefaultWarehouse(groupId: number | bigint | null): Promise<any> {
-    return this.prisma.warehouse.findFirst({
-      where: {
-        group_id: groupId ? BigInt(groupId) : null,
-        status: 'active'
-      },
-      orderBy: { priority: 'desc' }
+    return this.warehouseRepository.findOne({
+      group_id: groupId,
+      status: 'active'
     });
   }
 
   async createStockTransfer(fromId: number, toId: number, variantId: number, quantity: number, userId: number, notes?: string): Promise<any> {
-    const sourceInventory = await this.inventoryRepository.findOne({
-      where: { warehouse_id: fromId, product_variant_id: variantId }
-    });
+    const sourceInventory = await this.inventoryRepository.findByWarehouseAndProduct(fromId, 0, variantId); // Assuming passing 0 for product_id as variantId is specific
 
     if (!sourceInventory || sourceInventory.quantity < quantity) {
       throw new Error('Not enough stock in source warehouse');
@@ -60,7 +53,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
       from_warehouse_id: fromId,
       to_warehouse_id: toId,
       product_variant_id: variantId,
-      product_id: sourceInventory.product_id, // Need product_id from inventory
+      product_id: sourceInventory.product_id,
       quantity: quantity,
       created_user_id: userId,
       notes: notes,
@@ -82,7 +75,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
 
-    return this.stockTransferRepository.findAllWithRelations({
+    return (this.stockTransferRepository as any).findAllWithRelations({
       skip: (pageNum - 1) * limitNum,
       take: limitNum,
       page: pageNum,
@@ -99,13 +92,15 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     }
 
     // Deduct from source
-    const sourceInv = await this.inventoryRepository.findOne({
-      where: { warehouse_id: Number(transfer.from_warehouse_id), product_variant_id: Number(transfer.product_variant_id) }
-    });
+    const sourceInv = await this.inventoryRepository.findByWarehouseAndProduct(
+      Number(transfer.from_warehouse_id),
+      0,
+      Number(transfer.product_variant_id)
+    );
 
     if (sourceInv) {
       await this.inventoryRepository.update(sourceInv.id, {
-        quantity: sourceInv.quantity - transfer.quantity
+        quantity: Number(sourceInv.quantity) - Number(transfer.quantity)
       });
       await this.syncVariantStock(Number(transfer.product_variant_id));
     }
@@ -123,13 +118,23 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     }
 
     // Add to destination
-    const destInv = await this.inventoryRepository.findOne({
-      where: { warehouse_id: Number(transfer.to_warehouse_id), product_variant_id: Number(transfer.product_variant_id) }
-    });
+    const destInv = await this.inventoryRepository.findByWarehouseAndProduct(
+      Number(transfer.to_warehouse_id),
+      0,
+      Number(transfer.product_variant_id)
+    );
 
     if (destInv) {
       await this.inventoryRepository.update(destInv.id, {
-        quantity: destInv.quantity + transfer.quantity
+        quantity: Number(destInv.quantity) + Number(transfer.quantity)
+      });
+    } else {
+      await this.inventoryRepository.create({
+        warehouse_id: transfer.to_warehouse_id,
+        product_id: transfer.product_id,
+        product_variant_id: transfer.product_variant_id,
+        quantity: transfer.quantity,
+        min_quantity: 0
       });
     }
 
@@ -140,27 +145,15 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     });
   }
 
-
-
   // ==========================================
   // IMPORT Logic
   // ==========================================
   async createImport(warehouseId: number, items: any[], userId: number, notes?: string): Promise<any> {
-    // Note: This logic assumes 1 item per request for now based on current structure.
-    // Ideally we should support multiple items, but existing code structure suggests loop or single item.
-    // Let's implement single item for simplicity or loop if caller handles it.
-    // Re-reading logic: The system seems to be designed around single "StockTransfer" record per item transaction?
-    // StockTransfer table has 1 product_id, 1 variant_id. So it is 1 Item per Record.
-    // If the API accepts multiple items, we should create multiple records.
-    // But here I'll implement a single item creation helper, controller will loop.
-
-    // Actually, let's stick to the pattern.
-    // Code below creates 1 record.
-    let { product_id, product_variant_id, quantity } = items[0]; // Simplified for single item
+    let { product_id, product_variant_id, quantity } = items[0];
 
     // Auto-fill product_id if missing
     if (!product_id && product_variant_id) {
-      const variant = await this.prisma.productVariant.findUnique({ where: { id: product_variant_id } });
+      const variant = await this.productVariantRepository.findById(product_variant_id);
       if (variant) product_id = variant.product_id;
     }
 
@@ -186,7 +179,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     }
 
     // Add to destination (warehouse_id in 'to')
-    await this.addToInventory(Number(transfer.to_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
+    await this.addToInventory(Number(transfer.to_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), Number(transfer.quantity));
     await this.syncVariantStock(Number(transfer.product_variant_id));
 
     return this.stockTransferRepository.update(id, {
@@ -202,9 +195,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     let { product_id, product_variant_id, quantity } = items[0];
 
     // Validate stock
-    const sourceInv = await this.inventoryRepository.findOne({
-      where: { warehouse_id: warehouseId, product_variant_id: product_variant_id }
-    });
+    const sourceInv = await this.inventoryRepository.findByWarehouseAndProduct(warehouseId, 0, product_variant_id);
     if (!sourceInv || sourceInv.quantity < quantity) {
       throw new Error('Not enough stock to export');
     }
@@ -233,7 +224,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     }
 
     // Deduct from source
-    await this.deductFromInventory(Number(transfer.from_warehouse_id), Number(transfer.product_variant_id), transfer.quantity);
+    await this.deductFromInventory(Number(transfer.from_warehouse_id), Number(transfer.product_variant_id), Number(transfer.quantity));
     await this.syncVariantStock(Number(transfer.product_variant_id));
 
     return this.stockTransferRepository.update(id, {
@@ -242,14 +233,11 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     });
   }
 
-
   // Helper methods
   private async addToInventory(warehouseId: number, productId: number, variantId: number, quantity: number) {
-    const destInv = await this.inventoryRepository.findOne({
-      where: { warehouse_id: warehouseId, product_variant_id: variantId }
-    });
+    const destInv = await this.inventoryRepository.findByWarehouseAndProduct(warehouseId, 0, variantId);
     if (destInv) {
-      await this.inventoryRepository.update(destInv.id, { quantity: destInv.quantity + quantity });
+      await this.inventoryRepository.update(destInv.id, { quantity: Number(destInv.quantity) + quantity });
     } else {
       await this.inventoryRepository.create({
         warehouse_id: warehouseId,
@@ -262,11 +250,9 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
   }
 
   private async deductFromInventory(warehouseId: number, variantId: number, quantity: number) {
-    const sourceInv = await this.inventoryRepository.findOne({
-      where: { warehouse_id: warehouseId, product_variant_id: variantId }
-    });
+    const sourceInv = await this.inventoryRepository.findByWarehouseAndProduct(warehouseId, 0, variantId);
     if (sourceInv) {
-      await this.inventoryRepository.update(sourceInv.id, { quantity: sourceInv.quantity - quantity });
+      await this.inventoryRepository.update(sourceInv.id, { quantity: Number(sourceInv.quantity) - quantity });
     }
   }
 
@@ -279,13 +265,13 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     if (transfer.status === 'approved') {
       if (type === 'transfer') {
         // Rollback source
-        await this.addToInventory(Number(transfer.from_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
+        await this.addToInventory(Number(transfer.from_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), Number(transfer.quantity));
       } else if (type === 'import') {
         // Import approved -> Stock Added. Rollback = Deduct
-        await this.deductFromInventory(Number(transfer.to_warehouse_id), Number(transfer.product_variant_id), transfer.quantity);
+        await this.deductFromInventory(Number(transfer.to_warehouse_id), Number(transfer.product_variant_id), Number(transfer.quantity));
       } else if (type === 'export') {
         // Export approved -> Stock Deducted. Rollback = Add
-        await this.addToInventory(Number(transfer.from_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), transfer.quantity);
+        await this.addToInventory(Number(transfer.from_warehouse_id), Number(transfer.product_id), Number(transfer.product_variant_id), Number(transfer.quantity));
       }
     }
 
@@ -306,17 +292,11 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     return prepared;
   }
 
-  /**
-   * Prisma `Warehouse` model hiện tại chỉ có: code, name, address, contact_name, contact_phone, status...
-   * Một số client payload cũ có thể gửi thêm city/district/lat/long/phone/manager_name/is_active...
-   * → cần sanitize để tránh Prisma "Unknown argument ..."
-   */
   private sanitizeWarehouseInput(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
     const sanitized: any = {};
 
-    // allowlist fields that exist in prisma schema
     if (data.code !== undefined) sanitized.code = data.code;
     if (data.name !== undefined) sanitized.name = data.name;
     if (data.address !== undefined) sanitized.address = data.address;
@@ -331,10 +311,8 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     if (data.contact_name !== undefined) sanitized.contact_name = data.contact_name;
     if (data.contact_phone !== undefined) sanitized.contact_phone = data.contact_phone;
 
-    // ✅ Thêm group_id vào sanitize list
     if (data.group_id !== undefined) sanitized.group_id = data.group_id;
 
-    // Gán group_id mặc định từ RequestContext nếu đang là create (không có group_id trong payload)
     if (sanitized.group_id === undefined) {
       const groupId = RequestContext.get<number | null>('groupId');
       if (groupId) {
@@ -342,14 +320,11 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
       }
     }
 
-    // Keep status + is_active consistent
     if (data.is_active !== undefined) {
       sanitized.status = data.is_active ? 'active' : 'inactive';
     } else if (data.status !== undefined) {
       sanitized.status = data.status;
       sanitized.is_active = data.status === 'active';
-    } else if (data.is_active === undefined && data.status === undefined) {
-      // noop
     }
 
     return sanitized;
@@ -420,7 +395,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
           }
         }
       }
-    });
+    } as any);
   }
 
   async updateInventoryStock(warehouseId: number, variantId: number, quantity: number, minStock?: number): Promise<any> {
@@ -428,7 +403,4 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     await this.syncVariantStock(variantId);
     return { success: true };
   }
-
-
-  // Inventory logic would go here, adapted for Prisma
 }

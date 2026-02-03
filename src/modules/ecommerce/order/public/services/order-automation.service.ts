@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { Order, OrderItem } from '@prisma/client';
+import { Injectable, Inject } from '@nestjs/common';
+import { Order } from '@prisma/client';
 import { MailService } from '@/core/mail/mail.service';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { IOrderRepository, ORDER_REPOSITORY } from '../../domain/order.repository';
+import { IOrderItemRepository, ORDER_ITEM_REPOSITORY } from '../../domain/order-item.repository';
 
 @Injectable()
 export class OrderAutomationService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(ORDER_REPOSITORY)
+    private readonly orderRepository: IOrderRepository,
+    @Inject(ORDER_ITEM_REPOSITORY)
+    private readonly orderItemRepository: IOrderItemRepository,
     private readonly mailService: MailService,
   ) { }
 
@@ -24,14 +28,11 @@ export class OrderAutomationService {
 
     // Digital order: tự động delivered toàn bộ đơn
     if (order.order_type === 'digital') {
-      await this.prisma.order.update({
-        where: { id: order.id },
-        data: {
-          status: 'delivered',
-          shipping_status: 'delivered',
-          delivered_at: new Date(),
-        },
-      });
+      await this.orderRepository.update(order.id, {
+        status: 'delivered',
+        shipping_status: 'delivered',
+        delivered_at: new Date(),
+      } as any);
     }
   }
 
@@ -40,8 +41,9 @@ export class OrderAutomationService {
    */
   private async sendDigitalProducts(order: Order): Promise<void> {
     // Lấy order items với product info
-    const orderItems = await this.prisma.orderItem.findMany({
-      where: { order_id: order.id },
+    const orderItems = await this.orderItemRepository.findMany({
+      order_id: order.id,
+    }, {
       include: {
         variant: {
           include: {
@@ -49,7 +51,7 @@ export class OrderAutomationService {
           },
         },
       },
-    });
+    } as any);
 
     // Lọc chỉ sản phẩm digital
     const digitalItems = orderItems.filter(

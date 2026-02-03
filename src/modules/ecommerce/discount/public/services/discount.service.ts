@@ -1,9 +1,9 @@
 import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
-import { Coupon, CouponUsage } from '@prisma/client';
+import { Coupon } from '@prisma/client';
 import { ICouponRepository, ICouponUsageRepository, COUPON_REPOSITORY, COUPON_USAGE_REPOSITORY } from '../../domain/coupon.repository';
 import { IOrderRepository, ORDER_REPOSITORY } from '@/modules/ecommerce/order/domain/order.repository';
 import { ICartRepository, CART_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart.repository';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart-item.repository';
 
 @Injectable()
 export class DiscountService {
@@ -16,7 +16,8 @@ export class DiscountService {
     private readonly orderRepository: IOrderRepository,
     @Inject(CART_REPOSITORY)
     private readonly cartRepository: ICartRepository,
-    private readonly prisma: PrismaService,
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
   ) { }
 
   /**
@@ -75,9 +76,8 @@ export class DiscountService {
 
     // Check per-user usage limit
     if (userId) {
-      const usages = await this.couponUsageRepository.findByUser(coupon.id, userId);
-      // Assuming usage_per_customer is 1 if not specified in schema or handle it
-      // Previous code used coupon.usage_per_customer
+      await this.couponUsageRepository.findByUser(coupon.id, userId);
+      // Logic for usage limit per user could be added here if needed
     }
   }
 
@@ -261,10 +261,11 @@ export class DiscountService {
       throw new NotFoundException('Cart not found');
     }
 
-    const items = await this.prisma.cart.findMany({
-      where: { cart_header_id: BigInt(cartId) },
+    const items = await this.cartItemRepository.findMany({
+      cart_header_id: cartId,
+    }, {
       include: { product: { include: { categories: true } } }
-    });
+    } as any);
 
     return {
       ...cartHeader,

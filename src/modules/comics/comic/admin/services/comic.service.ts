@@ -5,14 +5,15 @@ import { IComicRepository, COMIC_REPOSITORY } from '../../domain/comic.repositor
 import { CreateComicDto } from '../dtos/create-comic.dto';
 import { UpdateComicDto } from '../dtos/update-comic.dto';
 import { StringUtil } from '@/core/utils/string.util';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { IComicStatsRepository, COMIC_STATS_REPOSITORY } from '../../../stats/domain/comic-stats.repository';
 
 @Injectable()
 export class ComicService extends BaseService<Comic, IComicRepository> {
   constructor(
     @Inject(COMIC_REPOSITORY)
     protected readonly comicRepository: IComicRepository,
-    private readonly prisma: PrismaService,
+    @Inject(COMIC_STATS_REPOSITORY)
+    private readonly statsRepository: IComicStatsRepository,
   ) {
     super(comicRepository);
   }
@@ -42,16 +43,14 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
   protected override async afterCreate(entity: Comic, data: CreateComicDto): Promise<void> {
     const comicId = entity.id;
 
-    // Create ComicStats record
-    await this.prisma.comicStats.create({
-      data: {
-        comic_id: comicId,
-        view_count: BigInt(0),
-        follow_count: BigInt(0),
-        rating_count: BigInt(0),
-        rating_sum: BigInt(0),
-      },
-    });
+    // Create ComicStats record via repository
+    await this.statsRepository.create({
+      comic_id: comicId,
+      view_count: BigInt(0),
+      follow_count: BigInt(0),
+      rating_count: BigInt(0),
+      rating_sum: BigInt(0),
+    } as any);
 
     // Handle category_ids
     if (data.category_ids && data.category_ids.length > 0) {
@@ -92,8 +91,6 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
       await this.comicRepository.syncCategories(entity.id, data.category_ids.map(id => BigInt(id)));
     }
   }
-
-
 
   /**
    * Transform to match system standards

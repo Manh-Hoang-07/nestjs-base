@@ -1,9 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { ICartRepository, CART_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart.repository';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart-item.repository';
+import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '@/modules/ecommerce/product-variant/domain/product-variant.repository';
+import { IShippingMethodRepository, SHIPPING_METHOD_REPOSITORY } from '@/modules/ecommerce/shipping-method/domain/shipping-method.repository';
+import { IPaymentMethodRepository, PAYMENT_METHOD_REPOSITORY } from '@/modules/payment/domain/payment-method.repository';
 
 @Injectable()
 export class OrderValidationService {
+  constructor(
+    @Inject(CART_REPOSITORY)
+    private readonly cartRepository: ICartRepository,
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
+    @Inject(PRODUCT_VARIANT_REPOSITORY)
+    private readonly productVariantRepository: IProductVariantRepository,
+    @Inject(SHIPPING_METHOD_REPOSITORY)
+    private readonly shippingMethodRepository: IShippingMethodRepository,
+    @Inject(PAYMENT_METHOD_REPOSITORY)
+    private readonly paymentMethodRepository: IPaymentMethodRepository,
+  ) { }
+
   /**
    * Validate và lấy cart
    * Đảm bảo user_id match với cart owner để tránh security issues

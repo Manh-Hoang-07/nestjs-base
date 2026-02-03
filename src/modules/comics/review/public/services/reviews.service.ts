@@ -1,32 +1,29 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { Injectable, Inject } from '@nestjs/common';
 import { toPlain } from '@/common/shared/utils';
-import { createPaginationMeta } from '@/common/core/utils';
+import { IReviewRepository, REVIEW_REPOSITORY } from '../../domain/review.repository';
 
 @Injectable()
 export class PublicReviewsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    @Inject(REVIEW_REPOSITORY)
+    private readonly reviewRepository: IReviewRepository,
+  ) { }
 
   /**
    * Lấy danh sách reviews của comic
    */
   async getByComic(comicId: number, page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.comicReview.findMany({
-        where: { comic_id: BigInt(comicId) },
-        include: { user: true },
-        orderBy: { created_at: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.comicReview.count({ where: { comic_id: BigInt(comicId) } }),
-    ]);
+    const { data: reviews, meta } = await this.reviewRepository.findAll({
+      filter: { comic_id: comicId },
+      include: { user: true },
+      sort: 'created_at:DESC',
+      page,
+      limit,
+    } as any);
 
     return {
-      data: toPlain(data),
-      meta: createPaginationMeta(page, limit, total),
+      data: toPlain(reviews),
+      meta,
     };
   }
 }

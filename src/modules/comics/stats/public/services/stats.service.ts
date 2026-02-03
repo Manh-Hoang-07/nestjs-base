@@ -1,21 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { IComicRepository, COMIC_REPOSITORY } from '../../../comic/domain/comic.repository';
+import { IComicStatsRepository, COMIC_STATS_REPOSITORY } from '../../domain/comic-stats.repository';
 
 @Injectable()
 export class StatsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(COMIC_REPOSITORY)
+    private readonly comicRepository: IComicRepository,
+    @Inject(COMIC_STATS_REPOSITORY)
+    private readonly statsRepository: IComicStatsRepository,
+  ) { }
 
   /**
    * Lấy stats của comic
    */
   async getComicStats(comicId: number) {
-    const comic = await this.prisma.comic.findUnique({ where: { id: BigInt(comicId) } });
+    const comic = await this.comicRepository.findById(comicId);
     if (!comic) {
       throw new NotFoundException('Comic not found');
     }
 
-    const stats = await this.prisma.comicStats.findUnique({ where: { comic_id: BigInt(comicId) } });
-    
+    const stats = await this.statsRepository.findById(comicId);
+
     return {
       comic_id: comicId,
       view_count: Number(stats?.view_count || 0n),
@@ -27,4 +33,3 @@ export class StatsService {
     };
   }
 }
-

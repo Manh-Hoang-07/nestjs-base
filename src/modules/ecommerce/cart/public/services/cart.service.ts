@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
-import { CartHeader, Cart } from '@prisma/client';
+import { Injectable, Inject } from '@nestjs/common';
+import { CartHeader } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { CartValidationService } from './cart-validation.service';
 import { CartItemService } from './cart-item.service';
@@ -218,14 +218,11 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
     );
 
     // Update cart header
-    await this.prisma.cartHeader.update({
-      where: { id: BigInt(cartId) },
-      data: {
-        discount_amount: discountAmount,
-        coupon_code: discountInfo.couponCode || null,
-        total_amount: totalAmount,
-      }
-    });
+    await this.cartRepository.update(cartId, {
+      discount_amount: discountAmount,
+      coupon_code: discountInfo.couponCode || null,
+      total_amount: totalAmount,
+    } as any);
 
     return this.managementService.getCartSummary(cartHeader);
   }
@@ -248,14 +245,11 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
     );
 
     // Update cart header
-    await this.prisma.cartHeader.update({
-      where: { id: BigInt(cartId) },
-      data: {
-        discount_amount: 0,
-        coupon_code: null,
-        total_amount: totalAmount,
-      }
-    });
+    await this.cartRepository.update(cartId, {
+      discount_amount: 0,
+      coupon_code: null,
+      total_amount: totalAmount,
+    } as any);
 
     return this.managementService.getCartSummary(cartHeader);
   }

@@ -35,7 +35,7 @@ export class ReviewsController {
   @Permission('comic.manage')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
-    return this.reviewsService.getOne({ id });
+    return this.reviewsService.getOne(id);
   }
 
   @Permission('comic.manage')

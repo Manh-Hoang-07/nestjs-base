@@ -1,52 +1,44 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { RequestContext, toPlain } from '@/common/shared/utils';
+import { Injectable, Inject } from '@nestjs/common';
+import { toPlain } from '@/common/shared/utils';
 import { createPaginationMeta } from '@/common/core/utils';
+import { IReadingHistoryRepository, READING_HISTORY_REPOSITORY } from '../../../reading-history/domain/reading-history.repository';
+import { IFollowRepository, FOLLOW_REPOSITORY } from '../../../follow/domain/follow.repository';
+import { IBookmarkRepository, BOOKMARK_REPOSITORY } from '../../../bookmark/domain/bookmark.repository';
 
 @Injectable()
 export class UserStatsService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(READING_HISTORY_REPOSITORY)
+    private readonly readingHistoryRepository: IReadingHistoryRepository,
+    @Inject(FOLLOW_REPOSITORY)
+    private readonly followRepository: IFollowRepository,
+    @Inject(BOOKMARK_REPOSITORY)
+    private readonly bookmarkRepository: IBookmarkRepository,
   ) { }
 
   /**
    * Lấy dashboard data cho user
    */
   async getDashboard(userId: number) {
-    const [readingHistory, follows, bookmarks] = await Promise.all([
-      this.prisma.readingHistory.findMany({
-        where: { user_id: userId },
-        include: {
-          comic: true,
-          chapter: true,
-        },
-        orderBy: { updated_at: 'desc' },
-        take: 10,
-      }),
-      this.prisma.comicFollow.findMany({
-        where: { user_id: userId },
+    const [readingHistory, follows, bookmarks, readingCount, followCount, bookmarkCount] = await Promise.all([
+      this.readingHistoryRepository.findMany({ user_id: userId }, {
+        include: { comic: true, chapter: true },
+        sort: 'updated_at:DESC',
+        limit: 10,
+      } as any),
+      this.followRepository.findMany({ user_id: userId }, {
         include: { comic: true },
-        orderBy: { created_at: 'desc' },
-        take: 10,
-      }),
-      this.prisma.bookmark.findMany({
-        where: { user_id: userId },
-        include: {
-          chapter: {
-            include: {
-              comic: true,
-            },
-          },
-        },
-        orderBy: { created_at: 'desc' },
-        take: 10,
-      }),
-    ]);
-
-    const [readingCount, followCount, bookmarkCount] = await Promise.all([
-      this.prisma.readingHistory.count({ where: { user_id: userId } }),
-      this.prisma.comicFollow.count({ where: { user_id: userId } }),
-      this.prisma.bookmark.count({ where: { user_id: userId } }),
+        sort: 'created_at:DESC',
+        limit: 10,
+      } as any),
+      this.bookmarkRepository.findMany({ user_id: userId }, {
+        include: { chapter: { include: { comic: true } } },
+        sort: 'created_at:DESC',
+        limit: 10,
+      } as any),
+      this.readingHistoryRepository.count({ user_id: userId }),
+      this.followRepository.count({ user_id: userId }),
+      this.bookmarkRepository.count({ user_id: userId }),
     ]);
 
     return {
@@ -65,33 +57,21 @@ export class UserStatsService {
    * Lấy library (tất cả comics user đã đọc/follow)
    */
   async getLibrary(userId: number, page: number = 1, limit: number = 20) {
-    const skip = (page - 1) * limit;
-
-    // Lấy từ reading history
-    const [history, total] = await Promise.all([
-      this.prisma.readingHistory.findMany({
-        where: { user_id: userId },
-        include: {
-          comic: true,
-          chapter: true,
-        },
-        orderBy: { updated_at: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.readingHistory.count({ where: { user_id: userId } }),
-    ]);
+    const { data: history, meta } = await this.readingHistoryRepository.findAll({
+      filter: { user_id: userId },
+      include: { comic: true, chapter: true },
+      sort: 'updated_at:DESC',
+      page,
+      limit,
+    } as any);
 
     return {
-      data: toPlain(history.map(h => ({
+      data: toPlain(history.map((h: any) => ({
         comic: h.comic,
         last_read_chapter: h.chapter,
         last_read_at: h.updated_at,
       }))),
-      meta: createPaginationMeta(page, limit, total),
+      meta,
     };
   }
 }
-
-
-

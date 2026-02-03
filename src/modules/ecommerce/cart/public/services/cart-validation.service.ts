@@ -1,8 +1,20 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { Cart, CartHeader, ProductVariant, PrismaClient } from '@prisma/client';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject } from '@nestjs/common';
+import { Cart, CartHeader, ProductVariant } from '@prisma/client';
+import { ICartRepository, CART_REPOSITORY } from '../../domain/cart.repository';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '../../domain/cart-item.repository';
+import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '@/modules/ecommerce/product-variant/domain/product-variant.repository';
 
 @Injectable()
 export class CartValidationService {
+  constructor(
+    @Inject(CART_REPOSITORY)
+    private readonly cartRepository: ICartRepository,
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
+    @Inject(PRODUCT_VARIANT_REPOSITORY)
+    private readonly productVariantRepository: IProductVariantRepository,
+  ) { }
+
   /**
    * Validate cart ownership và permission
    */
@@ -63,11 +75,6 @@ export class CartValidationService {
     prisma: any,
     productVariantId: number | bigint,
   ): Promise<ProductVariant> {
-    // In Prisma, we can use $queryRaw for pessimistic locking if really needed:
-    // const variants = await prisma.$queryRaw`SELECT * FROM product_variants WHERE id = ${productVariantId} FOR UPDATE`;
-    // const productVariant = variants[0];
-
-    // For now, using regular findUnique inside transaction (passed via prisma param)
     const productVariant = await prisma.productVariant.findUnique({
       where: {
         id: BigInt(productVariantId),

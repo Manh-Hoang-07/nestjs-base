@@ -14,6 +14,8 @@ import { OrderRepositoryModule } from '../order.repository.module';
 import { CartRepositoryModule } from '../../cart/cart.repository.module';
 import { ProductVariantRepositoryModule } from '../../product-variant/product-variant.repository.module';
 import { ShippingMethodRepositoryModule } from '../../shipping-method/shipping-method.repository.module';
+import { WarehouseRepositoryModule } from '../../warehouse/warehouse.repository.module';
+import { PaymentRepositoryModule } from '@/modules/payment/payment.repository.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { ShippingMethodRepositoryModule } from '../../shipping-method/shipping-m
     CartRepositoryModule,
     ProductVariantRepositoryModule,
     ShippingMethodRepositoryModule,
+    WarehouseRepositoryModule,
+    PaymentRepositoryModule,
     RbacModule,
     AppMailModule,
     PublicPaymentModule,

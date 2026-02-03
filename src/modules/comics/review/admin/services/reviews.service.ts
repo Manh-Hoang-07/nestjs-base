@@ -1,171 +1,65 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { ComicReview, Prisma } from '@prisma/client';
+import { BaseService } from '@/common/core/services';
+import { IPaginationOptions } from '@/common/core/repositories';
+import { IReviewRepository, REVIEW_REPOSITORY } from '../../domain/review.repository';
 
 @Injectable()
-export class ReviewsService {
+export class ReviewsService extends BaseService<ComicReview, IReviewRepository> {
   constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+    @Inject(REVIEW_REPOSITORY)
+    protected readonly reviewRepository: IReviewRepository,
+  ) {
+    super(reviewRepository);
+  }
 
-  /**
-   * Get list với filter và search
-   */
-  async getList(filters: any = {}, options: any = {}) {
-    const page = options.page || 1;
-    const limit = options.limit || 20;
-    const skip = (page - 1) * limit;
-    const sort = options.sort || 'created_at:DESC';
-    const [sortField, sortOrder] = sort.split(':');
+  protected override async prepareFilters(filters: Record<string, any> = {}): Promise<Record<string, any>> {
+    const prepared = { ...filters };
 
-    // Build where clause
-    const where: Prisma.ComicReviewWhereInput = {};
-
-    if (filters.comic_id) {
-      where.comic_id = filters.comic_id;
+    if (prepared.rating) {
+      prepared.rating = Number(prepared.rating);
     }
 
-    if (filters.user_id) {
-      where.user_id = filters.user_id;
-    }
-
-    if (filters.rating) {
-      where.rating = filters.rating;
-    }
-
-    if (filters.rating_min || filters.rating_max) {
-      where.rating = {};
-      if (filters.rating_min) {
-        where.rating.gte = filters.rating_min;
+    if (prepared.rating_min || prepared.rating_max) {
+      prepared.rating = {};
+      if (prepared.rating_min) {
+        prepared.rating.gte = Number(prepared.rating_min);
+        delete prepared.rating_min;
       }
-      if (filters.rating_max) {
-        where.rating.lte = filters.rating_max;
+      if (prepared.rating_max) {
+        prepared.rating.lte = Number(prepared.rating_max);
+        delete prepared.rating_max;
       }
     }
 
-    if (filters.search) {
-      where.content = { contains: filters.search };
+    if (prepared.search) {
+      prepared.content = { contains: prepared.search };
+      delete prepared.search;
     }
 
-    if (filters.date_from || filters.date_to) {
-      where.created_at = {};
-      if (filters.date_from) {
-        where.created_at.gte = new Date(filters.date_from);
+    if (prepared.date_from || prepared.date_to) {
+      prepared.created_at = {};
+      if (prepared.date_from) {
+        prepared.created_at.gte = new Date(prepared.date_from);
+        delete prepared.date_from;
       }
-      if (filters.date_to) {
-        where.created_at.lte = new Date(filters.date_to);
+      if (prepared.date_to) {
+        prepared.created_at.lte = new Date(prepared.date_to);
+        delete prepared.date_to;
       }
     }
 
-    // Build orderBy
-    const prismaSortOrder = sortOrder.toLowerCase() === 'asc' ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
-    let orderBy: Prisma.ComicReviewOrderByWithRelationInput;
+    return prepared;
+  }
 
-    if (sortField && ['id', 'created_at', 'updated_at', 'rating', 'user_id', 'comic_id'].includes(sortField)) {
-      switch (sortField) {
-        case 'id':
-          orderBy = { id: prismaSortOrder };
-          break;
-        case 'created_at':
-          orderBy = { created_at: prismaSortOrder };
-          break;
-        case 'updated_at':
-          orderBy = { updated_at: prismaSortOrder };
-          break;
-        case 'rating':
-          orderBy = { rating: prismaSortOrder };
-          break;
-        case 'user_id':
-          orderBy = { user_id: prismaSortOrder };
-          break;
-        case 'comic_id':
-          orderBy = { comic_id: prismaSortOrder };
-          break;
-        default:
-          orderBy = { created_at: Prisma.SortOrder.desc };
-      }
-    } else {
-      orderBy = { created_at: Prisma.SortOrder.desc };
-    }
-
-    const [data, total] = await Promise.all([
-      this.prisma.comicReview.findMany({
-        where,
-        include: {
-          user: true,
-          comic: true,
-        },
-        orderBy,
-        skip,
-        take: limit,
-      }),
-      this.prisma.comicReview.count({ where }),
-    ]);
-
-    return {
-      data,
-      meta: createPaginationMeta(page, limit, total),
+  protected override async prepareOptions(options: IPaginationOptions): Promise<IPaginationOptions> {
+    const normalized = await super.prepareOptions(options);
+    (normalized as any).include = {
+      user: true,
+      comic: true,
     };
+    return normalized;
   }
-
-  /**
-   * Get one với relations
-   */
-  async getOne(where: any): Promise<any | null> {
-    return this.prisma.comicReview.findFirst({
-      where,
-      include: {
-        user: true,
-        comic: true,
-      },
-    });
-  }
-
-  /**
-   * Update review
-   */
-  async update(id: number, data: { content?: string; rating?: number }) {
-    const review = await this.getOne({ id });
-    if (!review) {
-      throw new NotFoundException('Review not found');
-    }
-
-    const updateData: Prisma.ComicReviewUpdateInput = {};
-    if (data.content !== undefined) {
-      updateData.content = data.content;
-    }
-    if (data.rating !== undefined) {
-      if (data.rating < 1 || data.rating > 5) {
-        throw new Error('Rating must be between 1 and 5');
-      }
-      updateData.rating = data.rating;
-    }
-
-    return this.prisma.comicReview.update({
-      where: { id },
-      data: updateData,
-      include: {
-        user: true,
-        comic: true,
-      },
-    });
-  }
-
-  async delete(id: number) {
-    const review = await this.getOne({ id });
-    if (!review) {
-      throw new NotFoundException('Review not found');
-    }
-
-    await this.prisma.comicReview.delete({
-      where: { id },
-    });
-
-    return { deleted: true };
-  }
-
-
 
   /**
    * Get review statistics
@@ -177,33 +71,13 @@ export class ReviewsService {
     startOfWeek.setDate(today.getDate() - today.getDay());
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    const [total, todayCount, thisWeekCount, thisMonthCount, avgRatingResult, ratingDistribution] = await Promise.all([
-      this.prisma.comicReview.count({ where: {} }),
-      this.prisma.comicReview.count({
-        where: {
-          created_at: { gte: today },
-        },
-      }),
-      this.prisma.comicReview.count({
-        where: {
-          created_at: { gte: startOfWeek },
-        },
-      }),
-      this.prisma.comicReview.count({
-        where: {
-          created_at: { gte: startOfMonth },
-        },
-      }),
-      this.prisma.comicReview.aggregate({
-        where: {},
-        _avg: { rating: true },
-      }),
-      this.prisma.comicReview.groupBy({
-        by: ['rating'],
-        where: {},
-        _count: { rating: true },
-        orderBy: { rating: Prisma.SortOrder.asc },
-      }),
+    const [total, todayCount, thisWeekCount, thisMonthCount, avgRating, ratingDistribution] = await Promise.all([
+      this.repository.count({}),
+      this.repository.count({ date_from: today }),
+      this.repository.count({ date_from: startOfWeek }),
+      this.repository.count({ date_from: startOfMonth }),
+      this.reviewRepository.getAverageRating({}),
+      this.reviewRepository.getRatingDistribution({}),
     ]);
 
     return {
@@ -211,12 +85,8 @@ export class ReviewsService {
       today: todayCount,
       this_week: thisWeekCount,
       this_month: thisMonthCount,
-      average_rating: avgRatingResult._avg.rating || 0,
-      rating_distribution: ratingDistribution.map(r => ({
-        rating: r.rating,
-        count: r._count.rating,
-      })),
+      average_rating: avgRating || 0,
+      rating_distribution: ratingDistribution,
     };
   }
 }
-

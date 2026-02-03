@@ -1,8 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Cart, CartHeader, ProductVariant } from '@prisma/client';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '../../domain/cart-item.repository';
 
 @Injectable()
 export class CartItemService {
+  constructor(
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
+  ) { }
+
   /**
    * Tính effective price (sale_price hoặc price)
    */
@@ -45,7 +51,7 @@ export class CartItemService {
     );
 
     const finalQuantity = existingItem
-      ? existingItem.quantity + quantity
+      ? Number(existingItem.quantity) + quantity
       : quantity;
 
     const effectivePrice = this.calculateEffectivePrice(variant);

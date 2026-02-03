@@ -3,9 +3,13 @@ import { PublicChaptersController } from '@/modules/comics/chapter/public/contro
 import { PublicChaptersService } from '@/modules/comics/chapter/public/services/chapter.service';
 import { ViewTrackingService } from '@/modules/comics/shared/services/view-tracking.service';
 import { ChapterRepositoryModule } from '../chapter.repository.module';
+import { StatsRepositoryModule } from '../../stats/stats.repository.module';
 
 @Module({
-  imports: [ChapterRepositoryModule],
+  imports: [
+    ChapterRepositoryModule,
+    StatsRepositoryModule,
+  ],
   controllers: [PublicChaptersController],
   providers: [PublicChaptersService, ViewTrackingService],
   exports: [PublicChaptersService, ViewTrackingService],

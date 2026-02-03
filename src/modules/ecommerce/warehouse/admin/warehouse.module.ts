@@ -4,11 +4,13 @@ import { AdminWarehouseController } from './controllers/warehouse.controller';
 import { AdminWarehouseImportController } from './controllers/warehouse-import.controller';
 import { AdminWarehouseExportController } from './controllers/warehouse-export.controller';
 import { WarehouseRepositoryModule } from '../warehouse.repository.module';
+import { ProductVariantRepositoryModule } from '../../product-variant/product-variant.repository.module';
 import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
   imports: [
     WarehouseRepositoryModule,
+    ProductVariantRepositoryModule,
     RbacModule,
   ],
   controllers: [

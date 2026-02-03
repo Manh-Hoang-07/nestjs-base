@@ -3,13 +3,13 @@ import { BaseService } from '@/common/core/services/base.service';
 import { Chapter } from '@prisma/client';
 import { IChapterRepository, CHAPTER_REPOSITORY } from '../../domain/chapter.repository';
 import { PUBLIC_CHAPTER_STATUSES } from '@/shared/enums';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
+import { IChapterPageRepository, CHAPTER_PAGE_REPOSITORY } from '../../domain/chapter-page.repository';
 
 @Injectable()
 export class PublicChaptersService extends BaseService<Chapter, IChapterRepository> {
   constructor(
     @Inject(CHAPTER_REPOSITORY) protected readonly repository: IChapterRepository,
-    private readonly prisma: PrismaService,
+    @Inject(CHAPTER_PAGE_REPOSITORY) private readonly pageRepository: IChapterPageRepository,
   ) {
     super(repository);
   }
@@ -80,9 +80,10 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
       throw new NotFoundException('Chapter not found');
     }
 
-    const pages = await this.prisma.chapterPage.findMany({
-      where: { chapter_id: BigInt(chapterId) },
-      orderBy: { page_number: 'asc' },
+    const pages = await this.pageRepository.findMany({
+      chapter_id: chapterId,
+    }, {
+      sort: 'page_number:ASC'
     });
 
     return this.deepConvertBigInt(pages);
@@ -95,7 +96,7 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
     const chapter = await this.repository.findById(chapterId);
     if (!chapter) throw new NotFoundException('Chapter not found');
 
-    const next = await this.prisma.chapter.findFirst({
+    const next = await (this.repository as any).delegate.findFirst({
       where: {
         comic_id: chapter.comic_id,
         chapter_index: { gt: chapter.chapter_index },
@@ -114,7 +115,7 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
     const chapter = await this.repository.findById(chapterId);
     if (!chapter) throw new NotFoundException('Chapter not found');
 
-    const prev = await this.prisma.chapter.findFirst({
+    const prev = await (this.repository as any).delegate.findFirst({
       where: {
         comic_id: chapter.comic_id,
         chapter_index: { lt: chapter.chapter_index },
@@ -126,4 +127,3 @@ export class PublicChaptersService extends BaseService<Chapter, IChapterReposito
     return prev ? this.transform(prev) : null;
   }
 }
-

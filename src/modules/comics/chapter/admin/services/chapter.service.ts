@@ -3,8 +3,9 @@ import { Chapter } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IChapterRepository, CHAPTER_REPOSITORY } from '../../domain/chapter.repository';
 import { ComicNotificationService } from '@/modules/comics/shared/services/comic-notification.service';
-import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { ChapterStatus } from '@/shared/enums';
+import { IChapterPageRepository, CHAPTER_PAGE_REPOSITORY } from '../../domain/chapter-page.repository';
+import { IComicRepository, COMIC_REPOSITORY } from '../../../comic/domain/comic.repository';
 
 const PUBLIC_CHAPTER_STATUSES = [ChapterStatus.published];
 
@@ -13,7 +14,10 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
   constructor(
     @Inject(CHAPTER_REPOSITORY)
     protected readonly chapterRepository: IChapterRepository,
-    private readonly prisma: PrismaService,
+    @Inject(CHAPTER_PAGE_REPOSITORY)
+    private readonly pageRepository: IChapterPageRepository,
+    @Inject(COMIC_REPOSITORY)
+    private readonly comicRepository: IComicRepository,
     private readonly notificationService: ComicNotificationService,
   ) {
     super(chapterRepository);
@@ -44,16 +48,14 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
   protected override async afterCreate(entity: Chapter, data: any): Promise<void> {
     // Create pages if provided
     if (data.pages && Array.isArray(data.pages) && data.pages.length > 0) {
-      await this.prisma.chapterPage.createMany({
-        data: data.pages.map((page: any, index: number) => ({
-          chapter_id: entity.id,
-          page_number: index + 1,
-          image_url: page.image_url,
-          width: page.width,
-          height: page.height,
-          file_size: page.file_size ? BigInt(page.file_size) : null,
-        })),
-      });
+      await this.pageRepository.createMany(data.pages.map((page: any, index: number) => ({
+        chapter_id: entity.id,
+        page_number: index + 1,
+        image_url: page.image_url,
+        width: page.width,
+        height: page.height,
+        file_size: page.file_size ? BigInt(page.file_size) : null,
+      })));
     }
 
     // Notify followers if published
@@ -98,9 +100,9 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
   }
 
   protected override async afterDelete(id: string | number | bigint): Promise<void> {
-    const entity = await this.prisma.chapter.findUnique({ where: { id: BigInt(id) } });
+    const entity = await this.repository.findById(id);
     if (entity && entity.comic_id) {
-      await this.updateComicLastChapter(entity.comic_id);
+      await this.updateComicLastChapter(entity.comic_id as bigint);
     }
   }
 
@@ -108,7 +110,7 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
    * Helper: Update comic's last chapter info
    */
   private async updateComicLastChapter(comicId: bigint): Promise<void> {
-    const lastChapter = await this.prisma.chapter.findFirst({
+    const lastChapter = await (this.chapterRepository as any).delegate.findFirst({
       where: {
         comic_id: comicId,
         status: { in: PUBLIC_CHAPTER_STATUSES as any },
@@ -120,16 +122,11 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
       },
     });
 
-    await this.prisma.comic.update({
-      where: { id: comicId },
-      data: {
-        last_chapter_id: lastChapter?.id || null,
-        last_chapter_updated_at: lastChapter?.created_at || null,
-      },
-    });
+    await this.comicRepository.update(comicId, {
+      last_chapter_id: lastChapter?.id || null,
+      last_chapter_updated_at: lastChapter?.created_at || null,
+    } as any);
   }
-
-
 
   /**
    * Update pages
@@ -137,21 +134,17 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
   async updatePages(chapterId: string | number | bigint, pages: any[]) {
     await this.getOne(chapterId); // Check exists
 
-    await this.prisma.chapterPage.deleteMany({
-      where: { chapter_id: BigInt(chapterId) },
-    });
+    await this.pageRepository.deleteMany({ chapter_id: chapterId });
 
     if (pages && pages.length > 0) {
-      await this.prisma.chapterPage.createMany({
-        data: pages.map((page, index) => ({
-          chapter_id: BigInt(chapterId),
-          page_number: index + 1,
-          image_url: page.image_url,
-          width: page.width,
-          height: page.height,
-          file_size: page.file_size ? BigInt(page.file_size) : null,
-        })),
-      });
+      await this.pageRepository.createMany(pages.map((page, index) => ({
+        chapter_id: BigInt(chapterId),
+        page_number: index + 1,
+        image_url: page.image_url,
+        width: page.width,
+        height: page.height,
+        file_size: page.file_size ? BigInt(page.file_size) : null,
+      })));
     }
 
     return this.getOne(chapterId);

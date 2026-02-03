@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Cart, CartHeader } from '@prisma/client';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { ICartRepository, CART_REPOSITORY } from '../../domain/cart.repository';
+import { ICartItemRepository, CART_ITEM_REPOSITORY } from '../../domain/cart-item.repository';
 
 @Injectable()
 export class CartCalculationService {
+  constructor(
+    @Inject(CART_REPOSITORY)
+    private readonly cartRepository: ICartRepository,
+    @Inject(CART_ITEM_REPOSITORY)
+    private readonly cartItemRepository: ICartItemRepository,
+  ) { }
+
   /**
    * Tính toán và update cart totals
    */
@@ -10,13 +18,14 @@ export class CartCalculationService {
     prisma: any,
     cartHeaderId: number | bigint,
   ): Promise<void> {
+    // We still take 'prisma' (which can be tx) to ensure transactional integrity
     const items = await prisma.cart.findMany({
       where: { cart_header_id: BigInt(cartHeaderId) },
     });
 
     // Calculate subtotal
     const subtotal = items.reduce(
-      (sum: number, item: Cart) => sum + Number(item.total_price || 0),
+      (sum: number, item: any) => sum + Number(item.total_price || 0),
       0,
     );
 
