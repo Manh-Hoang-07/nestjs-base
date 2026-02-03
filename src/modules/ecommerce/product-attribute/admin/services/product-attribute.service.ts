@@ -15,6 +15,7 @@ export class AdminProductAttributeService extends BaseService<ProductAttribute, 
     protected readonly productAttributeRepository: IProductAttributeRepository,
   ) {
     super(productAttributeRepository);
+    this.autoAddGroupId = true;
   }
 
   async getSimpleList(query: any) {
@@ -34,7 +35,8 @@ export class AdminProductAttributeService extends BaseService<ProductAttribute, 
   }
 
   protected override async beforeCreate(data: CreateProductAttributeDto): Promise<any> {
-    const payload = { ...data };
+    const payload = await super.beforeCreate(data);
+
     if (!payload.code) {
       payload.code = slugify(payload.name).replace(/-/g, '_');
     }
@@ -42,12 +44,6 @@ export class AdminProductAttributeService extends BaseService<ProductAttribute, 
     const existing = await this.productAttributeRepository.findByCode(payload.code);
     if (existing) {
       payload.code = `${payload.code}_${Date.now()}`;
-    }
-
-    // Gán group_id nếu có
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      (payload as any).group_id = groupId;
     }
 
     return payload;

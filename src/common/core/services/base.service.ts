@@ -1,19 +1,36 @@
 import { NotFoundException } from '@nestjs/common';
 import { IRepository, IPaginatedResult, IPaginationOptions } from '../repositories/repository.interface';
 import { createPaginationMeta, prepareQuery } from '../utils';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
 
 /**
  * Base Service DB-agnostic.
  * Làm việc thông qua Repository Interface thay vì trực tiếp với ORM.
  */
 export abstract class BaseService<T, R extends IRepository<T>> {
+    /**
+     * Tự động thêm group_id vào payload khi tạo mới.
+     * Service con có thể set = true trong constructor để bật tính năng này.
+     */
+    protected autoAddGroupId: boolean = false;
+
     constructor(protected readonly repository: R) { }
 
     /**
      * Hook: Xử lý dữ liệu trước khi tạo mới
      */
     protected async beforeCreate(data: any): Promise<any> {
-        return data;
+        const payload = { ...data };
+
+        // Tự động thêm group_id nếu được bật
+        if (this.autoAddGroupId) {
+            const groupId = RequestContext.get<number | null>('groupId');
+            if (groupId) {
+                (payload as any).group_id = groupId;
+            }
+        }
+
+        return payload;
     }
 
     /**

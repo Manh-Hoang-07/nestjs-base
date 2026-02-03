@@ -21,6 +21,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     private readonly productVariantRepository: IProductVariantRepository,
   ) {
     super(warehouseRepository);
+    this.autoAddGroupId = true;
   }
 
   async syncVariantStock(variantId: number | bigint): Promise<void> {
@@ -313,12 +314,7 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
 
     if (data.group_id !== undefined) sanitized.group_id = data.group_id;
 
-    if (sanitized.group_id === undefined) {
-      const groupId = RequestContext.get<number | null>('groupId');
-      if (groupId) {
-        sanitized.group_id = groupId;
-      }
-    }
+    // Không tự động gán group_id ở đây nữa vì đã handle trong beforeCreate
 
     if (data.is_active !== undefined) {
       sanitized.status = data.is_active ? 'active' : 'inactive';
@@ -331,7 +327,9 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
   }
 
   protected override async beforeCreate(data: any): Promise<any> {
-    return this.sanitizeWarehouseInput(data);
+    // Gọi super để tự động thêm group_id
+    const payload = await super.beforeCreate(data);
+    return this.sanitizeWarehouseInput(payload);
   }
 
   protected override async beforeUpdate(id: string | number | bigint, data: any): Promise<any> {

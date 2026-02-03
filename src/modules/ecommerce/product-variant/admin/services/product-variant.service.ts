@@ -17,10 +17,11 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
     private readonly attributeRepository: IProductVariantAttributeRepository,
   ) {
     super(productVariantRepository);
+    this.autoAddGroupId = true;
   }
 
   protected override async beforeCreate(data: CreateProductVariantDto): Promise<any> {
-    const raw: any = { ...data };
+    const raw = await super.beforeCreate(data);
 
     // Map product_id (from FE) -> Prisma relation `product.connect`
     if (raw.product_id !== undefined && raw.product_id !== null) {
@@ -28,12 +29,6 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
         connect: { id: BigInt(raw.product_id) },
       };
       delete raw.product_id;
-    }
-
-    // Gán group_id từ product hoặc request context
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      raw.group_id = groupId;
     }
 
     // Convert status to is_active if needed

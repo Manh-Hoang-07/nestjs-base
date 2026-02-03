@@ -18,6 +18,8 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     private readonly statsRepository: IComicStatsRepository,
   ) {
     super(comicRepository);
+    // Bật tự động thêm group_id khi tạo mới
+    this.autoAddGroupId = true;
   }
 
   /**
@@ -36,7 +38,8 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
   }
 
   protected override async beforeCreate(data: CreateComicDto): Promise<any> {
-    const payload = { ...data };
+    // Gọi base beforeCreate để tự động thêm group_id
+    const payload = await super.beforeCreate(data);
 
     // Handle slug
     if (!payload.slug) {
@@ -47,12 +50,6 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     const existing = await this.comicRepository.findBySlug(payload.slug);
     if (existing) {
       payload.slug = `${payload.slug}-${Date.now()}`;
-    }
-
-    // Gán group_id nếu có
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      (payload as any).group_id = groupId;
     }
 
     // Tách category_ids ra để xử lý trong afterCreate

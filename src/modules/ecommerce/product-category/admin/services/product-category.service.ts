@@ -15,6 +15,7 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
     protected readonly productCategoryRepository: IProductCategoryRepository,
   ) {
     super(productCategoryRepository);
+    this.autoAddGroupId = true;
   }
 
   async getSimpleList(query: any) {
@@ -62,7 +63,8 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
   }
 
   protected override async beforeCreate(data: CreateProductCategoryDto): Promise<any> {
-    const payload: any = { ...data };
+    const payload = await super.beforeCreate(data);
+
     if (!payload.slug) {
       payload.slug = slugify(payload.name);
     }
@@ -74,12 +76,6 @@ export class AdminProductCategoryService extends BaseService<ProductCategory, IP
 
     if (payload.parent_id) {
       payload.parent_id = BigInt(payload.parent_id);
-    }
-
-    // Gán group_id nếu có
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      payload.group_id = groupId;
     }
 
     return payload;

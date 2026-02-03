@@ -23,6 +23,8 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     private readonly notificationService: ComicNotificationService,
   ) {
     super(chapterRepository);
+    // Bật tự động thêm group_id khi tạo mới
+    this.autoAddGroupId = true;
   }
 
   /**
@@ -41,7 +43,8 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
   }
 
   protected override async beforeCreate(data: any): Promise<any> {
-    const payload = { ...data };
+    // Gọi base beforeCreate để tự động thêm group_id
+    const payload = await super.beforeCreate(data);
 
     // Validate chapter_index unique
     if (payload.comic_id && payload.chapter_index !== undefined) {
@@ -52,12 +55,6 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
       if (existing) {
         throw new BadRequestException(`Chapter với index ${payload.chapter_index} đã tồn tại trong comic này`);
       }
-    }
-
-    // Gán group_id nếu có
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      (payload as any).group_id = groupId;
     }
 
     // Tách pages để xử lý trong afterCreate

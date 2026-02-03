@@ -15,6 +15,7 @@ export class AdminProductService extends BaseService<Product, IProductRepository
     protected readonly productRepository: IProductRepository,
   ) {
     super(productRepository);
+    this.autoAddGroupId = true;
   }
 
   /**
@@ -42,7 +43,7 @@ export class AdminProductService extends BaseService<Product, IProductRepository
    * Hook trước khi tạo
    */
   protected override async beforeCreate(data: CreateProductDto): Promise<any> {
-    const payload = { ...data };
+    const payload = await super.beforeCreate(data);
 
     // Xử lý slug
     if (!payload.slug) {
@@ -53,12 +54,6 @@ export class AdminProductService extends BaseService<Product, IProductRepository
     const existing = payload.slug ? await this.productRepository.findBySlug(payload.slug) : null;
     if (existing) {
       payload.slug = `${payload.slug}-${Date.now()}`;
-    }
-
-    // Gán group_id nếu có
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      (payload as any).group_id = groupId;
     }
 
     // Tách category_ids ra để xử lý sau (afterCreate)
@@ -159,7 +154,7 @@ export class AdminProductService extends BaseService<Product, IProductRepository
       transformed.categories = transformed.categories
         .map((item: any) => item?.category)
         .filter(Boolean);
-      
+
       // Thêm product_category_ids (đã được convert BigInt sang number bởi parent transform)
       transformed.product_category_ids = transformed.categories.map((cat: any) => cat.id);
     } else {

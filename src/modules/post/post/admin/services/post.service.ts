@@ -13,6 +13,7 @@ export class PostService extends BaseContentService<Post, IPostRepository> {
     private readonly postRepo: IPostRepository,
   ) {
     super(postRepo);
+    this.autoAddGroupId = true;
   }
 
 
@@ -28,11 +29,18 @@ export class PostService extends BaseContentService<Post, IPostRepository> {
   }
 
   protected async beforeCreate(data: any) {
-    const payload = { ...data };
+    // 1. Gọi super để lấy logic chuẩn (bao gồm auto group_id = number)
+    const payload = await super.beforeCreate(data);
+
     await this.ensureSlug(payload);
 
     payload.primary_postcategory_id = this.toBigInt(payload.primary_postcategory_id);
-    payload.group_id = payload.group_id !== undefined ? this.toBigInt(payload.group_id) : this.resolveGroupId();
+
+    // Nếu có group_id (từ autoAddGroupId hoặc input), convert sang BigInt
+    if (payload.group_id) {
+      payload.group_id = this.toBigInt(payload.group_id);
+    }
+
     payload.published_at = this.normalizeDate(payload.published_at);
 
     // Temp store relations, handled in afterCreate
@@ -121,11 +129,6 @@ export class PostService extends BaseContentService<Post, IPostRepository> {
     const num = typeof value === 'string' ? Number(value) : value;
     if (Number.isNaN(num)) return null;
     return BigInt(num);
-  }
-
-  private resolveGroupId(): bigint | null {
-    const groupId = RequestContext.get<number | null>('groupId');
-    return groupId ? this.toBigInt(groupId) : null;
   }
 
   protected transform(post: any) {

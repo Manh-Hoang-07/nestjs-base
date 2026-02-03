@@ -13,6 +13,8 @@ export class ComicCategoryService extends BaseService<ComicCategory, IComicCateg
     protected readonly comicCategoryRepository: IComicCategoryRepository,
   ) {
     super(comicCategoryRepository);
+    // Bật tự động thêm group_id khi tạo mới
+    this.autoAddGroupId = true;
   }
 
   /**
@@ -31,15 +33,11 @@ export class ComicCategoryService extends BaseService<ComicCategory, IComicCateg
   }
 
   protected override async beforeCreate(data: any): Promise<any> {
-    const payload = { ...data };
+    // Gọi base beforeCreate để tự động thêm group_id
+    const payload = await super.beforeCreate(data);
+
     if (!payload.slug) {
       payload.slug = StringUtil.toSlug(payload.name);
-    }
-
-    // Gán group_id nếu có
-    const groupId = RequestContext.get<number | null>('groupId');
-    if (groupId) {
-      (payload as any).group_id = groupId;
     }
 
     return payload;
