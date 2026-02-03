@@ -9,6 +9,7 @@ export interface CommentFilter {
     chapter_id?: number | bigint;
     parent_id?: number | bigint;
     status?: string;
+    group_id?: number | bigint;
 }
 
 export interface ICommentRepository extends IRepository<ComicComment> {

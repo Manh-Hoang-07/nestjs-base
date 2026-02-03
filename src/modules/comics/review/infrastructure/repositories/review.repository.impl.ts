@@ -19,6 +19,13 @@ export class ReviewRepositoryImpl extends PrismaRepository<
 
     protected buildWhere(filter: ReviewFilter & { date_from?: Date; date_to?: Date; search?: string }): Prisma.ComicReviewWhereInput {
         const where: Prisma.ComicReviewWhereInput = {};
+
+        if (filter.group_id !== undefined) {
+            (where as any).comic = {
+                group_id: filter.group_id === null ? null : this.toPrimaryKey(filter.group_id),
+            };
+        }
+
         if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);
         if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);
         if (filter.rating) where.rating = filter.rating;

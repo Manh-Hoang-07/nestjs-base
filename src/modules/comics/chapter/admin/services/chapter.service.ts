@@ -6,6 +6,8 @@ import { ComicNotificationService } from '@/modules/comics/shared/services/comic
 import { ChapterStatus } from '@/shared/enums';
 import { IChapterPageRepository, CHAPTER_PAGE_REPOSITORY } from '../../domain/chapter-page.repository';
 import { IComicRepository, COMIC_REPOSITORY } from '../../../comic/domain/comic.repository';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 const PUBLIC_CHAPTER_STATUSES = [ChapterStatus.published];
 
@@ -23,6 +25,21 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     super(chapterRepository);
   }
 
+  /**
+   * Chuẩn bị filters theo group/context
+   */
+  protected override async prepareFilters(filters?: any): Promise<any> {
+    const prepared = { ...(filters || {}) };
+    if (prepared.group_id === undefined) {
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
+      }
+    }
+    return prepared;
+  }
+
   protected override async beforeCreate(data: any): Promise<any> {
     const payload = { ...data };
 
@@ -35,6 +52,12 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
       if (existing) {
         throw new BadRequestException(`Chapter với index ${payload.chapter_index} đã tồn tại trong comic này`);
       }
+    }
+
+    // Gán group_id nếu có
+    const groupId = RequestContext.get<number | null>('groupId');
+    if (groupId) {
+      (payload as any).group_id = groupId;
     }
 
     // Tách pages để xử lý trong afterCreate
@@ -65,11 +88,20 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     }
   }
 
+  override async getOne(id: string | number | bigint): Promise<Chapter> {
+    const entity = await super.getOne(id);
+    verifyGroupOwnership(entity as any);
+    return entity;
+  }
+
   protected override async beforeUpdate(id: string | number | bigint, data: any): Promise<any> {
     const entity = await this.repository.findById(id);
     if (!entity) {
       throw new NotFoundException(`Chapter with ID ${id} not found`);
     }
+
+    // Kiểm tra quyền sở hữu
+    verifyGroupOwnership(entity as any);
 
     const payload = { ...data };
 
@@ -104,6 +136,14 @@ export class ChapterService extends BaseService<Chapter, IChapterRepository> {
     if (entity && entity.comic_id) {
       await this.updateComicLastChapter(entity.comic_id as bigint);
     }
+  }
+
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const entity = await this.repository.findById(id);
+    if (entity) {
+      verifyGroupOwnership(entity as any);
+    }
+    return true;
   }
 
   /**

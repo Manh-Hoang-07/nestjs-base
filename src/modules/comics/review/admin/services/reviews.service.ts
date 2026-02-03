@@ -3,6 +3,8 @@ import { ComicReview, Prisma } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IPaginationOptions } from '@/common/core/repositories';
 import { IReviewRepository, REVIEW_REPOSITORY } from '../../domain/review.repository';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class ReviewsService extends BaseService<ComicReview, IReviewRepository> {
@@ -49,6 +51,15 @@ export class ReviewsService extends BaseService<ComicReview, IReviewRepository> 
       }
     }
 
+    // Gán group_id từ RequestContext
+    if (prepared.group_id === undefined) {
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
+      }
+    }
+
     return prepared;
   }
 
@@ -88,5 +99,47 @@ export class ReviewsService extends BaseService<ComicReview, IReviewRepository> 
       average_rating: avgRating || 0,
       rating_distribution: ratingDistribution,
     };
+  }
+
+  override async getOne(id: string | number | bigint): Promise<ComicReview> {
+    const entity = await super.getOne(id);
+    // Load comic to verify ownership
+    const review = await (this.repository as any).delegate.findFirst({
+      where: { id: (this.repository as any).toPrimaryKey(id) },
+      include: { comic: true }
+    });
+    if (review?.comic) {
+      verifyGroupOwnership(review.comic as any);
+    }
+    return entity;
+  }
+
+  protected override async beforeUpdate(id: string | number | bigint, data: any): Promise<any> {
+    const entity = await this.repository.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Review with ID ${id} not found`);
+    }
+
+    // Kiểm tra quyền sở hữu qua comic
+    const review = await (this.repository as any).delegate.findFirst({
+      where: { id: (this.repository as any).toPrimaryKey(id) },
+      include: { comic: true }
+    });
+    if (review?.comic) {
+      verifyGroupOwnership(review.comic as any);
+    }
+
+    return data;
+  }
+
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const review = await (this.repository as any).delegate.findFirst({
+      where: { id: (this.repository as any).toPrimaryKey(id) },
+      include: { comic: true }
+    });
+    if (review?.comic) {
+      verifyGroupOwnership(review.comic as any);
+    }
+    return true;
   }
 }

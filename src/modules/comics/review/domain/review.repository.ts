@@ -7,6 +7,7 @@ export interface ReviewFilter {
     user_id?: number | bigint;
     comic_id?: number | bigint;
     rating?: number;
+    group_id?: number | bigint;
 }
 
 export interface IReviewRepository extends IRepository<ComicReview> {

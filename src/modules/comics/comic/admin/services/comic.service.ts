@@ -6,6 +6,8 @@ import { CreateComicDto } from '../dtos/create-comic.dto';
 import { UpdateComicDto } from '../dtos/update-comic.dto';
 import { StringUtil } from '@/core/utils/string.util';
 import { IComicStatsRepository, COMIC_STATS_REPOSITORY } from '../../../stats/domain/comic-stats.repository';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class ComicService extends BaseService<Comic, IComicRepository> {
@@ -16,6 +18,21 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     private readonly statsRepository: IComicStatsRepository,
   ) {
     super(comicRepository);
+  }
+
+  /**
+   * Chuẩn bị filters theo group/context
+   */
+  protected override async prepareFilters(filters?: any): Promise<any> {
+    const prepared = { ...(filters || {}) };
+    if (prepared.group_id === undefined) {
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
+      }
+    }
+    return prepared;
   }
 
   protected override async beforeCreate(data: CreateComicDto): Promise<any> {
@@ -30,6 +47,12 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     const existing = await this.comicRepository.findBySlug(payload.slug);
     if (existing) {
       payload.slug = `${payload.slug}-${Date.now()}`;
+    }
+
+    // Gán group_id nếu có
+    const groupId = RequestContext.get<number | null>('groupId');
+    if (groupId) {
+      (payload as any).group_id = groupId;
     }
 
     // Tách category_ids ra để xử lý trong afterCreate
@@ -58,11 +81,20 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     }
   }
 
+  override async getOne(id: string | number | bigint): Promise<Comic> {
+    const entity = await super.getOne(id);
+    verifyGroupOwnership(entity as any);
+    return entity;
+  }
+
   protected override async beforeUpdate(id: string | number | bigint, data: UpdateComicDto): Promise<any> {
     const entity = await this.repository.findById(id);
     if (!entity) {
       throw new NotFoundException(`Comic with ID ${id} not found`);
     }
+
+    // Kiểm tra quyền sở hữu
+    verifyGroupOwnership(entity as any);
 
     const payload = { ...data };
 
@@ -90,6 +122,14 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
     if (data.category_ids) {
       await this.comicRepository.syncCategories(entity.id, data.category_ids.map(id => BigInt(id)));
     }
+  }
+
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const entity = await this.repository.findById(id);
+    if (entity) {
+      verifyGroupOwnership(entity as any);
+    }
+    return true;
   }
 
   /**

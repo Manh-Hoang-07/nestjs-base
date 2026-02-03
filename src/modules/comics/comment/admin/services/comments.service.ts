@@ -4,6 +4,8 @@ import { BaseService } from '@/common/core/services';
 import { ICommentRepository, COMMENT_REPOSITORY } from '../../domain/comment.repository';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { IPaginationOptions } from '@/common/core/repositories';
+import { RequestContext } from '@/common/shared/utils/request-context.util';
+import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class CommentsService extends BaseService<ComicComment, ICommentRepository> {
@@ -48,6 +50,15 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
       if (prepared.date_to) {
         prepared.created_at.lte = new Date(prepared.date_to);
         delete prepared.date_to;
+      }
+    }
+
+    // Gán group_id từ RequestContext
+    if (prepared.group_id === undefined) {
+      const contextId = RequestContext.get<number>('contextId');
+      const groupId = RequestContext.get<number | null>('groupId');
+      if (contextId && contextId !== 1 && groupId) {
+        prepared.group_id = groupId;
       }
     }
 
@@ -119,6 +130,11 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
       throw new NotFoundException(`Comment with ID ${id} not found`);
     }
 
+    // Kiểm tra quyền sở hữu qua comic
+    if (entity.comic) {
+      verifyGroupOwnership(entity.comic as any);
+    }
+
     return this.transform(entity) as ComicComment;
   }
 
@@ -155,5 +171,34 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
       this_week: thisWeekCount,
       this_month: thisMonthCount,
     };
+  }
+
+  protected override async beforeUpdate(id: string | number | bigint, data: any): Promise<any> {
+    const entity = await this.repository.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`Comment with ID ${id} not found`);
+    }
+
+    // Kiểm tra quyền sở hữu qua comic
+    const comment = await (this.repository as any).delegate.findFirst({
+      where: { id: (this.repository as any).toPrimaryKey(id) },
+      include: { comic: true }
+    });
+    if (comment?.comic) {
+      verifyGroupOwnership(comment.comic as any);
+    }
+
+    return data;
+  }
+
+  protected override async beforeDelete(id: string | number | bigint): Promise<boolean> {
+    const comment = await (this.repository as any).delegate.findFirst({
+      where: { id: (this.repository as any).toPrimaryKey(id) },
+      include: { comic: true }
+    });
+    if (comment?.comic) {
+      verifyGroupOwnership(comment.comic as any);
+    }
+    return true;
   }
 }
