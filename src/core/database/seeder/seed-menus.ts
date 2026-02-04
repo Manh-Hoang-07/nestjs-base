@@ -51,7 +51,7 @@ export class SeedMenus {
       {
         code: 'account-management',
         name: 'Quản lý tài khoản',
-        path: '/admin/users',
+        path: '/admin/core/iam/users',
         api_path: 'api/admin/users',
         icon: '👥',
         type: MenuType.group,
@@ -66,7 +66,7 @@ export class SeedMenus {
       {
         code: 'users',
         name: 'Tài khoản',
-        path: '/admin/users',
+        path: '/admin/core/iam/users',
         api_path: 'api/admin/users',
         icon: '👤',
         type: MenuType.route,
@@ -80,7 +80,7 @@ export class SeedMenus {
       {
         code: 'roles',
         name: 'Vai trò',
-        path: '/admin/roles',
+        path: '/admin/core/iam/roles',
         api_path: 'api/admin/roles',
         icon: '👔',
         type: MenuType.route,
@@ -94,7 +94,7 @@ export class SeedMenus {
       {
         code: 'permissions',
         name: 'Quyền',
-        path: '/admin/permissions',
+        path: '/admin/core/iam/permissions',
         api_path: 'api/admin/permissions',
         icon: '🔑',
         type: MenuType.route,
@@ -110,7 +110,7 @@ export class SeedMenus {
       {
         code: 'group-management',
         name: 'Nhóm & Context',
-        path: '/admin/groups',
+        path: '/admin/core/groups',
         api_path: 'api/admin/groups',
         icon: '👪',
         type: MenuType.group,
@@ -125,7 +125,7 @@ export class SeedMenus {
       {
         code: 'groups',
         name: 'Nhóm',
-        path: '/admin/groups',
+        path: '/admin/core/groups',
         api_path: 'api/admin/groups',
         icon: '👪',
         type: MenuType.route,
@@ -139,7 +139,7 @@ export class SeedMenus {
       {
         code: 'contexts',
         name: 'Context',
-        path: '/admin/contexts',
+        path: '/admin/core/contexts',
         api_path: 'api/admin/contexts',
         icon: '🌐',
         type: MenuType.route,
@@ -155,7 +155,7 @@ export class SeedMenus {
       {
         code: 'config-management',
         name: 'Cấu hình hệ thống',
-        path: '/admin/system-configs/general',
+        path: '/admin/core/system-configs/general',
         api_path: 'api/admin/system-config/general',
         icon: '⚙️',
         type: MenuType.group,
@@ -170,7 +170,7 @@ export class SeedMenus {
       {
         code: 'config-general',
         name: 'Cấu hình chung',
-        path: '/admin/system-configs/general',
+        path: '/admin/core/system-configs/general',
         api_path: 'api/admin/system-config/general',
         icon: '📋',
         type: MenuType.route,
@@ -184,7 +184,7 @@ export class SeedMenus {
       {
         code: 'config-email',
         name: 'Cấu hình Email',
-        path: '/admin/system-configs/email',
+        path: '/admin/core/system-configs/email',
         api_path: 'api/admin/system-config/email',
         icon: '📧',
         type: MenuType.route,
@@ -198,7 +198,7 @@ export class SeedMenus {
       {
         code: 'content-templates',
         name: 'Mẫu tài liệu',
-        path: '/admin/content-templates',
+        path: '/admin/core/content-templates',
         api_path: 'api/admin/content-templates',
         icon: '📄',
         type: MenuType.route,
@@ -214,7 +214,7 @@ export class SeedMenus {
       {
         code: 'menus',
         name: 'Menu',
-        path: '/admin/menus',
+        path: '/admin/core/menus',
         api_path: 'api/admin/menus',
         icon: '📑',
         type: MenuType.route,
@@ -230,7 +230,7 @@ export class SeedMenus {
       {
         code: 'extra-management',
         name: 'Tính năng mở rộng',
-        path: '/admin/extra',
+        path: '/admin/extra/notifications',
         api_path: 'api/admin/extra',
         icon: '👪',
         type: MenuType.group,
@@ -246,7 +246,7 @@ export class SeedMenus {
       {
         code: 'notifications',
         name: 'Thông báo',
-        path: '/admin/notifications',
+        path: '/admin/extra/notifications',
         api_path: 'api/admin/notifications',
         icon: '🔔',
         type: MenuType.route,
@@ -261,7 +261,7 @@ export class SeedMenus {
       {
         code: 'banner-management',
         name: 'Banner',
-        path: '/admin/banners',
+        path: '/admin/marketing/banners',
         api_path: 'api/admin/banners',
         icon: '🖼️',
         type: MenuType.group,
@@ -276,7 +276,7 @@ export class SeedMenus {
       {
         code: 'banners',
         name: 'Banner',
-        path: '/admin/banners',
+        path: '/admin/marketing/banners',
         api_path: 'api/admin/banners',
         icon: '🖼️',
         type: MenuType.route,
@@ -290,7 +290,7 @@ export class SeedMenus {
       {
         code: 'banner-locations',
         name: 'Vị trí Banner',
-        path: '/admin/banner-locations',
+        path: '/admin/marketing/locations',
         api_path: 'api/admin/banner-locations',
         icon: '📍',
         type: MenuType.route,
@@ -306,7 +306,7 @@ export class SeedMenus {
       {
         code: 'contacts',
         name: 'Liên hệ',
-        path: '/admin/contacts',
+        path: '/admin/introduction/contacts',
         api_path: 'api/admin/contacts',
         icon: '📞',
         type: MenuType.route,
@@ -337,7 +337,7 @@ export class SeedMenus {
       {
         code: 'posts',
         name: 'Bài viết',
-        path: '/admin/posts',
+        path: '/admin/posts/posts',
         api_path: 'api/admin/posts',
         icon: '📄',
         type: MenuType.route,
@@ -351,7 +351,7 @@ export class SeedMenus {
       {
         code: 'post-categories',
         name: 'Danh mục bài viết',
-        path: '/admin/post-categories',
+        path: '/admin/posts/categories',
         api_path: 'api/admin/post-categories',
         icon: '📂',
         type: MenuType.route,
@@ -365,7 +365,7 @@ export class SeedMenus {
       {
         code: 'post-tags',
         name: 'Thẻ bài viết',
-        path: '/admin/post-tags',
+        path: '/admin/posts/tags',
         api_path: 'api/admin/post-tags',
         icon: '🏷️',
         type: MenuType.route,
@@ -379,7 +379,7 @@ export class SeedMenus {
       {
         code: 'post-comments',
         name: 'Bình luận bài viết',
-        path: '/admin/post-comments',
+        path: '/admin/posts/comments',
         api_path: 'api/admin/post-comments',
         icon: '💬',
         type: MenuType.route,
@@ -409,7 +409,7 @@ export class SeedMenus {
       {
         code: 'introduction',
         name: 'Giới thiệu',
-        path: '/admin/projects',
+        path: '/admin/introduction/projects',
         api_path: 'api/admin/projects',
         icon: '🏢',
         type: MenuType.group,
@@ -433,7 +433,7 @@ export class SeedMenus {
       {
         code: 'projects',
         name: 'Dự án',
-        path: '/admin/projects',
+        path: '/admin/introduction/projects',
         api_path: 'api/admin/projects',
         icon: '🏗️',
         type: MenuType.route,
@@ -447,7 +447,7 @@ export class SeedMenus {
       {
         code: 'about-sections',
         name: 'Giới thiệu',
-        path: '/admin/about-sections',
+        path: '/admin/introduction/abouts',
         api_path: 'api/admin/about-sections',
         icon: '📖',
         type: MenuType.route,
@@ -461,7 +461,7 @@ export class SeedMenus {
       {
         code: 'staff',
         name: 'Nhân viên',
-        path: '/admin/staff',
+        path: '/admin/introduction/staff',
         api_path: 'api/admin/staff',
         icon: '👨‍💼',
         type: MenuType.route,
@@ -475,7 +475,7 @@ export class SeedMenus {
       {
         code: 'testimonials',
         name: 'Lời chứng thực',
-        path: '/admin/testimonials',
+        path: '/admin/introduction/testimonials',
         api_path: 'api/admin/testimonials',
         icon: '💬',
         type: MenuType.route,
@@ -489,7 +489,7 @@ export class SeedMenus {
       {
         code: 'partners',
         name: 'Đối tác',
-        path: '/admin/partners',
+        path: '/admin/introduction/partners',
         api_path: 'api/admin/partners',
         icon: '🤝',
         type: MenuType.route,
@@ -503,7 +503,7 @@ export class SeedMenus {
       {
         code: 'gallery',
         name: 'Thư viện ảnh',
-        path: '/admin/gallery',
+        path: '/admin/introduction/gallery',
         api_path: 'api/admin/gallery',
         icon: '🖼️',
         type: MenuType.route,
@@ -517,7 +517,7 @@ export class SeedMenus {
       {
         code: 'certificates',
         name: 'Chứng chỉ',
-        path: '/admin/certificates',
+        path: '/admin/introduction/certificates',
         api_path: 'api/admin/certificates',
         icon: '🏆',
         type: MenuType.route,
@@ -531,7 +531,7 @@ export class SeedMenus {
       {
         code: 'faqs',
         name: 'Câu hỏi thường gặp',
-        path: '/admin/faqs',
+        path: '/admin/introduction/faqs',
         api_path: 'api/admin/faqs',
         icon: '❓',
         type: MenuType.route,
@@ -547,8 +547,8 @@ export class SeedMenus {
       {
         code: 'product-management',
         name: 'Quản lý sản phẩm',
-        path: '/admin/products',
-        api_path: 'api/admin/products',
+        path: '/admin/ecommerce/products',
+        api_path: 'api/admin/products/products',
         icon: '📦',
         type: MenuType.group,
         status: BasicStatus.active,
@@ -568,7 +568,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-products',
         name: 'Sản phẩm',
-        path: '/admin/products',
+        path: '/admin/ecommerce/products/products',
         api_path: 'api/admin/products',
         icon: '📦',
         type: MenuType.route,
@@ -582,7 +582,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-product-variants',
         name: 'Biến thể sản phẩm',
-        path: '/admin/product-variants',
+        path: '/admin/ecommerce/products/variants',
         api_path: 'api/admin/product-variants',
         icon: '🔀',
         type: MenuType.route,
@@ -596,7 +596,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-product-attributes',
         name: 'Thuộc tính sản phẩm',
-        path: '/admin/product-attributes',
+        path: '/admin/ecommerce/products/attributes',
         api_path: 'api/admin/product-attributes',
         icon: '🧩',
         type: MenuType.route,
@@ -610,7 +610,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-product-attribute-values',
         name: 'Giá trị thuộc tính',
-        path: '/admin/product-attribute-values',
+        path: '/admin/ecommerce/products/attribute-values',
         api_path: 'api/admin/product-attribute-values',
         icon: '🔹',
         type: MenuType.route,
@@ -624,7 +624,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-product-categories',
         name: 'Danh mục sản phẩm',
-        path: '/admin/product-categories',
+        path: '/admin/ecommerce/products/categories',
         api_path: 'api/admin/product-categories',
         icon: '📚',
         type: MenuType.route,
@@ -640,7 +640,7 @@ export class SeedMenus {
       {
         code: 'warehouse-management',
         name: 'Quản lý kho',
-        path: '/admin/warehouses',
+        path: '/admin/ecommerce/warehouses',
         api_path: 'api/admin/warehouses',
         icon: '🏬',
         type: MenuType.group,
@@ -660,7 +660,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-warehouses',
         name: 'Kho hàng',
-        path: '/admin/warehouses',
+        path: '/admin/ecommerce/warehouses',
         api_path: 'api/admin/warehouses',
         icon: '🏬',
         type: MenuType.route,
@@ -674,7 +674,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-warehouse-transfers',
         name: 'Chuyển kho',
-        path: '/admin/warehouse-transfers',
+        path: '/admin/ecommerce/warehouses/transfers',
         api_path: 'api/admin/warehouses/transfers',
         icon: '🚛',
         type: MenuType.route,
@@ -688,7 +688,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-warehouse-imports',
         name: 'Nhập kho',
-        path: '/admin/warehouse-imports',
+        path: '/admin/ecommerce/warehouses/imports',
         api_path: 'api/admin/warehouses/imports',
         icon: '📥',
         type: MenuType.route,
@@ -702,7 +702,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-warehouse-exports',
         name: 'Xuất kho',
-        path: '/admin/warehouse-exports',
+        path: '/admin/ecommerce/warehouses/exports',
         api_path: 'api/admin/warehouses/exports',
         icon: '📤',
         type: MenuType.route,
@@ -719,7 +719,7 @@ export class SeedMenus {
         code: 'comic-management',
         name: 'Quản lý Truyện',
         path: '/admin/comics',
-        api_path: 'api/admin/comics',
+        api_path: 'api/admin/comics/comics',
         icon: '📚',
         type: MenuType.group,
         status: BasicStatus.active,
@@ -733,7 +733,7 @@ export class SeedMenus {
       {
         code: 'comic-list',
         name: 'Truyện tranh',
-        path: '/admin/comics',
+        path: '/admin/comics/comics',
         api_path: 'api/admin/comics',
         icon: '📕',
         type: MenuType.route,
@@ -747,7 +747,7 @@ export class SeedMenus {
       {
         code: 'comic-chapters',
         name: 'Chương truyện',
-        path: '/admin/chapters',
+        path: '/admin/comics/chapters',
         api_path: 'api/admin/chapters',
         icon: '📑',
         type: MenuType.route,
@@ -761,7 +761,7 @@ export class SeedMenus {
       {
         code: 'comic-categories',
         name: 'Danh mục truyện',
-        path: '/admin/comic-categories',
+        path: '/admin/comics/categories',
         api_path: 'api/admin/comic-categories',
         icon: '🏷️',
         type: MenuType.route,
@@ -775,7 +775,7 @@ export class SeedMenus {
       {
         code: 'comic-comments',
         name: 'Bình luận truyện',
-        path: '/admin/comic-comments',
+        path: '/admin/comics/comments',
         api_path: 'api/admin/comic-comments',
         icon: '💬',
         type: MenuType.route,
@@ -787,9 +787,23 @@ export class SeedMenus {
         permission_code: 'comic.manage',
       },
       {
+        code: 'comic-reviews',
+        name: 'Đánh giá truyện',
+        path: '/admin/comics/reviews',
+        api_path: 'api/admin/comic-reviews',
+        icon: '⭐',
+        type: MenuType.route,
+        status: BasicStatus.active,
+        parent_code: 'comic-management',
+        sort_order: 38,
+        is_public: false,
+        show_in_menu: true,
+        permission_code: 'comic.manage',
+      },
+      {
         code: 'comic-stats',
         name: 'Thống kê báo cáo',
-        path: '/admin/comic-stats',
+        path: '/admin/comics/stats',
         api_path: 'api/admin/comic-stats',
         icon: '📈',
         type: MenuType.route,
@@ -826,7 +840,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-orders',
         name: 'Đơn hàng',
-        path: '/admin/orders',
+        path: '/admin/ecommerce/orders',
         api_path: 'api/admin/orders',
         icon: '📜',
         type: MenuType.route,
@@ -840,7 +854,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-shipping-methods',
         name: 'Phương thức vận chuyển',
-        path: '/admin/shipping-methods',
+        path: '/admin/ecommerce/shippings',
         api_path: 'api/admin/shipping-methods',
         icon: '🚚',
         type: MenuType.route,
@@ -854,7 +868,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-coupons',
         name: 'Mã khuyến mãi',
-        path: '/admin/coupons',
+        path: '/admin/ecommerce/coupons',
         api_path: 'api/admin/coupons',
         icon: '🎟️',
         type: MenuType.route,
