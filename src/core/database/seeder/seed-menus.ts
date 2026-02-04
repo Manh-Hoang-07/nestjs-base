@@ -110,7 +110,7 @@ export class SeedMenus {
       {
         code: 'group-management',
         name: 'Nhóm & Context',
-        path: '/admin/core/groups',
+        path: '/admin/core/group',
         api_path: 'api/admin/groups',
         icon: '👪',
         type: MenuType.group,
@@ -125,7 +125,7 @@ export class SeedMenus {
       {
         code: 'groups',
         name: 'Nhóm',
-        path: '/admin/core/groups',
+        path: '/admin/core/group',
         api_path: 'api/admin/groups',
         icon: '👪',
         type: MenuType.route,
@@ -155,8 +155,8 @@ export class SeedMenus {
       {
         code: 'config-management',
         name: 'Cấu hình hệ thống',
-        path: '/admin/core/system-configs/general',
-        api_path: 'api/admin/system-config/general',
+        path: '/admin/core/system-config/general',
+        api_path: 'api/admin/system-configs/general',
         icon: '⚙️',
         type: MenuType.group,
         status: BasicStatus.active,
@@ -170,8 +170,8 @@ export class SeedMenus {
       {
         code: 'config-general',
         name: 'Cấu hình chung',
-        path: '/admin/core/system-configs/general',
-        api_path: 'api/admin/system-config/general',
+        path: '/admin/core/system-config/general',
+        api_path: 'api/admin/system-configs/general',
         icon: '📋',
         type: MenuType.route,
         status: BasicStatus.active,
@@ -184,8 +184,8 @@ export class SeedMenus {
       {
         code: 'config-email',
         name: 'Cấu hình Email',
-        path: '/admin/core/system-configs/email',
-        api_path: 'api/admin/system-config/email',
+        path: '/admin/core/system-config/email',
+        api_path: 'api/admin/system-configs/email',
         icon: '📧',
         type: MenuType.route,
         status: BasicStatus.active,
@@ -337,7 +337,7 @@ export class SeedMenus {
       {
         code: 'posts',
         name: 'Bài viết',
-        path: '/admin/posts/posts',
+        path: '/admin/posts/list',
         api_path: 'api/admin/posts',
         icon: '📄',
         type: MenuType.route,
@@ -548,7 +548,7 @@ export class SeedMenus {
         code: 'product-management',
         name: 'Quản lý sản phẩm',
         path: '/admin/ecommerce/products',
-        api_path: 'api/admin/products/products',
+        api_path: 'api/admin/products/list',
         icon: '📦',
         type: MenuType.group,
         status: BasicStatus.active,
@@ -568,7 +568,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-products',
         name: 'Sản phẩm',
-        path: '/admin/ecommerce/products/products',
+        path: '/admin/ecommerce/products/list',
         api_path: 'api/admin/products',
         icon: '📦',
         type: MenuType.route,
@@ -660,7 +660,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-warehouses',
         name: 'Kho hàng',
-        path: '/admin/ecommerce/warehouses',
+        path: '/admin/ecommerce/warehouses/list',
         api_path: 'api/admin/warehouses',
         icon: '🏬',
         type: MenuType.route,
@@ -733,7 +733,7 @@ export class SeedMenus {
       {
         code: 'comic-list',
         name: 'Truyện tranh',
-        path: '/admin/comics/comics',
+        path: '/admin/comics/list',
         api_path: 'api/admin/comics',
         icon: '📕',
         type: MenuType.route,
@@ -803,7 +803,7 @@ export class SeedMenus {
       {
         code: 'comic-stats',
         name: 'Thống kê báo cáo',
-        path: '/admin/comics/stats',
+        path: '/admin/comics/statistics',
         api_path: 'api/admin/comic-stats',
         icon: '📈',
         type: MenuType.route,
@@ -854,7 +854,7 @@ export class SeedMenus {
       {
         code: 'ecommerce-shipping-methods',
         name: 'Phương thức vận chuyển',
-        path: '/admin/ecommerce/shippings',
+        path: '/admin/ecommerce/shipping-methods',
         api_path: 'api/admin/shipping-methods',
         icon: '🚚',
         type: MenuType.route,

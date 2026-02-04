@@ -14,7 +14,7 @@ import { Permission } from '@/common/auth/decorators';
 import { LogRequest } from '@/common/shared/decorators';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('auth')
+@Controller()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
