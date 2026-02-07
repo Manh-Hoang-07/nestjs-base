@@ -21,15 +21,22 @@ export class CommentRepositoryImpl extends PrismaRepository<
         const where: Prisma.ComicCommentWhereInput = {};
 
         if (filter.group_id !== undefined) {
-            (where as any).comic = {
+            where.comic = {
                 group_id: filter.group_id === null ? null : this.toPrimaryKey(filter.group_id),
-            };
+            } as any;
         }
 
         if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);
         if (filter.comic_id) where.comic_id = this.toPrimaryKey(filter.comic_id);
-        if (filter.chapter_id) where.chapter_id = this.toPrimaryKey(filter.chapter_id);
-        if (filter.parent_id) where.parent_id = this.toPrimaryKey(filter.parent_id);
+
+        if (filter.chapter_id !== undefined) {
+            where.chapter_id = filter.chapter_id === null ? null : this.toPrimaryKey(filter.chapter_id);
+        }
+
+        if (filter.parent_id !== undefined) {
+            where.parent_id = filter.parent_id === null ? null : this.toPrimaryKey(filter.parent_id);
+        }
+
         if (filter.status) where.status = filter.status as any;
 
         return where;
