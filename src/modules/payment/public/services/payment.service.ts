@@ -339,11 +339,11 @@ export class PaymentService {
      * Get list of payments with filters
      */
     async getPayments(getPaymentsDto: GetPaymentsDto): Promise<any> {
-        const { page = 1, limit = 10, status } = getPaymentsDto;
+        const { page = 1, limit = 10, status, ...rest } = getPaymentsDto;
         const { data, meta } = await this.paymentRepository.findAll({
             page,
             limit,
-            filter: { status },
+            filter: { status, ...rest },
             include: { payment_method: true },
             sort: 'created_at:DESC',
         } as any);

@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
 import { UserProductService } from '../services/product.service';
-import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { ProductStatus } from '@/shared/enums';
 import { createPaginationMeta } from '@/common/core/utils/pagination.helper';
 
@@ -20,8 +19,7 @@ export class UserProductController {
 
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    return this.productService.getProducts({ ...filter, ...options });
+    return this.productService.getProducts(query);
   }
 
   @Get('featured')

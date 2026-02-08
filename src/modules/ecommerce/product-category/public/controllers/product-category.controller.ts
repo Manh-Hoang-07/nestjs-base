@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { PublicProductCategoryService } from '../services/product-category.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
-import { prepareQuery } from '@/common/core/utils/list-query.helper';
 
 @Controller('public/product-categories')
 export class PublicProductCategoryController {
@@ -17,24 +16,19 @@ export class PublicProductCategoryController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    return this.productCategoryService.getCategories({ ...filter, ...options });
+    return this.productCategoryService.getCategories(query);
   }
 
   @Permission('public')
   @Get('tree')
   async getTree(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    const treeDto = { ...filter, ...options, format: 'tree' as 'tree' | 'flat' };
-    return this.productCategoryService.getCategories(treeDto);
+    return this.productCategoryService.getCategories({ ...query, format: 'tree' });
   }
 
   @Permission('public')
   @Get('root')
   async getRoot(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    const rootDto = { ...filter, ...options, format: 'tree' as 'tree' | 'flat' };
-    return this.productCategoryService.getCategories(rootDto);
+    return this.productCategoryService.getCategories({ ...query, format: 'tree' });
   }
 
   @Permission('public')

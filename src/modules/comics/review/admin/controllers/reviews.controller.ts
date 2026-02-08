@@ -11,7 +11,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ReviewsService } from '../services/reviews.service';
-import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
@@ -22,8 +21,7 @@ export class ReviewsController {
   @Permission('comic.manage')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    return this.reviewsService.getList({ filter, ...options });
+    return this.reviewsService.getList(query);
   }
 
   @Permission('comic.manage')

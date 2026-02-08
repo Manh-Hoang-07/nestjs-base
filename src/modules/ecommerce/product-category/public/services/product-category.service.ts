@@ -30,14 +30,15 @@ export class PublicProductCategoryService extends BaseService<ProductCategory, I
       status = 'active',
       sort_by = 'sort_order',
       sort_order = 'asc',
-      format = 'tree'
+      format = 'tree',
+      ...rest
     } = getCategoriesDto;
 
     const basicStatus = status === 'active' ? BasicStatus.active : BasicStatus.inactive;
 
     if (format === 'flat') {
       return this.getList({
-        filter: { status: basicStatus },
+        filter: { status: basicStatus, ...rest },
         page,
         limit,
         sort: `${sort_by}:${sort_order}`

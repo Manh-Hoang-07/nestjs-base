@@ -151,8 +151,8 @@ export class PublicOrderService {
    * Lấy danh sách orders
    */
   async getOrders(getOrdersDto: GetOrdersDto, userId?: number | bigint): Promise<any> {
-    const { page = 1, limit = 10, status } = getOrdersDto;
-    const filters: any = {};
+    const { page = 1, limit = 10, status, ...rest } = getOrdersDto;
+    const filters: any = { ...rest };
     if (userId) filters.user_id = userId;
     if (status) filters.status = status;
 

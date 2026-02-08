@@ -24,11 +24,13 @@ export class UserProductService extends BaseService<Product, IProductRepository>
       sort_by = 'created_at',
       sort_order = 'DESC',
       search,
+      ...filters
     } = getProductsDto;
 
     return this.getList({
       status,
       search,
+      ...filters,
       page,
       limit,
       sort: `${sort_by}:${sort_order}`,

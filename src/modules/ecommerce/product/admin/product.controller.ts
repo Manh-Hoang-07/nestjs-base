@@ -17,7 +17,6 @@ import { Permission } from '@/common/auth/decorators/rbac.decorators';
 import { AdminProductService } from './services/product.service';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
-import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/products')
@@ -28,15 +27,13 @@ export class AdminProductController {
   @Get()
   @Permission('product.manage')
   async getList(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    return this.productService.getList({ ...filter, ...options });
+    return this.productService.getList(query);
   }
 
   @Get('simple')
   @Permission('product.manage')
   async getSimpleList(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    return this.productService.getList({ ...filter, ...options });
+    return this.productService.getList(query);
   }
 
   @Get(':id')
