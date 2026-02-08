@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { PublicChaptersService } from '@/modules/comics/chapter/public/services/chapter.service';
-import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { ViewTrackingService } from '@/modules/comics/shared/services/view-tracking.service';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
@@ -25,8 +24,7 @@ export class PublicChaptersController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: any) {
-    const { filter, options } = prepareQuery(query);
-    return this.chaptersService.getList({ filter, options });
+    return this.chaptersService.getList(query);
   }
 
   @Permission('public')
@@ -74,4 +72,3 @@ export class PublicChaptersController {
     });
   }
 }
-

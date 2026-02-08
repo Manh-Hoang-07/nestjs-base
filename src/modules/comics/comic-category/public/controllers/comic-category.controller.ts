@@ -9,7 +9,6 @@ import { PublicComicCategoriesService } from '@/modules/comics/comic-category/pu
 import { GetComicCategoriesDto } from '@/modules/comics/comic-category/public/dtos/get-categories.dto';
 import { GetComicCategoryDto } from '@/modules/comics/comic-category/public/dtos/get-category.dto';
 import { Permission } from '@/common/auth/decorators/rbac.decorators';
-import { prepareQuery } from '@/common/core/utils/list-query.helper';
 
 @Controller('public/comic-categories')
 export class PublicComicCategoriesController {
@@ -18,8 +17,7 @@ export class PublicComicCategoriesController {
   @Permission('public')
   @Get()
   async getList(@Query(ValidationPipe) query: GetComicCategoriesDto) {
-    const { filter, options } = prepareQuery(query);
-    return this.comicCategoriesService.getList({ filter, options });
+    return this.comicCategoriesService.getList(query);
   }
 
   @Permission('public')
