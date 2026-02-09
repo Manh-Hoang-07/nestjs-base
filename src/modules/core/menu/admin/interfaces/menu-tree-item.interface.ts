@@ -6,6 +6,7 @@ export interface MenuTreeItem {
   icon?: string | null;
   type: string;
   status: string;
+  is_public?: boolean;
   children?: MenuTreeItem[];
   allowed?: boolean;
 }

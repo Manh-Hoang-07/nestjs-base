@@ -10,4 +10,4 @@ import { RbacModule } from '@/modules/core/rbac/rbac.module';
   ],
   controllers: [UserMenuController],
 })
-export class UserMenuModule {}
+export class UserMenuModule { }

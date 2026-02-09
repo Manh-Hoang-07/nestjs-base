@@ -8,7 +8,9 @@ export interface MenuFilter {
     search?: string;
     status?: string;
     parentId?: number | bigint;
+    parent_id?: number | bigint;
     type?: string;
+    group?: string;
 }
 
 export interface IMenuRepository extends IRepository<Menu> {

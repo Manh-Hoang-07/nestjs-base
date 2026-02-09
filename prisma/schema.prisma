@@ -328,6 +328,7 @@ model Menu {
   sort_order             Int         @default(0)
   is_public              Boolean     @default(false)
   show_in_menu           Boolean     @default(true)
+  group                  String      @default("admin") @db.VarChar(50)
   required_permission_id BigInt?     @db.UnsignedBigInt
   created_user_id        BigInt?     @db.UnsignedBigInt
   updated_user_id        BigInt?     @db.UnsignedBigInt
@@ -344,6 +345,7 @@ model Menu {
   @@index([parent_id], map: "idx_parent_id")
   @@index([required_permission_id], map: "idx_required_permission_id")
   @@index([status, show_in_menu], map: "idx_status_show_in_menu")
+  @@index([group], map: "idx_group")
   @@index([deleted_at], map: "idx_deleted_at")
   @@map("menus")
 }

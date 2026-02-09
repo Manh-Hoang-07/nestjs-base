@@ -80,59 +80,106 @@ export class MenuService extends BaseService<any, IMenuRepository> {
   }
 
   async getUserMenus(
-    userId: number,
-    options?: { include_inactive?: boolean; flatten?: boolean; contextId?: number }
+    userId?: number | bigint,
+    filters: MenuFilter = {}
   ): Promise<MenuTreeItem[]> {
-    const includeInactive = options?.include_inactive || false;
-    const flatten = options?.flatten || false;
-    const groupId = RequestContext.get<number | null>('groupId');
-    const contextType = RequestContext.get<any>('context')?.type || 'system';
+    const group = filters.group || 'admin';
 
-    const filter: MenuFilter = {
-      status: includeInactive ? undefined : BasicStatus.active
+    // 1. Lọc dữ liệu từ Repo - Database đã lọc theo group và status
+    const dbFilter: MenuFilter = {
+      ...filters,
+      group: group,
+      status: BasicStatus.active,
     };
 
-    // We use findAllWithChildren here to get everything with relations
-    const menus = (await this.menuRepo.findAllWithChildren(filter) as any[]).filter(m => (m as any).show_in_menu);
+    const allMenus = await this.menuRepo.findAllWithChildren(dbFilter);
+    const menus = (allMenus as any[]).filter(m => m.show_in_menu);
 
     if (!menus.length) return [];
 
-    const allPerms = new Set<string>();
-    const testPerms = menus
-      .filter((m: any) => m.required_permission?.code || m.menu_permissions?.length)
-      .flatMap((m: any) => [
-        ...(m.required_permission?.code ? [m.required_permission.code] : []),
-        ...(m.menu_permissions?.map((mp: any) => mp.permission?.code).filter(Boolean) || []),
-      ]);
-
-    for (const perm of new Set(testPerms)) {
-      const hasPerm = await this.rbacService.userHasPermissionsInGroup(userId, groupId ?? null, [perm as string]);
-      if (hasPerm) allPerms.add(perm as string);
+    // 2. Lọc theo quyền dựa trên loại menu
+    let filteredMenus: any[];
+    if (group === 'client') {
+      // Menu client: Chỉ check public hoặc đã đăng nhập
+      filteredMenus = this.filterClientMenus(menus, userId);
+    } else {
+      // Menu admin: Check quyền RBAC đầy đủ
+      filteredMenus = await this.filterAdminMenus(menus, userId);
     }
 
-    let filteredMenus = menus.filter((menu: any) => {
+    // 3. Xây dựng cấu trúc cây
+    return this.buildTree(filteredMenus);
+  }
+
+  /**
+   * Logic lọc menu dành cho Website (Client)
+   */
+  private filterClientMenus(menus: any[], userId?: number | bigint): any[] {
+    return menus.filter((menu) => {
+      if (menu.is_public) return true; // Menu công khai
+      if (userId) return true;        // Menu yêu cầu đăng nhập cơ bản
+      return false;
+    });
+  }
+
+  /**
+   * Logic lọc menu dành cho Dashboard (Admin)
+   */
+  private async filterAdminMenus(menus: any[], userId?: number | bigint): Promise<any[]> {
+    if (!userId) return []; // Admin menu bắt buộc phải đăng nhập
+
+    const groupId = RequestContext.get<number | null>('groupId');
+    const contextType = RequestContext.get<any>('context')?.type || 'system';
+
+    // Lấy danh sách tất cả các permission code cần check từ danh sách menus
+    const requiredPerms = this.getPermissionsFromMenus(menus);
+    const userPerms = new Set<string>();
+
+    // Kiểm tra quyền của User
+    for (const perm of requiredPerms) {
+      const hasPerm = await this.rbacService.userHasPermissionsInGroup(userId as number, groupId ?? null, [perm]);
+      if (hasPerm) userPerms.add(perm);
+    }
+
+    // Lọc menu theo quyền đã check
+    let filtered = menus.filter((menu) => {
       if (menu.is_public) return true;
-      if (!menu.required_permission_id && !menu.required_permission) return true;
-      if (menu.required_permission?.code && allPerms.has(menu.required_permission.code)) return true;
+      if (!menu.required_permission_id && (!menu.menu_permissions || menu.menu_permissions.length === 0)) return true;
+
+      // Check quyền chính
+      if (menu.required_permission?.code && userPerms.has(menu.required_permission.code)) return true;
+
+      // Check các quyền phụ trợ (nếu có)
       if (menu.menu_permissions?.length) {
-        return menu.menu_permissions.some((mp: any) => mp.permission?.code && allPerms.has(mp.permission.code));
+        return menu.menu_permissions.some((mp: any) => mp.permission?.code && userPerms.has(mp.permission.code));
       }
+
       return false;
     });
 
+    // Lọc bỏ menu đặc thù hệ thống nếu không phải context 'system'
     if (contextType !== 'system') {
-      const systemOnlyPermissions = ['role.manage', 'permission.manage', 'group.manage', 'system.manage', 'config.manage'];
-      const systemOnlyMenuCodes = ['roles', 'permissions', 'groups', 'contexts', 'config-general', 'config-email', 'rbac-management', 'config-management'];
-
-      filteredMenus = filteredMenus.filter((menu: any) => {
-        if (menu.required_permission?.code && systemOnlyPermissions.includes(menu.required_permission.code as string)) return false;
-        if (systemOnlyMenuCodes.includes(menu.code as string)) return false;
-        return true;
-      });
+      const systemOnlyCodes = ['roles', 'permissions', 'groups', 'contexts', 'config-general', 'config-email', 'rbac-management', 'config-management'];
+      filtered = filtered.filter(m => !systemOnlyCodes.includes(m.code));
     }
 
-    const tree = this.buildTree(filteredMenus);
-    return flatten ? this.flattenTree(tree) : tree;
+    return filtered;
+  }
+
+  /**
+   * Thu thập tập hợp các Permission Code duy nhất từ danh sách Menu
+   */
+  private getPermissionsFromMenus(menus: any[]): Set<string> {
+    const codes = new Set<string>();
+    menus.forEach(m => {
+      if (m.required_permission?.code) codes.add(m.required_permission.code);
+      if (m.menu_permissions?.length) {
+        m.menu_permissions.forEach((mp: any) => {
+          if (mp.permission?.code) codes.add(mp.permission.code);
+        });
+      }
+    });
+    return codes;
   }
 
   private preparePayload(data: any): any {
@@ -163,6 +210,7 @@ export class MenuService extends BaseService<any, IMenuRepository> {
         icon: menu.icon as string | null,
         type: menu.type as string,
         status: menu.status as string,
+        is_public: !!menu.is_public,
         children: [],
         allowed: true,
       });
@@ -190,18 +238,6 @@ export class MenuService extends BaseService<any, IMenuRepository> {
 
     sortTree(rootMenus);
     return rootMenus;
-  }
-
-  private flattenTree(tree: MenuTreeItem[]): MenuTreeItem[] {
-    const result: MenuTreeItem[] = [];
-    const traverse = (items: MenuTreeItem[]) => {
-      items.forEach(item => {
-        result.push({ ...item, children: undefined });
-        if (item.children?.length) traverse(item.children);
-      });
-    };
-    traverse(tree);
-    return result;
   }
 
   protected transform(entity: any): any {

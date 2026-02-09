@@ -74,5 +74,10 @@ export class CreateMenuDto {
   @Type(() => Number)
   @Min(1)
   required_permission_id?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50, { message: 'Group must not exceed 50 characters' })
+  group?: string;
 }
 

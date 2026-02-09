@@ -36,6 +36,10 @@ export class QueryMenuDto {
 
   @IsOptional()
   @IsString()
+  group?: string;
+
+  @IsOptional()
+  @IsString()
   sort?: string = 'sort_order:ASC';
 }
 

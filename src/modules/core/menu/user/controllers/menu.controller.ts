@@ -2,31 +2,22 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { Permission } from '@/common/auth/decorators';
 import { AuthService } from '@/common/auth/services';
 import { MenuService } from '@/modules/core/menu/admin/services/menu.service';
+import { BasicStatus } from '@/shared/enums/types/basic-status.enum';
 
 @Controller('admin/user/menus')
 export class UserMenuController {
   constructor(
     private readonly service: MenuService,
     private readonly auth: AuthService,
-  ) {}
+  ) { }
 
-  @Permission('public')
+  @Permission('authenticated')
   @Get()
-  async getUserMenus(
-    @Query('include_inactive') includeInactive?: string,
-    @Query('flatten') flatten?: string,
-  ) {
+  async getUserMenus() {
     const userId = this.auth.id();
-    if (!userId) {
-      // Return empty array if not authenticated
-      return [];
-    }
 
-    const options = {
-      include_inactive: includeInactive === 'true',
-      flatten: flatten === 'true',
-    };
-
-    return this.service.getUserMenus(userId, options);
+    return this.service.getUserMenus(userId!, {
+      group: 'admin',
+    });
   }
 }

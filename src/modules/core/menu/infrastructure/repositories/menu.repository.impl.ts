@@ -29,6 +29,7 @@ export class MenuRepositoryImpl extends PrismaRepository<
             required_permission_id: true,
             is_public: true,
             show_in_menu: true,
+            group: true,
             created_at: true,
             updated_at: true,
             parent: { select: { id: true, name: true, code: true } },
@@ -59,8 +60,13 @@ export class MenuRepositoryImpl extends PrismaRepository<
             where.type = filter.type as any;
         }
 
-        if (filter.parentId !== undefined) {
-            where.parent_id = filter.parentId === null ? null : BigInt(filter.parentId);
+        const parentId = filter.parentId !== undefined ? filter.parentId : filter.parent_id;
+        if (parentId !== undefined) {
+            where.parent_id = parentId === null ? null : BigInt(parentId);
+        }
+
+        if (filter.group) {
+            where.group = filter.group;
         }
 
         return where;
