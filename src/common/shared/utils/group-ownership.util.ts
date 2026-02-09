@@ -53,3 +53,21 @@ export function verifyGroupOwnership(entity: GroupOwnedEntity): void {
 export function verifyContextOwnership(entity: GroupOwnedEntity): void {
   verifyGroupOwnership(entity);
 }
+
+/**
+ * Helper to get group filter based on context
+ * 
+ * Nếu là system context (quản trị toàn hệ thống) thì không lọc theo group_id (trả về {})
+ * Nếu là group khác thì trả về { group_id: groupId }
+ */
+export function getGroupFilter(): { group_id?: number | bigint } {
+  const context = RequestContext.get<any>('context');
+  const groupId = RequestContext.get<number | null>('groupId');
+
+  // Nếu là system context (quản trị toàn hệ thống) thì không lọc theo group_id
+  if (context?.type === 'system') {
+    return {};
+  }
+
+  return groupId ? { group_id: groupId } : {};
+}

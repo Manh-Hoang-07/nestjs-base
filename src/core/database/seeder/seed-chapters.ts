@@ -29,15 +29,19 @@ export class SeedChapters {
       return;
     }
 
+    // Get system group
+    const systemGroup = await this.prisma.group.findFirst({ where: { code: 'system' } });
+    const groupId = systemGroup ? systemGroup.id : null;
+
     // Seed chapters for each comic
     for (const comic of comics) {
       const chaptersCount = this.getChaptersCountForComic(comic.slug);
-      
+
       for (let i = 1; i <= chaptersCount; i++) {
         // Create pages for each chapter (random 10-30 pages)
         const pagesCount = Math.floor(Math.random() * 21) + 10;
         const pages = [];
-        
+
         for (let pageNum = 1; pageNum <= pagesCount; pageNum++) {
           pages.push({
             page_number: pageNum,
@@ -56,6 +60,7 @@ export class SeedChapters {
             chapter_index: i,
             chapter_label: `Chương ${i}`,
             status: ChapterStatus.published,
+            group_id: groupId,
             view_count: BigInt(Math.floor(Math.random() * 5000) + 100), // Random 100-5100 views
             created_user_id: defaultUserId,
             updated_user_id: defaultUserId,
@@ -149,13 +154,13 @@ export class SeedChapters {
 
   async clear(): Promise<void> {
     this.logger.log('Clearing chapters...');
-    
+
     // Clear pages first (due to foreign key)
     await this.prisma.chapterPage.deleteMany({});
-    
+
     // Clear chapters
     await this.prisma.chapter.deleteMany({});
-    
+
     this.logger.log('Chapters cleared');
   }
 }

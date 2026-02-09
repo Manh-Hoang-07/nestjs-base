@@ -4,6 +4,7 @@ import { IComicRepository, COMIC_REPOSITORY } from '../../../comic/domain/comic.
 import { IComicStatsRepository, COMIC_STATS_REPOSITORY } from '../../domain/comic-stats.repository';
 import { IComicViewRepository, COMIC_VIEW_REPOSITORY } from '../../domain/comic-view.repository';
 import { RequestContext } from '@/common/shared/utils';
+import { getGroupFilter } from '@/common/shared/utils/group-ownership.util';
 
 
 @Injectable()
@@ -21,8 +22,7 @@ export class AdminStatsService {
    * Dashboard analytics
    */
   async getDashboard() {
-    const groupId = RequestContext.get<number | null>('groupId');
-    const filter = groupId ? { group_id: groupId } : {};
+    const filter = getGroupFilter();
 
     const [totalComics, totalViews, totalFollows, topComics] = await Promise.all([
       this.comicRepository.count(filter as any),
@@ -51,8 +51,7 @@ export class AdminStatsService {
    * Top comics
    */
   async getTopComics(limit: number = 20, sortBy: 'views' | 'follows' | 'rating' = 'views') {
-    const groupId = RequestContext.get<number | null>('groupId');
-    const filter = groupId ? { group_id: groupId } : {};
+    const filter = getGroupFilter();
 
     const sort = sortBy === 'views'
       ? 'view_count:DESC'
@@ -77,11 +76,11 @@ export class AdminStatsService {
    * Views over time
    */
   async getViewsOverTime(startDate: Date, endDate: Date) {
-    const groupId = RequestContext.get<number | null>('groupId');
+    const filter = getGroupFilter();
     const views = await this.viewRepository.findMany({
+      ...filter,
       date_from: startDate,
       date_to: endDate,
-      group_id: groupId || undefined,
     }, {
       sort: 'created_at:ASC'
     });

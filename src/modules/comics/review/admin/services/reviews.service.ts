@@ -53,11 +53,7 @@ export class ReviewsService extends BaseService<ComicReview, IReviewRepository> 
 
     // Gán group_id từ RequestContext
     if (prepared.group_id === undefined) {
-      const contextId = RequestContext.get<number>('contextId');
-      const groupId = RequestContext.get<number | null>('groupId');
-      if (contextId && contextId !== 1 && groupId) {
-        prepared.group_id = groupId;
-      }
+      Object.assign(prepared, this.getGroupFilter());
     }
 
     return prepared;

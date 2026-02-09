@@ -156,6 +156,10 @@ export class SeedComics {
       },
     ];
 
+    // Get system group
+    const systemGroup = await this.prisma.group.findFirst({ where: { code: 'system' } });
+    const groupId = systemGroup ? systemGroup.id : null;
+
     for (const comicData of comicsData) {
       // Assign categories
       const comicCategories = categories.filter(cat =>
@@ -172,6 +176,7 @@ export class SeedComics {
           status: comicData.status,
           cover_image: comicData.cover_image,
           is_featured: (comicData as any).is_featured || false,
+          group_id: groupId,
           created_user_id: defaultUserId,
           updated_user_id: defaultUserId,
           stats: {

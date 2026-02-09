@@ -50,12 +50,17 @@ export class SeedComicCategories {
       { name: 'Webtoon', slug: 'webtoon', description: 'Thể loại webtoon' },
     ];
 
+    // Get system group
+    const systemGroup = await this.prisma.group.findFirst({ where: { code: 'system' } });
+    const groupId = systemGroup ? systemGroup.id : null;
+
     for (const categoryData of categoriesData) {
       await this.prisma.comicCategory.create({
         data: {
           name: categoryData.name,
           slug: categoryData.slug,
           description: categoryData.description,
+          group_id: groupId,
           created_user_id: defaultUserId,
           updated_user_id: defaultUserId,
         },
