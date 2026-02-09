@@ -51,7 +51,7 @@ export class HomepageService {
         this.CACHE_KEYS.TOP_VIEWED,
         async () => {
           const result = await this.comicsService.getList({
-            limit: 10,
+            limit: 8,
             sort: 'view_count:DESC',
           });
           return result.data || [];
@@ -65,7 +65,7 @@ export class HomepageService {
         this.CACHE_KEYS.TRENDING,
         async () => {
           const result = await this.comicsService.getList({
-            limit: 30,
+            limit: 8,
             sort: 'view_count:DESC',
           });
           return result.data || [];
@@ -79,7 +79,7 @@ export class HomepageService {
         this.CACHE_KEYS.POPULAR,
         async () => {
           const result = await this.comicsService.getList({
-            limit: 30,
+            limit: 8,
             sort: 'follow_count:DESC',
           });
           return result.data || [];
@@ -93,7 +93,7 @@ export class HomepageService {
         this.CACHE_KEYS.NEWEST,
         async () => {
           const result = await this.comicsService.getList({
-            limit: 30,
+            limit: 8,
             sort: 'created_at:DESC',
           });
           return result.data || [];
@@ -108,7 +108,7 @@ export class HomepageService {
         this.CACHE_KEYS.LATEST_CHAPTERS,
         async () => {
           const result = await this.comicsService.getList({
-            limit: 10,
+            limit: 8,
             sort: 'last_chapter_updated_at:DESC',
           });
           return result.data || [];
