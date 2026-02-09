@@ -45,7 +45,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
       // Handle validation errors from class-validator
       if (Array.isArray(errorObj.message)) {
-        message = 'Validation failed';
+        message = errorObj.message.length > 0 ? errorObj.message[0] : 'Validation failed';
         errors = errorObj.message;
       }
     }
