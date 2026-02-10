@@ -37,6 +37,16 @@ export class AdminPostCommentController {
         return this.commentService.update(id, body);
     }
 
+    @Put(':id/status')
+    @Permission('post.manage')
+    @LogRequest({ fileBaseName: 'post_comment_status_update' })
+    async updateStatus(
+        @Param('id', ParseIntPipe) id: number,
+        @Body(ValidationPipe) body: { status: 'visible' | 'hidden' },
+    ) {
+        return this.commentService.update(id, { status: body.status });
+    }
+
     @Delete(':id')
     @Permission('post.manage')
     @LogRequest({ fileBaseName: 'post_comment_delete' })

@@ -46,6 +46,16 @@ export class CommentsController {
   }
 
   @Permission('comic.manage')
+  @LogRequest({ fileBaseName: 'comment_status_update' })
+  @Put(':id/status')
+  async updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) body: { status: 'visible' | 'hidden' },
+  ) {
+    return this.commentsService.update(id, { status: body.status });
+  }
+
+  @Permission('comic.manage')
   @LogRequest({ fileBaseName: 'comment_delete' })
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {

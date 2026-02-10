@@ -13,29 +13,48 @@ export class AdminPostCommentService extends BaseContentService<PostComment, IPo
         super(commentRepo);
     }
 
-    async getList(query: any) {
-        const filter: PostCommentFilter = {};
-        if (query.post_id) filter.postId = query.post_id;
-        if (query.status) filter.status = query.status;
-        if (query.search) filter.search = query.search;
+    // Override prepareFilters to handle filter logic standardly
+    protected override async prepareFilters(filters: any = {}, _options?: any): Promise<any> {
+        const prepared = { ...filters };
 
-        // Logic similar to Comic default parent_id=null
-        if (query.parent_id !== undefined) {
-            if (query.parent_id === 'null' || query.parent_id === null) {
-                filter.parentId = null;
-            } else {
-                filter.parentId = query.parent_id;
-            }
-        } else {
-            filter.parentId = null;
+        // Map snake_case query params to camelCase filter properties expected by Repository
+        if (prepared.post_id) {
+            prepared.postId = prepared.post_id;
+            delete prepared.post_id;
         }
 
-        return super.getList({
-            page: query.page,
-            limit: query.limit,
-            sort: query.sort,
-            filter,
-        });
+        // Logic similar to Comic default parent_id=null
+        if (prepared.parent_id !== undefined) {
+            if (prepared.parent_id === 'null' || prepared.parent_id === null) {
+                prepared.parentId = null;
+            } else {
+                prepared.parentId = prepared.parent_id;
+            }
+            delete prepared.parent_id;
+        } else {
+            // Default to root comments if parent_id is not specified
+            // Check if parentId is already set (e.g. from internal call)
+            if (prepared.parentId === undefined) {
+                prepared.parentId = null;
+            }
+        }
+
+        if (prepared.search) {
+            // If repository expects 'search' in filter, keep it.
+            // PostCommentRepositoryImpl checks filter.search.
+        }
+
+        // Map date filters if needed (Comic uses date_from, PostRepo uses startDate)
+        if (prepared.date_from) {
+            prepared.startDate = prepared.date_from;
+            delete prepared.date_from;
+        }
+        if (prepared.date_to) {
+            prepared.endDate = prepared.date_to;
+            delete prepared.date_to;
+        }
+
+        return prepared;
     }
 
     protected override async prepareOptions(options: any = {}) {
