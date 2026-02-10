@@ -33,8 +33,14 @@ export class ComicRepositoryImpl extends PrismaRepository<
             last_chapter_id: true,
             last_chapter_updated_at: true,
             categoryLinks: {
-                include: {
-                    category: true,
+                select: {
+                    category: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                        },
+                    },
                 },
             },
             stats: true,
