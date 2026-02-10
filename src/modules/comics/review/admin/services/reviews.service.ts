@@ -62,7 +62,14 @@ export class ReviewsService extends BaseService<ComicReview, IReviewRepository> 
   protected override async prepareOptions(options: IPaginationOptions): Promise<IPaginationOptions> {
     const normalized = await super.prepareOptions(options);
     (normalized as any).include = {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        }
+      },
       comic: true,
     };
     return normalized;

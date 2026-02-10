@@ -8,13 +8,13 @@ export interface PostCommentFilter {
     postId?: number | bigint;
     userId?: number | bigint;
     status?: string;
-    parentId?: number | bigint;
+    parentId?: number | bigint | null;
     search?: string;
+    startDate?: Date | string;
+    endDate?: Date | string;
 }
 
 export interface IPostCommentRepository extends IRepository<PostComment> {
     findWithReplies(postId: number | bigint): Promise<PostComment[]>;
     updateStatus(id: number | bigint, status: string): Promise<PostComment>;
 }
-
-

@@ -45,7 +45,14 @@ export class UserCommentsService extends BaseService<ComicComment, ICommentRepos
         chapter: true,
         replies: {
           include: {
-            user: true
+            user: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                image: true
+              }
+            }
           },
           take: 5
         }

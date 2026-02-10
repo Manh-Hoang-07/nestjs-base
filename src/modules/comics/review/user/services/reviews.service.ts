@@ -23,7 +23,14 @@ export class ReviewsService extends BaseService<ComicReview, IReviewRepository> 
     return {
       ...base,
       include: options?.include ?? {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          }
+        },
       },
       sort: options?.sort ?? 'created_at:desc',
     };

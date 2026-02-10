@@ -179,7 +179,13 @@ export class UserGroupService {
         group_id: BigInt(groupId),
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          }
+        },
         role: true,
       },
     });

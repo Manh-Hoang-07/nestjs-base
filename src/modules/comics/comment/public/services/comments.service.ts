@@ -21,10 +21,26 @@ export class PublicCommentsService {
         status: 'visible',
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          }
+        },
         replies: {
           where: { status: 'visible' },
-          include: { user: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              }
+            }
+          },
           orderBy: { created_at: 'asc' },
         },
       },
@@ -50,10 +66,26 @@ export class PublicCommentsService {
         status: 'visible',
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          }
+        },
         replies: {
           where: { status: 'visible' },
-          include: { user: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              }
+            }
+          },
           orderBy: { created_at: 'asc' },
         },
       },

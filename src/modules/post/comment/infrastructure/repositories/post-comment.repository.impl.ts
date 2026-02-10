@@ -43,6 +43,11 @@ export class PostCommentRepositoryImpl extends PrismaRepository<
         if (filter.search) {
             where.content = { contains: filter.search };
         }
+        if (filter.startDate || filter.endDate) {
+            where.created_at = {};
+            if (filter.startDate) where.created_at.gte = new Date(filter.startDate);
+            if (filter.endDate) where.created_at.lte = new Date(filter.endDate);
+        }
 
         return where;
     }
@@ -82,5 +87,3 @@ export class PostCommentRepositoryImpl extends PrismaRepository<
         return this.update(id, { status: status as any });
     }
 }
-
-

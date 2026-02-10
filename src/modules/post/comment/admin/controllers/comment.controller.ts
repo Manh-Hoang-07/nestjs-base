@@ -1,8 +1,8 @@
-import { Controller, Get, Query, Patch, Param, Body, Delete, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Put, Delete, Body, Param, Query, ParseIntPipe, ValidationPipe, UseGuards } from '@nestjs/common';
 import { AdminPostCommentService } from '../services/comment.service';
 import { RbacGuard } from '@/common/auth/guards';
 import { Permission } from '@/common/auth/decorators';
-import { prepareQuery } from '@/common/core/utils';
+import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
 
 @Controller('admin/post-comments')
 @UseGuards(RbacGuard)
@@ -15,18 +15,32 @@ export class AdminPostCommentController {
         return this.commentService.getList(query);
     }
 
-    @Patch(':id/status')
+    @Get('statistics')
     @Permission('post.manage')
-    async updateStatus(
-        @Param('id') id: string,
-        @Body('status') status: 'visible' | 'hidden',
+    async getStatistics() {
+        return this.commentService.getStatistics();
+    }
+
+    @Get(':id')
+    @Permission('post.manage')
+    async getOne(@Param('id', ParseIntPipe) id: number) {
+        return this.commentService.getOne(id);
+    }
+
+    @Put(':id')
+    @Permission('post.manage')
+    @LogRequest({ fileBaseName: 'post_comment_update' })
+    async update(
+        @Param('id', ParseIntPipe) id: number,
+        @Body(ValidationPipe) body: { content?: string; status?: 'visible' | 'hidden' },
     ) {
-        return this.commentService.updateCommentStatus(Number(id), status);
+        return this.commentService.update(id, body);
     }
 
     @Delete(':id')
     @Permission('post.manage')
-    async deleteComment(@Param('id') id: string) {
-        return this.commentService.deleteComment(Number(id));
+    @LogRequest({ fileBaseName: 'post_comment_delete' })
+    async delete(@Param('id', ParseIntPipe) id: number) {
+        return this.commentService.delete(id);
     }
 }

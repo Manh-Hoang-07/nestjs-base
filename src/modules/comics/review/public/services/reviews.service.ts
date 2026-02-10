@@ -15,7 +15,16 @@ export class PublicReviewsService {
   async getByComic(comicId: number, page: number = 1, limit: number = 20) {
     const { data: reviews, meta } = await this.reviewRepository.findAll({
       filter: { comic_id: comicId },
-      include: { user: true },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          }
+        }
+      },
       sort: 'created_at:DESC',
       page,
       limit,

@@ -69,7 +69,14 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
 
     // Thêm include để lấy cấu trúc cây
     (normalized as any).include = {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
       comic: {
         select: { id: true, title: true, slug: true }
       },
@@ -78,10 +85,24 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
       },
       replies: {
         include: {
-          user: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
           replies: {
             include: {
-              user: true
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  image: true,
+                },
+              },
             }
           }
         }
@@ -98,7 +119,14 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
     // Inject include vào options cho repository.findById xử lý (nếu repository hỗ trợ)
     // Hoặc gọi trực tiếp repository findOne với include
     const include = {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
       comic: {
         select: { id: true, title: true, slug: true }
       },
@@ -107,10 +135,24 @@ export class CommentsService extends BaseService<ComicComment, ICommentRepositor
       },
       replies: {
         include: {
-          user: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
           replies: {
             include: {
-              user: true
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  image: true,
+                },
+              },
             }
           }
         }

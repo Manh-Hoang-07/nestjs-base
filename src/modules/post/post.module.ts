@@ -20,6 +20,7 @@ import { PublicPostCategoryModule } from '@/modules/post/post-category/public/po
 import { PublicPostTagModule } from '@/modules/post/post-tag/public/post-tag.module';
 import { AdminPostCommentModule } from '@/modules/post/comment/admin/comment.module';
 import { PublicPostCommentModule } from '@/modules/post/comment/public/comment.module';
+import { UserPostCommentsModule } from '@/modules/post/comment/user/comment.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PublicPostCommentModule } from '@/modules/post/comment/public/comment.m
     PublicPostTagModule,
     AdminPostCommentModule,
     PublicPostCommentModule,
+    UserPostCommentsModule,
   ],
   providers: [
     // Shared services
