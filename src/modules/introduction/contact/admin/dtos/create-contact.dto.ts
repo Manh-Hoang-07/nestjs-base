@@ -12,14 +12,9 @@ export class CreateContactDto {
   email: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(20)
-  phone?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  subject?: string;
+  phone: string;
 
   @IsString()
   @IsNotEmpty()

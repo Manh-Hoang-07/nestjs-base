@@ -20,11 +20,6 @@ export class UpdateContactDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(255)
-  subject?: string;
-
-  @IsString()
-  @IsOptional()
   message?: string;
 
   @IsOptional()

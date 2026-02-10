@@ -23,7 +23,7 @@ export class ContactRepositoryImpl extends PrismaRepository<
             where.OR = [
                 { name: { contains: filter.search } },
                 { email: { contains: filter.search } },
-                { subject: { contains: filter.search } },
+                { phone: { contains: filter.search } },
             ];
         }
 

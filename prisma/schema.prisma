@@ -668,8 +668,7 @@ model Contact {
   id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   name       String    @db.VarChar(255)
   email      String    @db.VarChar(255)
-  phone      String?   @db.VarChar(20)
-  subject    String?   @db.VarChar(255)
+  phone      String    @db.VarChar(20)
   message    String    @db.Text
   status     String    @default("Pending") @db.VarChar(50)
   reply      String?   @db.Text

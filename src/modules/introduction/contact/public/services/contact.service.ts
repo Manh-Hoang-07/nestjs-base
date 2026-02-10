@@ -20,8 +20,7 @@ export class PublicContactService extends BaseService<any, IContactRepository> {
     return super.create({
       name: createContactDto.name,
       email: createContactDto.email,
-      phone: createContactDto.phone ?? null,
-      subject: createContactDto.subject ?? null,
+      phone: createContactDto.phone,
       message: createContactDto.message,
       status: ContactStatus.Pending as any,
     });

@@ -6,7 +6,7 @@ import { ContactStatus } from '@/shared/enums/types/contact-status.enum';
 export class SeedContacts {
   private readonly logger = new Logger(SeedContacts.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async seed(): Promise<void> {
     this.logger.log('Seeding contacts...');
@@ -27,7 +27,6 @@ export class SeedContacts {
         name: 'Nguyễn Văn A',
         email: 'nguyenvana@example.com',
         phone: '0901234567',
-        subject: 'Câu hỏi về sản phẩm',
         message: 'Tôi muốn biết thêm thông tin về sản phẩm này. Có thể tư vấn cho tôi không?',
         status: ContactStatus.Pending,
       },
@@ -35,7 +34,6 @@ export class SeedContacts {
         name: 'Trần Thị B',
         email: 'tranthib@example.com',
         phone: '0909876543',
-        subject: 'Yêu cầu hỗ trợ',
         message: 'Tôi gặp vấn đề với đơn hàng của mình. Mã đơn hàng là #12345. Vui lòng liên hệ lại.',
         status: ContactStatus.Read,
       },
@@ -43,7 +41,6 @@ export class SeedContacts {
         name: 'Lê Văn C',
         email: 'levanc@example.com',
         phone: '0912345678',
-        subject: 'Góp ý cải thiện dịch vụ',
         message: 'Tôi muốn góp ý về việc cải thiện dịch vụ giao hàng. Thời gian giao hàng có thể nhanh hơn không?',
         status: ContactStatus.Replied,
         reply: 'Cảm ơn bạn đã góp ý. Chúng tôi sẽ xem xét và cải thiện dịch vụ giao hàng trong thời gian tới.',
@@ -52,7 +49,6 @@ export class SeedContacts {
         name: 'Phạm Thị D',
         email: 'phamthid@example.com',
         phone: '0923456789',
-        subject: 'Đăng ký nhận bản tin',
         message: 'Tôi muốn đăng ký nhận bản tin về các chương trình khuyến mãi mới nhất.',
         status: ContactStatus.Closed,
         reply: 'Cảm ơn bạn đã quan tâm. Chúng tôi đã đăng ký email của bạn vào danh sách nhận bản tin.',
@@ -60,7 +56,7 @@ export class SeedContacts {
       {
         name: 'Hoàng Văn E',
         email: 'hoangvane@example.com',
-        subject: 'Liên hệ hợp tác',
+        phone: '0934567890',
         message: 'Công ty chúng tôi muốn hợp tác với bạn về việc phân phối sản phẩm. Vui lòng liên hệ lại qua email hoặc số điện thoại.',
         status: ContactStatus.Pending,
       },
