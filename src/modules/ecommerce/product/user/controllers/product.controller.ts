@@ -54,17 +54,24 @@ export class UserProductController {
     return this.productService.getProductVariants(id);
   }
 
-  @Get(':id/related')
+  @Get('slug/:slug/related')
   async getRelated(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('slug') slug: string,
     @Query('limit', ParseIntPipe) limit: number = 5,
   ) {
+    // First get the current product to find its ID and category
+    const currentProduct = await (this.productService as any).productRepository.findBySlug(slug);
+
+    if (!currentProduct) {
+      return { data: [], meta: createPaginationMeta(1, limit, 0) };
+    }
+
     const result = await this.productService.getList(
       { status: ProductStatus.active, sort: 'created_at:DESC', limit: limit + 1 }
     );
 
     // Filter out current product
-    const related = result.data.filter((p: any) => p.id !== id).slice(0, limit);
+    const related = result.data.filter((p: any) => p.id !== currentProduct.id).slice(0, limit);
     const total = related.length;
     const meta = createPaginationMeta(1, limit, total);
     return {

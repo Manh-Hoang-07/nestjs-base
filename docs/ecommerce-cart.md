@@ -1,110 +1,114 @@
-# Tài Liệu Tích Hợp API Ecommerce: Giỏ Hàng (Cart)
+# Tài Liệu Giao Diện & Dữ Liệu: Giỏ Hàng (Cart)
 
-Tài liệu này hướng dẫn tích hợp tính năng giỏ hàng, bao gồm thêm sản phẩm, cập nhật số lượng và quản lý giỏ hàng cho cả khách vãng lai (Guest) và thành viên (User).
+Tài liệu này mô tả chi tiết giao diện (UI) trang Giỏ hàng và luồng xử lý dữ liệu.
 
-## 1. Định Danh Giỏ Hàng (Cart Identification)
+---
 
-Hệ thống sử dụng cơ chế `cart_uuid` để định danh giỏ hàng cho khách chưa đăng nhập.
+## 1. Dữ Liệu Giỏ Hàng (Cart Data Model)
 
-### Logic Client-Side:
-1. Khi user truy cập website lần đầu, Client tự generate một UUID v4 (ví dụ: `550e8400-e29b-41d4-a716-446655440000`).
-2. Lưu UUID này vào **LocalStorage** (key gợi ý: `cart_uuid`).
-3. Gửi kèm `cart_uuid` này trong **TẤT CẢ** các request liên quan đến giỏ hàng.
-4. Nếu user **Đăng nhập**: Hệ thống sẽ tự động merge giỏ hàng của Guest (theo `cart_uuid`) vào giỏ hàng của User (theo `user_id`). Sau khi login, client vẫn nên gửi `cart_uuid` để đảm bảo tính nhất quán nếu backend yêu cầu, nhưng ưu tiên `user_id` từ token.
+Dữ liệu giỏ hàng cần hiển thị (Response từ `/api/public/cart`).
 
-## 2. API Lấy Thông Tin Giỏ Hàng
-
-### Endpoint
-`GET /api/public/cart`
-
-### Query Parameters
-| Tham số | Bắt buộc | Mô tả |
+| Trường dữ liệu | Vị trí UI | Mô tả |
 | :--- | :--- | :--- |
-| `cart_uuid` | Có (với Guest) | UUID định danh giỏ hàng |
+| `items` | Vùng danh sách sản phẩm | Mảng các sản phẩm trong giỏ. |
+| `subtotal` | Vùng tổng kết (Summary) | Tổng tiền hàng chưa tính phí khác. |
+| `discount_amount`| Vùng tổng kết | Số tiền được giảm giá (nếu có coupon). |
+| `shipping_amount`| Vùng tổng kết | Phí vận chuyển (thường là tạm tính hoặc 0 ở bước này). |
+| `total_amount` | Vùng tổng kết | Tổng tiền thanh toán cuối cùng (To nhất). |
 
-### Response Example
-```json
-{
-  "id": 123,
-  "cart_uuid": "...",
-  "user_id": null,
-  "subtotal": 500000,
-  "tax_amount": 0,
-  "shipping_amount": 0,
-  "discount_amount": 0,
-  "total_amount": 500000,
-  "items": [
-    {
-      "id": 1,
-      "product_id": 10,
-      "product_variant_id": 101, // ID biến thể thực tế
-      "product_name": "Áo Thun Basic",
-      "variant_name": "Màu Đỏ - Size S",
-      "quantity": 2,
-      "unit_price": 150000,
-      "total_price": 300000,
-      "product_attrbutes": {...}
-    }
-  ]
-}
-```
+### 1.1. Chi tiết Line Item (`items` array detail)
+Mỗi item trong giỏ hàng (`items[i]`) cần có:
+*   `product_id` & `product_variant_id`.
+*   `image`: Ảnh thumbnail của biến thể (hoặc ảnh sp gốc).
+*   `name`: Tên sản phẩm.
+*   `variant_text`: Tên biến thể để user nhận diện (vd: "Màu: Đỏ, Size: M").
+*   `unit_price`: Đơn giá tại thời điểm hiện tại.
+*   `quantity`: Số lượng user đang chọn.
+*   `total_price`: `unit_price * quantity`.
+*   `slug`: Để click vào quay lại trang detail.
 
-## 3. Thêm Sản Phẩm Vào Giỏ (Add to Cart)
+---
 
-### Endpoint
-`POST /api/public/cart/add`
+## 2. Giao Diện Giỏ Hàng (Cart Page UI)
 
-### Body Parameters
-```json
-{
-  "cart_uuid": "UUID-...", // Bắt buộc
-  "product_variant_id": 101, // Bắt buộc - ID của biến thể sản phẩm
-  "quantity": 1 // Bắt buộc - Số lượng muốn thêm
-}
-```
+Trang `/cart`. Layout thường chia 2 phần: **Danh sách sản phẩm (Trái - 65%)** và **Tổng tiền (Phải - 35%)**.
 
-### Logic Xử Lý:
-- **Variant ID**: Luôn phải gửi `product_variant_id`. Nếu là sản phẩm đơn giản, Client cần lấy ID của biến thể mặc định từ API Product Detail.
-- **Sản Phẩm Số**:
-  - Vẫn thêm vào giỏ như bình thường.
-  - Hệ thống có thể (tùy cấu hình) giới hạn số lượng mua là 1 đối với một số loại sản phẩm số (ví dụ: Khóa học, Ebook).
-  - Nếu sản phẩm đã có trong kho "Assets" của user (đã mua rồi), API có thể trả về lỗi hoặc cảnh báo tuỳ logic business.
-- **Tồn Kho**: API sẽ kiểm tra tồn kho (`stock_quantity`) của Variant. Nếu không đủ, API trả về lỗi 400.
+### 2.1. Cột Trái: Danh Sách Sản Phẩm
 
-## 4. Cập Nhật Giỏ Hàng
+#### A. Header Bảng
+*   Cột 1: Sản phẩm (Rộng nhất).
+*   Cột 2: Đơn giá.
+*   Cột 3: Số lượng.
+*   Cột 4: Thành tiền.
+*   Cột 5: Xoá (Icon thùng rác).
 
-### Cập nhật số lượng item
-**Endpoint**: `PUT /api/public/cart/items/:id` (hoặc `/api/public/cart/update`)
-**Body**:
-```json
-{
-  "cart_uuid": "UUID-...",
-  "quantity": 3
-}
-```
-- Nếu `quantity` = 0, item sẽ bị xóa khỏi giỏ.
-- API sẽ tính toán lại tổng tiền (`total_amount`) và trả về thông tin giỏ hàng mới nhất.
+#### B. Dòng Sản Phẩm (Item Row)
+Mỗi item hiển thị 1 dòng (Row):
+*   **Cột Sản Phẩm**:
+    *   Ảnh thumbnail (80x80px).
+    *   Thông tin text (bên cạnh ảnh):
+        *   Tên sản phẩm (Link trỏ về detail).
+        *   Phân loại: "Màu: Xanh | Size: 42" (Màu xám nhỏ).
+        *   *Optional*: Badge "Hết hàng" nếu stock = 0.
+*   **Cột Đơn giá**: Hiển thị giá hiện tại (vd: 150.000đ).
+*   **Cột Số lượng**:
+    *   Bộ điều khiển: `[-] [Input số] [+]`.
+    *   *Logic*:
+        *   Nút `[-]` disable nếu qty = 1 (hoặc click biến thành xoá).
+        *   Nút `[+]` disable nếu đạt giới hạn tồn kho.
+        *   Khi thay đổi số, gọi API update `cart_item_id` ngay lập tức (debounce) hoặc nút "Cập nhật giỏ".
+*   **Cột Thành tiền**: Hiển thị `total_price` (In đậm).
+*   **Cột Xoá**: Nút icon (X hoặc Thùng rác). Click -> Confirm -> Xoá dòng.
 
-### Xóa sản phẩm khỏi giỏ
-**Endpoint**: `DELETE /api/public/cart/item/:id`
-**Query**: `cart_uuid=...`
+#### C. Empty State (Giỏ hàng trống)
+Nếu `items.length === 0`:
+*   Ẩn toàn bộ layout 2 cột.
+*   Hiển thị icon giỏ hàng rỗng ở giữa màn hình.
+*   Text: "Giỏ hàng của bạn đang trống".
+*   Nút: "Tiếp tục mua sắm" -> Link về Home.
 
-### Làm trống giỏ hàng (Clear Cart)
-**Endpoint**: `DELETE /api/public/cart/clear`
-**Query**: `cart_uuid=...`
+### 2.2. Cột Phải: Tổng Kết Đơn Hàng (Order Summary)
 
-## 5. Mã Giảm Giá (Coupon/Discount)
+Box này thường dính (sticky) khi cuộn trang.
 
-(Nếu hệ thống hỗ trợ)
-### Endpoint
-`POST /api/public/cart/apply-coupon`
-### Body
-```json
-{
-  "cart_uuid": "...",
-  "code": "SUMMER2025"
-}
-```
-### Response
-Trả về giỏ hàng đã được cập nhật `discount_amount` và `total_amount`.
-Nếu mã không hợp lệ, trả về lỗi 400.
+1.  **Tiêu đề**: "Cộng giỏ hàng".
+2.  **Các dòng tính toán**:
+    *   Tạm tính (Subtotal): `500.000đ`.
+    *   Giảm giá (Discount): `-0đ` (Nếu chưa áp mã).
+    *   Phí vận chuyển: "Tính khi thanh toán".
+3.  **Mã giảm giá (Coupon Input)**:
+    *   Input text: "Nhập mã khuyến mãi".
+    *   Button: "Áp dụng".
+    *   *Feedback*: Thông báo xanh (Thành công) hoặc đỏ (Mã sai/hết hạn) ngay bên dưới.
+4.  **Divider (Gạch ngang)**.
+5.  **Tổng cộng (Total)**:
+    *   Label: "Tổng tiền".
+    *   Value: **500.000đ** (Font rất lớn, màu đỏ/thương hiệu).
+    *   Note: "(Đã bao gồm VAT nếu có)".
+6.  **Nút CTA (Call to Action)**:
+    *   Nút "Tiến hành thanh toán" (Proceed to Checkout).
+    *   Full width, màu nổi bật.
+    *   Click -> Chuyển sang trang `/checkout`.
+
+---
+
+## 3. Mini Cart (Giỏ Hàng Rút Gọn)
+
+Thường là Dropdown khi hover vào icon giỏ hàng trên Header hoặc Drawer trượt từ phải sang.
+
+### Giao diện
+*   **Header**: "Giỏ hàng (3)".
+*   **List**: Scrollable list (chỉ hiển thị tối đa 3-5 item).
+    *   Item: Ảnh nhỏ, Tên (cắt ngắn), x Số lượng, Giá.
+    *   Nút Xoá nhanh item.
+*   **Footer Mini Cart**:
+    *   Tổng tiền tạm tính.
+    *   2 Nút: "Xem giỏ hàng" (Outline) và "Thanh toán" (Solid).
+
+---
+
+## 4. Các Trạng Thái UI Cần Lưu Ý
+
+1.  **Loading**: Khi user update số lượng, Box "Tổng kết" bên phải nên mờ đi (opacity) và hiện spinner loading để user biết đang tính lại tiền.
+2.  **Stock Error**: Nếu user update lên số lượng > tồn kho, hiện thông báo Toast "Chỉ còn 5 sản phẩm trong kho" và tự reset số lượng về max.
+3.  **Digital Product**: Nếu item là sản phẩm số, UI không khác biệt nhiều, nhưng có thể thêm 1 icon/badge nhỏ "Digital" để user biết đây là sản phẩm tải về.

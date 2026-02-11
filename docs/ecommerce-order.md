@@ -1,130 +1,130 @@
-# Tài Liệu Tích Hợp API Ecommerce: Đặt Hàng & Thanh Toán (Order & Payment)
+# Tài Liệu Giao Diện & Dữ Liệu: Đơn Hàng (Order History & Checkout)
 
-Tài liệu này mô tả quy trình tạo đơn hàng, xử lý thanh toán và tra cứu đơn hàng sau khi mua.
+Tài liệu này mô tả chi tiết giao diện trang **Thanh toán (Checkout)** và trang **Quản lý đơn hàng (Order History)**.
 
-## 1. Tạo Đơn Hàng (Create Order)
+---
 
-Sau khi user điền đầy đủ thông tin và chọn phương thức vận chuyển/thanh toán, Client gọi API này để chốt đơn.
+## PHẦN 1: THANH TOÁN (CHECKOUT UI)
 
-### Endpoint
-`POST /api/public/orders`
+URL: `/checkout`. Đây là trang quan trọng nhất, cần giao diện sạch, tin cậy.
 
-### Body Parameters
-```json
-{
-  "cart_uuid": "...", // Bắt buộc
-  "customer_name": "Nguyễn Văn A",
-  "customer_email": "a@email.com", // QUAN TRỌNG: Dùng để gửi vé/sản phẩm số
-  "customer_phone": "0912345678",
-  "shipping_address": {
-    "address": "123 Đường Láng",
-    "ward": "Phường Láng Thượng",
-    "district": "Quận Đống Đa",
-    "city": "Hà Nội"
-  },
-  "billing_address": { ... }, // Optional (nếu khác shipping)
-  "shipping_method_id": 1, // Bắt buộc
-  "payment_method_id": 2, // Bắt buộc - ID của Payment Method user đã chọn
-  "notes": "Giao hàng vào giờ hành chính"
-}
-```
+### 1.1. Bố Cục (Layout)
+Chia 2 cột:
+*   **Cột Trái (Main Step)**: Nhập liệu thông tin (60-70%).
+*   **Cột Phải (Order Summary)**: Tóm tắt đơn hàng (30-40%), Sticky.
 
-### Response Success
-```json
-{
-  "order_id": 1005,
-  "order_number": "ORD-12345-AB",
-  "status": "pending",
-  "total_amount": 530000,
-  "access_url": "https://domain.com/api/public/orders/access?orderCode=...&hashKey=..."
-}
-```
-Lưu ý: `access_url` là đường dẫn dùng để tra cứu đơn hàng nhanh (không cần login).
+### 1.2. Cột Trái - Các Bước Nhập Liệu
+Có thể thiết kế dạng **Accordion** (Mở từng bước) hoặc **One Page Checkout** (Hiện hết). Dưới đây mô tả One Page.
 
-## 2. Xử Lý Thanh Toán (Payment Processing)
+#### Block 1: Thông Tin Khách Hàng
+*   Tiêu đề: "Thông tin liên hệ".
+*   Nếu chưa login:
+    *   Text: "Bạn đã có tài khoản? [Đăng nhập]"
+    *   Input: Họ và tên, Số điện thoại, Email (Bắt buộc để gửi đơn hàng).
+*   Nếu đã login: Tự động fill thông tin User.
 
-Ngay sau khi nhận được `order_id` từ response trên, Client cần điều hướng user dựa trên phương thức thanh toán đã chọn.
+#### Block 2: Địa Chỉ Giao Hàng (Shipping Address)
+*   **Sản phẩm Vật lý**:
+    *   Dropdown: Tỉnh/Thành phố -> Quận/Huyện -> Phường/Xã (Load động dữ liệu hành chính).
+    *   Input: Địa chỉ cụ thể (Số nhà, đường).
+    *   Checkbox: "Lưu vào sổ địa chỉ" (Nếu login).
+*   **Sản phẩm Số**:
+    *   Có thể ẩn Block này hoặc thay bằng dòng text: "Thông tin đơn hàng sẽ được gửi qua Email của bạn."
 
-### Trường Hợp A: Thanh Toán Offline (COD / Chuyển Khoản)
-- **COD**: Hiển thị trang "Đặt hàng thành công". Thông báo user chuẩn bị tiền mặt.
-- **Bank Transfer**: Hiển thị trang "Đặt hàng thành công" kèm thông tin tài khoản ngân hàng và nội dung chuyển khoản (thường là mã đơn hàng `order_number` hoặc `order_id`).
+#### Block 3: Phương Thức Vận Chuyển (Shipping Method)
+*   Chỉ hiện khi đơn hàng có sản phẩm vật lý.
+*   UI: List các Radio Button.
+    *   **(o) Giao hàng tiêu chuẩn** - 30.000đ
+        *   *Mô tả*: Dự kiến giao: 3-5 ngày.
+    *   **( ) Giao hàng hoả tốc** - 50.000đ
+        *   *Mô tả*: Nhận hàng trong 24h.
+*   *Interaction*: Khi tick chọn, số tiền "Phí vận chuyển" bên cột phải phải nhảy số ngay lập tức.
 
-### Trường Hợp B: Thanh Toán Online (VNPay / ZaloPay...)
-Client cần gọi tiếp API để lấy URL thanh toán.
+#### Block 4: Phương Thức Thanh Toán (Payment Method)
+*   UI: List Radio Button dạng Box (Card).
+    *   **(o) [Icon] COD - Thanh toán khi nhận hàng**
+        *   *Note*: "Chỉ áp dụng cho đơn vật lý." (Disable nếu Cart có Digital Product).
+    *   **( ) [Icon] Chuyển khoản ngân hàng (QR Code)**
+    *   **( ) [Icon] Ví VNPay / Thẻ ATM**
+*   *Lưu ý*: Hiển thị rõ ràng các icon logo phương thức thanh toán để tăng độ tin cậy.
 
-**Endpoint**: `POST /api/payment/create-url`
+### 1.3. Cột Phải - Order Summary
+Background màu xám nhạt để phân biệt.
+1.  **List sản phẩm rút gọn**:
+    *   Ảnh nhỏ (50px).
+    *   Tên + Biến thể.
+    *   Số lượng (x2).
+    *   Giá tổng.
+2.  **Mã giảm giá**: (Nếu chưa nhập ở Cart thì nhập ở đây).
+3.  **Các dòng tính tiền**:
+    *   Tạm tính: 100.000đ
+    *   Phí vận chuyển: 30.000đ (Cập nhật theo Block 3).
+    *   Giảm giá: -0đ
+4.  **Tổng cộng (Total)**: **130.000đ**.
+5.  **Nút ĐẶT HÀNG (Place Order)**:
+    *   To, Rõ, Màu Brand.
+    *   Click -> Gọi API `Create Order`.
 
-**Body**:
-```json
-{
-  "order_id": 1005, // Lấy từ response Create Order
-  "payment_method_code": "vnpay", // Lấy từ object PaymentMethod user chọn
-  "amount": 530000, // Optional (Server tự lấy từ Order)
-  "customer_ip": "127.0.0.1" // Optional
-}
-```
+---
 
-**Response**:
-```json
-{
-  "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?..."
-}
-```
+## PHẦN 2: TRANG CẢM ƠN (THANK YOU PAGE)
 
-**Hành động Client**:
-1. Redirect (chuyển hướng) trình duyệt của user đến `paymentUrl`.
-2. User thực hiện thanh toán trên trang của ngân hàng/cổng thanh toán.
-3. Sau khi hoàn tất, cổng thanh toán sẽ redirect user trở lại website (URL Return) với các tham số kết quả.
-   - URL Return thường là: `/payment/result` hoặc `/checkout/success`.
-   - Backend sẽ xử lý xác thực (IPN/Callback) để cập nhật trạng thái đơn hàng thành `paid`.
+Sau khi đặt hàng thành công (hoặc thanh toán xong).
+*   **Icon Success**: Dấu tích xanh lớn.
+*   **Tiêu đề**: "Đặt hàng thành công!".
+*   **Mã đơn hàng**: "Mã đơn của bạn: #ORD-12345" (Cho phép copy).
+*   **Lời nhắn**: "Cảm ơn bạn đã mua hàng. Email xác nhận đã được gửi tới...".
+*   **Nút**: "Tiếp tục mua sắm" hoặc "Xem chi tiết đơn hàng".
 
-## 3. Tra Cứu Đơn Hàng (Order Tracking)
+---
 
-### Dành cho User đã đăng nhập
-**Endpoint**: `GET /api/public/orders`
-- Trả về danh sách lịch sử mua hàng.
-- Có thể lọc theo status.
+## PHẦN 3: QUẢN LÝ ĐƠN HÀNG (MY ORDERS)
 
-### Dành cho Guest (Tra cứu nhanh)
-Khách hàng truy cập link trong email hoặc nhập Mã Đơn Hàng + Email/SĐT để tra cứu.
-**Endpoint**: `GET /api/public/orders/access`
-**Query**:
-- `orderCode`: Mã đơn (ORD-...)
-- `hashKey`: Key bảo mật (được trả về lúc tạo đơn hoặc gửi trong email)
+URL: `/account/orders`. Dành cho user đã đăng nhập.
 
-## 4. Nhận Sản Phẩm Số (Digital Assets Delivery)
+### 3.1. Danh Sách Đơn Hàng (List)
+Dạng Bảng hoặc List Card (tốt cho mobile).
+*   **Header Filter**: Tab (Tất cả | Chờ thanh toán | Đang giao | Hoàn thành | Đã huỷ).
+*   **Item Đơn Hàng**:
+    *   Header: Mã đơn (#123) - Ngày đặt (01/01/2025) - **Trạng thái (Badge màu)**.
+    *   Body: List 1-2 sản phẩm đại diện (Ảnh + Tên). "Và 3 sản phẩm khác...".
+    *   Tổng tiền: "Tổng tiền: **500.000đ**".
+    *   Footer Actions:
+        *   Nút "Xem chi tiết".
+        *   Nút "Mua lại" (Re-order).
+        *   Nút "Thanh toán ngay" (Nếu trạng thái là Pending Payment).
 
-Với đơn hàng chứa sản phẩm số (Ebook, License Key, Code...):
+---
 
-1. **Điều kiện**: Đơn hàng phải có `payment_status` là `paid` (hoặc `completed`).
-2. **Truy cập**:
-   - Gọi API chi tiết đơn hàng (`GET /api/public/orders/:id` hoặc `GET /access`).
-   - Trong response `items`, kiểm tra trường `digital_assets`.
-3. **Dữ liệu trả về**:
-   - Hệ thống backend đã tự động giải mã (decrypt) nội dung asset.
-   - Client hiển thị trực tiếp cho user.
+## PHẦN 4: CHI TIẾT ĐƠN HÀNG (ORDER DETAIL)
 
-**Ví dụ Response Item Digital**:
-```json
-{
-  "product_name": "Windows 11 License",
-  "quantity": 1,
-  "digital_assets": [
-    {
-      "id": 50,
-      "name": "Product Key",
-      "type": "text",
-      "content": "XXXX-YYYY-ZZZZ-1234", // Đã decrypt, hiển thị cho user copy
-      "download_url": null
-    },
-    {
-      "id": 51,
-      "name": "Installer ISO",
-      "type": "file",
-      "content": "Link tải file...",
-      "download_url": "https://s3..." // Link tải
-    }
-  ]
-}
-```
-Lưu ý: Nếu đơn hàng chưa thanh toán (`pending`), trường `digital_assets` sẽ trả về mảng rỗng hoặc bị ẩn.
+URL: `/account/orders/:id` (hoặc `/orders/tracking` cho Guest).
+
+### 4.1. Thông Tin Chung (Header Info)
+*   **Trạng thái đơn hàng**: Timeline (Process Bar).
+    *   [x] Đã đặt -> [x] Đã thanh toán -> [Active] Đang vận chuyển -> [ ] Giao thành công.
+*   **Ngày đặt**: Giờ/Ngày/Tháng/Năm.
+
+### 4.2. Khu Vực Sản Phẩm Số (Digital Delivery) - QUAN TRỌNG
+*Chỉ hiển thị nếu đơn hàng có sản phẩm số và đã thanh toán (Status = Paid).*
+*   **Tiêu đề Box**: "Sản phẩm số của bạn" (Highlight nền vàng/xanh nhật).
+*   **List Item**:
+    *   Tên sản phẩm: "Ebook Học ReactJS".
+    *   **Nội dung**:
+        *   Nếu là Key/Code: Hiển thị mã "X8S-22KL-..." + Nút Copy.
+        *   Nếu là File: Nút "Download" (Link tới file).
+    *   *Note*: "Link tải có hiệu lực trong 24h".
+
+### 4.3. Thông Tin Chi Tiết (Grid Info)
+Chia 2 hoặc 3 cột:
+1.  **Địa chỉ nhận hàng**: Tên, SĐT, Địa chỉ chi tiết.
+2.  **Thanh toán**: Phương thức (VNPay), Trạng thái (Đã thanh toán).
+3.  **Vận chuyển**: Đơn vị (Giao hàng nhanh), Mã vận đơn (Tracking ID - Link sang trang carrier).
+
+### 4.4. Danh Sách Sản Phẩm (Item Table)
+Giống UI Giỏ hàng nhưng không sửa xoá được.
+*   Hiển thị đầy đủ variant, giá tiền, số lượng.
+*   **Nút Hành Động mỗi dòng** (Nếu đơn đã hoàn thành): "Viết đánh giá" (Review).
+
+### 4.5. Tổng Kết Tiền
+*   Hiển thị lại Subtotal, Shipping, Discount, Total.

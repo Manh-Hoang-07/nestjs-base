@@ -36,14 +36,49 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
   }
 
   /**
+   * Transform product data
+   * - Flatten categories structure
+   * - Calculate price from variants
+   */
+  protected override transform(product: any): any {
+    if (!product) return product;
+
+    // Flatten categories: categories[].category -> categories[]
+    if (product.categories && Array.isArray(product.categories)) {
+      product.categories = product.categories.map((c: any) => c.category);
+    }
+
+    // Calculate price from variants
+    if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+      const prices = product.variants.map((v: any) => Number(v.sale_price || v.price));
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+
+      product.price = minPrice;
+      product.max_price = maxPrice !== minPrice ? maxPrice : null;
+
+      // Calculate sale info
+      const salePrices = product.variants
+        .filter((v: any) => v.sale_price)
+        .map((v: any) => Number(v.sale_price));
+
+      if (salePrices.length > 0) {
+        product.sale_price = Math.min(...salePrices);
+      }
+    }
+
+    return product;
+  }
+
+  /**
    * Lấy chi tiết sản phẩm theo slug
    */
   async getBySlug(slug: string): Promise<Product | null> {
-    return this.productRepository.findBySlug(slug);
+    const product = await this.productRepository.findBySlug(slug);
+    return this.transform(product);
   }
 
   async getProductVariants(productId: number | bigint): Promise<any> {
     return this.productRepository.findVariants(productId);
   }
 }
-

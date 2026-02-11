@@ -1,101 +1,101 @@
-# Tài Liệu Tích Hợp API Ecommerce: Thanh Toán & Vận Chuyển
+# Tài Liệu Giao Diện & Dữ Liệu: Thanh Toán & Vận Chuyển 
 
-Tài liệu này mô tả các API liên quan đến phương thức thanh toán và vận chuyển, phục vụ cho trang Checkout.
+Tài liệu này tập trung mô tả chi tiết các thành phần UI (Components) cho việc lựa chọn Phương thức Thanh toán và Vận chuyển trong trang Checkout.
 
-## 1. Phương Thức Thanh Toán (Payment Methods)
+---
 
-Client cần lấy danh sách phương thức thanh toán khả dụng để hiển thị cho User chọn.
+## 1. Component: Chọn Phương Thức Vận Chuyển (Shipping Method Selection)
 
-### Lấy danh sách phương thức thanh toán
-**Endpoint**: `GET /api/public/payment-methods` (hoặc endpoint tương tự trong `payment-method` module)
-**Mô tả**: Trả về danh sách các phương thức như COD, VNPay, ZaloPay, Bank Transfer.
+Thường nằm ở Bước 2 hoặc 3 trong quy trình Checkout.
 
-### Response Example
+### 1.1. Dữ Liệu Đầu Vào (Input Data)
+API trả về danh sách:
 ```json
 [
-  {
-    "id": 1,
-    "code": "cod",
-    "name": "Thanh toán khi nhận hàng (COD)",
-    "description": "Thanh toán tiền mặt cho shipper khi nhận hàng",
-    "type": "offline",
-    "is_active": true
-  },
-  {
-    "id": 2,
-    "code": "vnpay",
-    "name": "Thanh toán qua VNPay",
-    "description": "Thẻ ATM/Visa/MasterCard/QR Code",
-    "type": "online",
-    "is_active": true
-  }
+  { "id": 1, "code": "standard", "name": "Tiêu chuẩn", "price": 30000, "desc": "3-5 ngày" },
+  { "id": 2, "code": "express", "name": "Hoả tốc", "price": 50000, "desc": "1-2 ngày" }
 ]
 ```
 
-### Lưu ý quan trọng về Sản Phẩm Số:
-- Nếu trong giỏ hàng có **bất kỳ** sản phẩm nào là **Sản phẩm số (`is_digital: true`)**, Client **KHÔNG ĐƯỢC** cho phép chọn phương thức **COD**.
-- Backend cũng sẽ validate và trả về lỗi nếu User cố tình chọn COD cho đơn hàng Digital.
-- Với đơn hàng Digital, bắt buộc thanh toán Online (VNPay, Bank Transfer...) để hệ thống có thể tự động gửi hàng ngay lập tức.
+### 1.2. Mô Tả Giao Diện (UI Description)
+Hiển thị dạng danh sách các thẻ (Card) hoặc Radio list.
 
-## 2. Phương Thức Vận Chuyển (Shipping Methods)
+*   **Trạng thái chờ (Loading)**:
+    *   Khi user thay đổi Tỉnh/Thành phố ở bước Địa chỉ, khu vực này cần hiện Skeleton Loading hoặc mờ đi để tính lại phí ship.
+*   **Item Giao Diện (Shipping Option)**:
+    *   **Cấu trúc**: Flexbox row.
+    *   **Radio Input**: Bên trái ngoài cùng.
+    *   **Label Chính**: Tên phương thức (vd: "Giao hàng nhanh"). Font đậm.
+    *   **Label Phụ**: Mô tả + Thời gian (vd: "Dự kiến giao 20/10 - 22/10"). Font nhỏ, màu xám.
+    *   **Giá tiền**: Bên phải ngoài cùng. Font đậm.
+*   **Tương tác (Interaction)**:
+    *   Click vào toàn bộ vùng (Box) -> Chọn Radio.
+    *   Khi chọn: Update ngay dòng "Phí vận chuyển" và "Tổng cộng" ở cột Order Summary.
 
-Dùng cho sản phẩm vật lý. Nếu đơn hàng toàn sản phẩm số, bước này có thể bỏ qua hoặc chọn một phương thức mặc định "Email Delivery" (giá 0đ).
+### 1.3. Trường Hợp Đặc Biệt
+*   **Digital Product**: Ẩn hoàn toàn component này hoặc hiển thị text: "*Sản phẩm sẽ được gửi qua email. Không cần vận chuyển.*"
+*   **Free Ship**: Nếu giá = 0 -> Hiển thị text "Miễn phí" hoặc "0đ" (Màu xanh lá cây).
 
-### Lấy danh sách vận chuyển khả dụng
-**Endpoint**: `GET /api/public/shipping-methods/active`
+---
 
-### Response Example
-```json
-[
-  {
-    "id": 1,
-    "code": "standard",
-    "name": "Giao hàng tiêu chuẩn",
-    "price": 30000, // Giá cơ bản
-    "description": "3-5 ngày làm việc"
-  },
-  {
-    "id": 2,
-    "code": "express",
-    "name": "Giao hàng hỏa tốc",
-    "price": 50000,
-    "description": "1-2 ngày làm việc"
-  }
-]
-```
+## 2. Component: Chọn Phương Thức Thanh Toán (Payment Method Selection)
 
-### Tính Phí Vận Chuyển (Calculate Shipping Fee)
-Giá vận chuyển có thể thay đổi tùy thuộc vào giá trị đơn hàng, cân nặng hoặc địa chỉ. Sử dụng API này để lấy giá chính xác hiển thị cho User.
+Thành phần quan trọng quyết định tỷ lệ chốt đơn (conversion rate).
 
-**Endpoint**: `POST /api/public/shipping-methods/calculate`
+### 2.1. Dữ Liệu Đầu Vào
+Gồm: `id`, `code`, `name`, `icon_url`, `description`, `type` (online/offline).
 
-**Body**:
-```json
-{
-  "shipping_method_id": 1,
-  "cart_value": 500000, // Tổng tiền hàng (subtotal)
-  "weight": 2.5, // Tổng cân nặng (Kg) - Client tự tính từ product attributes hoặc default
-  "destination": "Hà Nội" // Thành phố/Tỉnh nhận hàng (để tính phí vùng miền)
-}
-```
+### 2.2. Mô Tả Giao Diện (UI Description)
+Thiết kế dạng danh sách dọc hoặc lưới (Grid).
 
-**Response**:
-```json
-{
-  "shipping_method_id": 1,
-  "shipping_cost": 35000 // Giá ship cuối cùng (đã cộng phụ phí nếu có)
-}
-```
+#### A. Danh sách lựa chọn (Selection List)
+*   **Phong cách**: Mỗi phương thức là một Box có Border. Khi chọn (Active) sẽ đổi màu border (vd: Xanh dương) và hiện dấu tích.
+*   **Nội dung Box**:
+    *   **Icon/Logo** (Bắt buộc): Logo VNPay, Visa, MoMo, hoặc Icon COD (Xe hàng/Tiền). Kích thước khoảng 32-40px.
+    *   **Tên phương thức**: "Thanh toán qua VNPAY" (Font size trung bình).
+    *   **Radio Button**: Có thể đặt góc phải hoặc trái.
 
-## 3. Quy Trình Hiển Thị Tại Client
+#### B. Phần Nội Dung Mở Rộng (Collapse Content)
+Khi user click chọn một phương thức, có thể sổ ra (collapse) nội dung hướng dẫn bên dưới Box đó:
+*   **Với COD**: Text: "Bạn sẽ thanh toán bằng tiền mặt khi nhận hàng. Vui lòng chuẩn bị số tiền tương ứng."
+*   **Với Chuyển Khoản (Bank Transfer)**:
+    *   *Trước khi đặt*: Text hướng dẫn "Sau khi đặt hàng, bạn sẽ nhận được thông tin QR Code để chuyển khoản."
+    *   *Lưu ý*: Không hiện QR Code ngay tại bước này để tránh user chuyển tiền mà chưa bấm "Đặt hàng".
+*   **Với Online (VNPay)**: Text: "Bạn sẽ được chuyển hướng sang cổng thanh toán VNPay để hoàn tất."
 
-1. **Load Cart**: Kiểm tra item trong giỏ.
-   - Nếu có `is_digital`: Đánh dấu là đơn hàng Digital/Mixed.
-2. **Load Shipping Methods**:
-   - Nếu Physical: Gọi API lấy danh sách ship. Cho user chọn. Gọi API Calculate để cập nhật tổng tiền.
-   - Nếu Digital: Ẩn phần chọn ship hoặc hiện thông báo "Gửi qua Email". Phí ship = 0.
-3. **Load Payment Methods**:
-   - Gọi API lấy danh sách.
-   - Nếu đơn hàng là Digital/Mixed: **Disable/Ẩn** phương thức có code `cod`. Chỉ hiện `vnpay`, `bank_transfer`.
-   - Nếu đơn hàng Physical: Hiện tất cả.
-4. **Checkout**: Gửi thông tin `shipping_method_id` và `payment_method_id` đã chọn lên API Create Order.
+### 2.3. Logic Ẩn/Hiện (Validation Logic)
+Frontend cần xử lý logic hiển thị dựa trên giỏ hàng:
+1.  **Check Cart Items**: Duyệt qua danh sách item trong giỏ.
+2.  **Condition**: Nếu có *bất kỳ* item nào có `is_digital = true`.
+3.  **Action**:
+    *   Tìm phương thức có `code = 'cod'`.
+    *   Thêm class `disabled` (làm mờ, không click được).
+    *   Thêm Tooltip hoặc dòng thông báo nhỏ dưới COD: "*Không khả dụng cho đơn hàng có sản phẩm số*".
+
+---
+
+## 3. Giao Diện Kết Quả Thanh Toán (Payment Result UI)
+
+Trang hiển thị sau khi quay lại từ cổng thanh toán (Return URL).
+
+### 3.1. Thành Công (Success)
+*   **Màu chủ đạo**: Xanh lá cây.
+*   **Icon**: Checkmark tròn lớn, animation vẽ vòng tròn.
+*   **Title**: "Thanh toán thành công!".
+*   **Sub-title**: "Đơn hàng #ORD... của bạn đã được xác nhận."
+*   **Thông tin giao dịch**:
+    *   Mã giao dịch (Trans ID): 123456...
+    *   Số tiền: 500.000đ.
+    *   Thời gian: 10:20 20/02/2026.
+*   **Button**: "Xem chi tiết đơn hàng".
+
+### 3.2. Thất Bại (Failed)
+*   **Màu chủ đạo**: Đỏ/Cam.
+*   **Icon**: Dấu X tròn hoặc Cảnh báo.
+*   **Title**: "Thanh toán thất bại" hoặc "Giao dịch chưa hoàn tất".
+*   **Lý do**: Hiển thị lý do từ cổng thanh toán trả về (vd: "Số dư không đủ", "Nguời dùng huỷ giao dịch").
+*   **Action Suggestion**:
+    *   "Bạn có thể thử thanh toán lại hoặc chọn phương thức khác."
+*   **Button**:
+    *   Button chính: "Thanh toán lại" (Quay lại trang Checkout hoặc gọi API lấy lại link payment mới cho đơn hàng đó).
+    *   Button phụ: "Về trang chủ".
