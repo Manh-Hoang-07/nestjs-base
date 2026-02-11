@@ -1,11 +1,11 @@
-import { BasicStatus } from '@prisma/client';
+export enum BasicStatus {
+  active = 'active',
+  inactive = 'inactive',
+}
 
 /**
- * Basic Status Enum
- * Import từ Prisma
+ * Basic Status Labels
  */
-export { BasicStatus };
-
 export const BasicStatusLabels: Record<BasicStatus, string> = {
   [BasicStatus.active]: 'Hoạt động',
   [BasicStatus.inactive]: 'Ngừng hoạt động',

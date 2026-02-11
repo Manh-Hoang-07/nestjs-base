@@ -1,10 +1,12 @@
-import { NotificationType } from '@prisma/client';
-
-/**
- * Notification Type Enum
- * Import từ Prisma
- */
-export { NotificationType };
+export enum NotificationType {
+  info = 'info',
+  success = 'success',
+  warning = 'warning',
+  error = 'error',
+  order_status = 'order_status',
+  payment_status = 'payment_status',
+  promotion = 'promotion',
+}
 
 /**
  * Labels cho NotificationType

@@ -1,11 +1,12 @@
-import { Gender } from '@prisma/client';
+export enum Gender {
+  male = 'male',
+  female = 'female',
+  other = 'other',
+}
 
 /**
- * Gender Enum
- * Import từ Prisma
+ * Gender Labels
  */
-export { Gender };
-
 export const GenderLabels: Record<Gender, string> = {
   [Gender.male]: 'Nam',
   [Gender.female]: 'Nữ',

@@ -1,10 +1,9 @@
-import { ComicStatus } from '@prisma/client';
-
-/**
- * Comic Status Enum
- * Import từ Prisma
- */
-export { ComicStatus };
+export enum ComicStatus {
+    draft = 'draft',
+    published = 'published',
+    completed = 'completed',
+    hidden = 'hidden',
+}
 
 /**
  * Labels cho ComicStatus

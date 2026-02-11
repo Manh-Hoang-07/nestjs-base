@@ -1,7 +1,11 @@
-import { TemplateCategory } from '@prisma/client';
+export enum TemplateCategory {
+    render = 'render',
+    file = 'file',
+}
 
-export { TemplateCategory };
-
+/**
+ * Labels cho TemplateCategory
+ */
 export const TemplateCategoryLabels: Record<TemplateCategory, string> = {
     [TemplateCategory.render]: 'Tự động biên dịch (Render)',
     [TemplateCategory.file]: 'Tập tin mẫu (File)',

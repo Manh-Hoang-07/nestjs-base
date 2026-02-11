@@ -25,6 +25,10 @@ export * from './types/template-type.enum';
 export * from './types/payment-type.enum';
 export * from './types/chapter-status.enum';
 export * from './types/comic-status.enum';
+export * from './types/order-status.enum';
+export * from './types/shipping-status.enum';
+export * from './types/payment-status.enum';
+export * from './types/order-type.enum';
 
 // Interfaces
 export { EnumValueMetadata } from './interfaces/enum-metadata.interface';

@@ -1,7 +1,17 @@
-import { TemplateType } from '@prisma/client';
+export enum TemplateType {
+    email = 'email',
+    telegram = 'telegram',
+    zalo = 'zalo',
+    sms = 'sms',
+    pdf_generated = 'pdf_generated',
+    file_word = 'file_word',
+    file_excel = 'file_excel',
+    file_pdf = 'file_pdf',
+}
 
-export { TemplateType };
-
+/**
+ * Labels cho TemplateType
+ */
 export const TemplateTypeLabels: Record<TemplateType, string> = {
     [TemplateType.email]: 'Email',
     [TemplateType.telegram]: 'Telegram',

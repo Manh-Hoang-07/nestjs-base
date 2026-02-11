@@ -1,11 +1,12 @@
-import { PartnerType } from '@prisma/client';
+export enum PartnerType {
+  client = 'client',
+  supplier = 'supplier',
+  partner = 'partner',
+}
 
 /**
- * Partner Type Enum
- * Import từ Prisma
+ * Labels cho PartnerType
  */
-export { PartnerType };
-
 export const PartnerTypeLabels: Record<PartnerType, string> = {
   [PartnerType.client]: 'Khách hàng',
   [PartnerType.supplier]: 'Nhà cung cấp',

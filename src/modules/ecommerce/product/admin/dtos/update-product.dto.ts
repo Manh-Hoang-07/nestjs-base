@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsNumber, IsBoolean, IsObject, IsArray, IsEnum } from 'class-validator';
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus } from '@/shared/enums';
 import { Transform } from 'class-transformer';
 
 export class UpdateProductDto {
@@ -48,7 +48,7 @@ export class UpdateProductDto {
     }
     return value;
   })
-  status?: ProductStatus = 'active';
+  status?: ProductStatus = ProductStatus.active;
 
   @IsOptional()
   @IsArray()

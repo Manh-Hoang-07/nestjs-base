@@ -1,11 +1,13 @@
-import { ProductStatus } from '@prisma/client';
+export enum ProductStatus {
+    active = 'active',
+    inactive = 'inactive',
+    draft = 'draft',
+    archived = 'archived',
+}
 
 /**
- * Product Status Enum
- * Import từ Prisma
+ * Labels cho ProductStatus
  */
-export { ProductStatus };
-
 export const ProductStatusLabels: Record<ProductStatus, string> = {
     [ProductStatus.active]: 'Đang bán',
     [ProductStatus.inactive]: 'Ngừng bán',

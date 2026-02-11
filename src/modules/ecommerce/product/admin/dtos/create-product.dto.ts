@@ -15,7 +15,7 @@ import {
   IsArray
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus } from '@/shared/enums';
 
 /**
  * Create Product DTO with comprehensive validation
@@ -74,7 +74,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsEnum(ProductStatus)
-  status?: ProductStatus = 'active';
+  status?: ProductStatus = ProductStatus.active;
 
   @IsOptional()
   @IsArray()

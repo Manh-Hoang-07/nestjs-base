@@ -1,6 +1,6 @@
 import { IsOptional, IsNumber, IsEnum, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BasicStatus } from '@prisma/client';
+import { BasicStatus } from '@/shared/enums';
 
 export class GetReviewsDto {
   @IsOptional()

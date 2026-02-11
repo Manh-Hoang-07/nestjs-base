@@ -1,10 +1,9 @@
-import { PostStatus } from '@prisma/client';
-
-/**
- * Post Status Enum
- * Import từ Prisma
- */
-export { PostStatus };
+export enum PostStatus {
+    draft = 'draft',
+    scheduled = 'scheduled',
+    published = 'published',
+    archived = 'archived',
+}
 
 /**
  * Labels cho PostStatus

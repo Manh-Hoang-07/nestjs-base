@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { TrackingHistory, Order, ShippingStatus } from '@prisma/client';
+import { TrackingHistory, Order } from '@prisma/client';
+import { ShippingStatus } from '@/shared/enums';
 import { ITrackingHistoryRepository, TRACKING_HISTORY_REPOSITORY } from '../../domain/tracking-history.repository';
 import { IOrderRepository, ORDER_REPOSITORY } from '@/modules/ecommerce/order/domain/order.repository';
 import { ShippingProviderService } from './shipping-provider.service';

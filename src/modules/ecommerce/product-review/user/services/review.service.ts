@@ -1,12 +1,12 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { ProductReview, BasicStatus } from '@prisma/client';
+import { ProductReview } from '@prisma/client';
+import { BasicStatus, PaymentStatus } from '@/shared/enums';
 import { BaseService } from '@/common/core/services';
 import { IReviewRepository, REVIEW_REPOSITORY } from '../../domain/review.repository';
 import { CreateReviewDto } from '../dtos/create-review.dto';
 import { UpdateReviewDto } from '../dtos/update-review.dto';
 import { IProductRepository, PRODUCT_REPOSITORY } from '@/modules/ecommerce/product/domain/product.repository';
 import { IOrderRepository, ORDER_REPOSITORY } from '@/modules/ecommerce/order/domain/order.repository';
-import { PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class ReviewService extends BaseService<ProductReview, IReviewRepository> {

@@ -1,10 +1,9 @@
-import { PostType } from '@prisma/client';
-
-/**
- * Post Type Enum
- * Import từ Prisma
- */
-export { PostType };
+export enum PostType {
+  text = 'text',
+  video = 'video',
+  image = 'image',
+  audio = 'audio',
+}
 
 /**
  * Labels cho PostType

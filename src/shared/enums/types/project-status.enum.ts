@@ -1,11 +1,13 @@
-import { ProjectStatus } from '@prisma/client';
+export enum ProjectStatus {
+  planning = 'planning',
+  in_progress = 'in_progress',
+  completed = 'completed',
+  cancelled = 'cancelled',
+}
 
 /**
- * Project Status Enum
- * Import từ Prisma
+ * Labels cho ProjectStatus
  */
-export { ProjectStatus };
-
 export const ProjectStatusLabels: Record<ProjectStatus, string> = {
   [ProjectStatus.planning]: 'Đang lên kế hoạch',
   [ProjectStatus.in_progress]: 'Đang thực hiện',

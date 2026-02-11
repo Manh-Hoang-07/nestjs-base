@@ -1,11 +1,14 @@
-import { CertificateType } from '@prisma/client';
+export enum CertificateType {
+  iso = 'iso',
+  award = 'award',
+  license = 'license',
+  certification = 'certification',
+  other = 'other',
+}
 
 /**
- * Certificate Type Enum
- * Import từ Prisma
+ * Certificate Type Labels
  */
-export { CertificateType };
-
 export const CertificateTypeLabels: Record<CertificateType, string> = {
   [CertificateType.iso]: 'ISO',
   [CertificateType.award]: 'Giải thưởng',

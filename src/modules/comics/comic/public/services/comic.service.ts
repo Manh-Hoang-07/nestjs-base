@@ -1,9 +1,9 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { Comic, ComicStatus } from '@prisma/client';
+import { Comic } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IComicRepository, COMIC_REPOSITORY } from '../../domain/comic.repository';
 import { RequestContext } from '@/common/shared/utils';
-import { PUBLIC_COMIC_STATUSES } from '@/shared/enums';
+import { PUBLIC_COMIC_STATUSES, ComicStatus } from '@/shared/enums';
 import { IFollowRepository, FOLLOW_REPOSITORY } from '@/modules/comics/follow/domain/follow.repository';
 
 @Injectable()

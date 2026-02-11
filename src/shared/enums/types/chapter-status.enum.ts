@@ -1,10 +1,7 @@
-import { ChapterStatus } from '@prisma/client';
-
-/**
- * Chapter Status Enum
- * Import từ Prisma
- */
-export { ChapterStatus };
+export enum ChapterStatus {
+    draft = 'draft',
+    published = 'published',
+}
 
 /**
  * Labels cho ChapterStatus

@@ -1,10 +1,7 @@
-import { CommentStatus } from '@prisma/client';
-
-/**
- * Comment Status Enum
- * Import từ Prisma
- */
-export { CommentStatus };
+export enum CommentStatus {
+  visible = 'visible',
+  hidden = 'hidden',
+}
 
 /**
  * Labels cho CommentStatus

@@ -1,11 +1,16 @@
-import { AboutSectionType } from '@prisma/client';
+export enum AboutSectionType {
+  history = 'history',
+  mission = 'mission',
+  vision = 'vision',
+  values = 'values',
+  culture = 'culture',
+  achievement = 'achievement',
+  other = 'other',
+}
 
 /**
- * About Section Type Enum
- * Import từ Prisma
+ * About Section Type Labels
  */
-export { AboutSectionType };
-
 export const AboutSectionTypeLabels: Record<AboutSectionType, string> = {
   [AboutSectionType.history]: 'Lịch sử',
   [AboutSectionType.mission]: 'Sứ mệnh',

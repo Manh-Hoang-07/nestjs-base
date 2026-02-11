@@ -7,31 +7,9 @@ datasource db {
   provider = "mysql"
 }
 
-enum Gender {
-  male
-  female
-  other
-}
-
-enum BasicStatus {
-  active
-  inactive
-}
-
-enum PaymentType {
-  online
-  offline
-}
-
 // ============================================
 // User - Profile
 // ============================================
-
-enum UserStatus {
-  active
-  pending
-  inactive
-}
 
 model User {
   id                BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
@@ -42,7 +20,7 @@ model User {
   name              String?    @db.VarChar(255)
   image             String?    @db.VarChar(255)
   googleId          String?    @unique @db.VarChar(255)
-  status            UserStatus @default(active)
+  status            String     @default("active") @db.VarChar(30)
   email_verified_at DateTime?  @db.DateTime(0)
   phone_verified_at DateTime?  @db.DateTime(0)
   last_login_at     DateTime?  @db.DateTime(0)
@@ -74,7 +52,7 @@ model Profile {
   id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   user_id         BigInt    @unique @db.UnsignedBigInt
   birthday        DateTime? @db.Date
-  gender          Gender?
+  gender          String?   @db.VarChar(20)
   address         String?   @db.Text
   about           String?   @db.Text
   created_user_id BigInt?   @db.UnsignedBigInt
@@ -309,11 +287,9 @@ model EmailConfig {
 // Menu
 // ============================================
 
-enum MenuType {
-  route
-  group
-  link
-}
+// ============================================
+// Menu
+// ============================================
 
 model Menu {
   id                     BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
@@ -322,8 +298,8 @@ model Menu {
   path                   String?     @db.VarChar(255)
   api_path               String?     @db.VarChar(255)
   icon                   String?     @db.VarChar(120)
-  type                   MenuType    @default(route)
-  status                 BasicStatus @default(active)
+  type                   String      @default("route") @db.VarChar(30)
+  status                 String      @default("active") @db.VarChar(30)
   parent_id              BigInt?     @db.UnsignedBigInt
   sort_order             Int         @default(0)
   is_public              Boolean     @default(false)
@@ -372,7 +348,7 @@ model BannerLocation {
   code        String      @unique @db.VarChar(100)
   name        String      @db.VarChar(255)
   description String?     @db.Text
-  status      BasicStatus @default(active)
+  status      String      @default("active") @db.VarChar(30)
   created_at  DateTime    @default(now()) @db.DateTime(0)
   updated_at  DateTime    @updatedAt @db.DateTime(0)
   deleted_at  DateTime?   @db.DateTime(0)
@@ -399,7 +375,7 @@ model Banner {
   text_color   String?     @db.VarChar(20)
   location_id  BigInt      @db.UnsignedBigInt
   sort_order   Int         @default(0)
-  status       BasicStatus @default(active)
+  status       String      @default("active") @db.VarChar(30)
   start_date   DateTime?   @db.DateTime(0)
   end_date     DateTime?   @db.DateTime(0)
   created_at   DateTime    @default(now()) @db.DateTime(0)
@@ -424,26 +400,20 @@ model Banner {
 // Banner
 // ============================================
 
-enum NotificationType {
-  info
-  success
-  warning
-  error
-  order_status
-  payment_status
-  promotion
-}
+// ============================================
+// Notification
+// ============================================
 
 model Notification {
   id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
   user_id         BigInt           @db.UnsignedBigInt
   title           String           @db.VarChar(255)
   message         String           @db.Text
-  type            NotificationType @default(info)
+  type            String           @default("info") @db.VarChar(30)
   data            Json?
   is_read         Boolean          @default(false)
   read_at         DateTime?        @db.DateTime(0)
-  status          BasicStatus      @default(active)
+  status          String           @default("active") @db.VarChar(30)
   created_user_id BigInt?          @db.UnsignedBigInt
   updated_user_id BigInt?          @db.UnsignedBigInt
   created_at      DateTime         @default(now()) @db.DateTime(0)
@@ -471,7 +441,7 @@ model PostCategory {
   description      String?     @db.Text
   parent_id        BigInt?     @db.UnsignedBigInt
   image            String?     @db.VarChar(255)
-  status           BasicStatus @default(active)
+  status           String      @default("active") @db.VarChar(30)
   meta_title       String?     @db.VarChar(255)
   meta_description String?     @db.Text
   canonical_url    String?     @db.VarChar(255)
@@ -505,7 +475,7 @@ model PostTag {
   name             String      @db.VarChar(255)
   slug             String      @unique @db.VarChar(255)
   description      String?     @db.Text
-  status           BasicStatus @default(active)
+  status           String      @default("active") @db.VarChar(30)
   meta_title       String?     @db.VarChar(255)
   meta_description String?     @db.Text
   canonical_url    String?     @db.VarChar(255)
@@ -526,19 +496,9 @@ model PostTag {
   @@map("posttag")
 }
 
-enum PostStatus {
-  draft
-  scheduled
-  published
-  archived
-}
-
-enum PostType {
-  text
-  video
-  image
-  audio
-}
+// ============================================
+// Post
+// ============================================
 
 model Post {
   id                      BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
@@ -549,8 +509,8 @@ model Post {
   image                   String?    @db.VarChar(255)
   cover_image             String?    @db.VarChar(255)
   primary_postcategory_id BigInt?    @db.UnsignedBigInt
-  status                  PostStatus @default(draft)
-  post_type               PostType   @default(text)
+  status                  String     @default("draft") @db.VarChar(30)
+  post_type               String     @default("text") @db.VarChar(30)
   video_url               String?    @db.VarChar(500)
   audio_url               String?    @db.VarChar(500)
   is_featured             Boolean    @default(false)
@@ -625,7 +585,7 @@ model PostComment {
   guest_email String?       @db.VarChar(255) // Email khách nếu chưa đăng nhập
   parent_id   BigInt?       @db.UnsignedBigInt
   content     String        @db.Text
-  status      CommentStatus @default(visible)
+  status      String        @default("visible") @db.VarChar(30)
 
   created_user_id BigInt?   @db.UnsignedBigInt
   updated_user_id BigInt?   @db.UnsignedBigInt
@@ -659,10 +619,9 @@ model PostViewStats {
   @@map("post_view_stats")
 }
 
-enum CommentStatus {
-  visible
-  hidden
-}
+// ============================================
+// Contact
+// ============================================
 
 model Contact {
   id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
@@ -690,12 +649,9 @@ model Contact {
 // Phase 1: Core Modules - Introduction
 // ============================================
 
-enum ProjectStatus {
-  planning
-  in_progress
-  completed
-  cancelled
-}
+// ============================================
+// Phase 1: Core Modules - Introduction
+// ============================================
 
 model Project {
   id                BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
@@ -708,7 +664,7 @@ model Project {
   area              Decimal?      @db.Decimal(15, 2)
   start_date        DateTime?     @db.DateTime(0)
   end_date          DateTime?     @db.DateTime(0)
-  status            ProjectStatus @default(planning)
+  status            String        @default("planning") @db.VarChar(30)
   client_name       String?       @db.VarChar(255)
   budget            Decimal?      @db.Decimal(20, 2)
   images            Json?
@@ -737,15 +693,9 @@ model Project {
   @@map("projects")
 }
 
-enum AboutSectionType {
-  history
-  mission
-  vision
-  values
-  culture
-  achievement
-  other
-}
+// ============================================
+// AboutSection
+// ============================================
 
 model AboutSection {
   id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
@@ -754,8 +704,8 @@ model AboutSection {
   content         String           @db.LongText
   image           String?          @db.VarChar(500)
   video_url       String?          @db.VarChar(500)
-  section_type    AboutSectionType @default(history)
-  status          BasicStatus      @default(active)
+  section_type    String           @default("history") @db.VarChar(30)
+  status          String           @default("active") @db.VarChar(30)
   sort_order      Int              @default(0)
   created_user_id BigInt?          @db.UnsignedBigInt
   updated_user_id BigInt?          @db.UnsignedBigInt
@@ -783,7 +733,7 @@ model Staff {
   social_links    Json?
   experience      Int?
   expertise       String?     @db.Text
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   sort_order      Int         @default(0)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -812,7 +762,7 @@ model Testimonial {
   rating          Int?        @db.UnsignedTinyInt
   project_id      BigInt?     @db.UnsignedBigInt
   featured        Boolean     @default(false)
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   sort_order      Int         @default(0)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -830,11 +780,9 @@ model Testimonial {
   @@map("testimonials")
 }
 
-enum PartnerType {
-  client
-  supplier
-  partner
-}
+// ============================================
+// Partner
+// ============================================
 
 model Partner {
   id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
@@ -842,8 +790,8 @@ model Partner {
   logo            String      @db.VarChar(500)
   website         String?     @db.VarChar(500)
   description     String?     @db.Text
-  type            PartnerType @default(client)
-  status          BasicStatus @default(active)
+  type            String      @default("client") @db.VarChar(30)
+  status          String      @default("active") @db.VarChar(30)
   sort_order      Int         @default(0)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -866,7 +814,7 @@ model Gallery {
   cover_image     String?     @db.VarChar(500)
   images          Json
   featured        Boolean     @default(false)
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   sort_order      Int         @default(0)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -886,13 +834,9 @@ model Gallery {
 // Phase 3: Additional Modules
 // ============================================
 
-enum CertificateType {
-  iso
-  award
-  license
-  certification
-  other
-}
+// ============================================
+// Certificate
+// ============================================
 
 model Certificate {
   id                 BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
@@ -903,8 +847,8 @@ model Certificate {
   expiry_date        DateTime?       @db.DateTime(0)
   certificate_number String?         @db.VarChar(100)
   description        String?         @db.Text
-  type               CertificateType @default(license)
-  status             BasicStatus     @default(active)
+  type               String          @default("license") @db.VarChar(30)
+  status             String          @default("active") @db.VarChar(30)
   sort_order         Int             @default(0)
   created_user_id    BigInt?         @db.UnsignedBigInt
   updated_user_id    BigInt?         @db.UnsignedBigInt
@@ -925,7 +869,7 @@ model Faq {
   answer          String      @db.LongText
   view_count      BigInt      @default(0) @db.UnsignedBigInt
   helpful_count   BigInt      @default(0) @db.UnsignedBigInt
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   sort_order      Int         @default(0)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -944,28 +888,16 @@ model Faq {
 // Unified Content & Document System
 // ============================================
 
-enum TemplateCategory {
-  render // Nội dung được render từ text/html (Email, Tele, Zalo, PDF từ HTML)
-  file // File mẫu có sẵn (Word, Excel, PDF form) để người dùng tải lên/xuống
-}
-
-enum TemplateType {
-  email
-  telegram
-  zalo
-  sms
-  pdf_generated // Sinh từ HTML content
-  file_word // File mẫu .docx
-  file_excel // File mẫu .xlsx
-  file_pdf // File mẫu .pdf có sẵn
-}
+// ============================================
+// Unified Content & Document System
+// ============================================
 
 model ContentTemplate {
   id       BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
   code     String           @unique @db.VarChar(100)
   name     String           @db.VarChar(255)
-  category TemplateCategory @default(render)
-  type     TemplateType
+  category String      @default("render") @db.VarChar(30)
+  type     String      @db.VarChar(30)
 
   // 1. Dành cho loại 'render': Lưu nội dung HTML/Markdown/Text
   content String? @db.LongText
@@ -979,7 +911,7 @@ model ContentTemplate {
   // Danh sách biến mẫu khả dụng (Ví dụ: { "customer_name": "Tên khách", "amount": "Số tiền" })
   variables Json?
 
-  status     BasicStatus @default(active)
+  status     String      @default("active") @db.VarChar(30)
   created_at DateTime    @default(now()) @db.DateTime(0)
   updated_at DateTime    @updatedAt @db.DateTime(0)
   deleted_at DateTime?   @db.DateTime(0)
@@ -1000,12 +932,9 @@ model ContentTemplate {
 // Ecommerce - Products & Categories
 // ============================================
 
-enum ProductStatus {
-  active
-  inactive
-  draft
-  archived
-}
+// ============================================
+// Ecommerce - Products & Categories
+// ============================================
 
 model ProductCategory {
   id               BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
@@ -1015,7 +944,7 @@ model ProductCategory {
   parent_id        BigInt?     @db.UnsignedBigInt
   image            String?     @db.VarChar(500)
   icon             String?     @db.VarChar(100)
-  status           BasicStatus @default(active)
+  status           String      @default("active") @db.VarChar(30)
   sort_order       Int         @default(0)
   meta_title       String?     @db.VarChar(255)
   meta_description String?     @db.Text
@@ -1051,7 +980,7 @@ model Product {
   min_stock_level   Int           @default(0)
   image             String?       @db.VarChar(500)
   gallery           Json?
-  status            ProductStatus @default(active)
+  status            String        @default("active") @db.VarChar(30)
   is_featured       Boolean       @default(false)
   is_variable       Boolean       @default(true)
   is_digital        Boolean       @default(false)
@@ -1143,7 +1072,7 @@ model ProductAttribute {
   is_variation          Boolean     @default(false)
   is_visible_on_frontend Boolean     @default(true)
   sort_order            Int         @default(0)
-  status                BasicStatus @default(active)
+  status                String      @default("active") @db.VarChar(30)
   validation_rules      String?     @db.Text
   created_user_id       BigInt?     @db.UnsignedBigInt
   updated_user_id       BigInt?     @db.UnsignedBigInt
@@ -1271,7 +1200,7 @@ model Coupon {
   end_date        DateTime?   @db.DateTime(0)
   usage_limit     Int?
   used_count      Int         @default(0)
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   group_id        BigInt?     @db.UnsignedBigInt
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -1312,7 +1241,7 @@ model ProductReview {
   comment              String?     @db.Text
   helpful_count        Int         @default(0)
   is_verified_purchase Boolean     @default(false)
-  status               BasicStatus @default(active)
+  status               String      @default("active") @db.VarChar(30)
   group_id             BigInt?     @db.UnsignedBigInt // Inherit từ product
   created_user_id      BigInt?     @db.UnsignedBigInt
   updated_user_id      BigInt?     @db.UnsignedBigInt
@@ -1334,7 +1263,7 @@ model ShippingMethod {
   code            String      @unique @db.VarChar(50)
   description     String?     @db.Text
   price           Decimal     @default(0) @db.Decimal(15, 2)
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
   created_at      DateTime    @default(now()) @db.DateTime(0)
@@ -1366,7 +1295,7 @@ model Warehouse {
   is_active       Boolean     @default(true)
   contact_name    String?     @db.VarChar(255)
   contact_phone   String?     @db.VarChar(20)
-  status          BasicStatus @default(active)
+  status          String      @default("active") @db.VarChar(30)
   group_id        BigInt?     @db.UnsignedBigInt // NULL = shared warehouse, có giá trị = riêng của group
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
@@ -1448,8 +1377,8 @@ model PaymentMethod {
   description     String?     @db.Text
   provider        String?     @db.VarChar(100)
   config          Json?
-  type            PaymentType @default(offline)
-  status          BasicStatus @default(active)
+  type            String      @default("offline") @db.VarChar(30)
+  status          String      @default("active") @db.VarChar(30)
   created_user_id BigInt?     @db.UnsignedBigInt
   updated_user_id BigInt?     @db.UnsignedBigInt
   created_at      DateTime    @default(now()) @db.DateTime(0)
@@ -1466,29 +1395,9 @@ model PaymentMethod {
   orders Order[]
 }
 
-enum OrderStatus {
-  pending
-  confirmed
-  processing
-  shipped
-  delivered
-  cancelled
-  refunded
-}
-
-enum ShippingStatus {
-  pending
-  processing
-  shipped
-  delivered
-  returned
-  cancelled
-}
-
-enum OrderType {
-  physical
-  digital
-}
+// ============================================
+// Ecommerce - Orders
+// ============================================
 
 model Order {
   id                 BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
@@ -1502,10 +1411,10 @@ model Order {
   billing_address    Json
   shipping_method_id BigInt?        @db.UnsignedBigInt
   payment_method_id  BigInt?        @db.UnsignedBigInt
-  order_type         OrderType      @default(physical)
-  status             OrderStatus    @default(pending)
-  payment_status     PaymentStatus  @default(pending)
-  shipping_status    ShippingStatus @default(pending)
+  order_type         String         @default("physical") @db.VarChar(30)
+  status             String         @default("pending") @db.VarChar(30)
+  payment_status     String         @default("pending") @db.VarChar(30)
+  shipping_status    String         @default("pending") @db.VarChar(30)
   subtotal           Decimal        @db.Decimal(15, 2)
   tax_amount         Decimal        @default(0) @db.Decimal(15, 2)
   shipping_amount    Decimal        @default(0) @db.Decimal(15, 2)
@@ -1559,21 +1468,17 @@ model OrderItem {
   @@map("order_items")
 }
 
-enum PaymentStatus {
-  pending
-  processing
-  completed
-  failed
-  refunded
-}
+// ============================================
+// Ecommerce - Payments
+// ============================================
 
 model Payment {
   id                  BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
   order_id            BigInt        @db.UnsignedBigInt
   payment_method_id   BigInt        @db.UnsignedBigInt
   amount              Decimal       @db.Decimal(15, 2)
-  status              PaymentStatus @default(pending)
-  payment_method_type PaymentType   @default(offline)
+  status              String        @default("pending") @db.VarChar(30)
+  payment_method_type String        @default("offline") @db.VarChar(30)
   transaction_id      String?       @db.VarChar(255)
   payment_method_code String?       @db.VarChar(100)
   paid_at             DateTime?     @db.DateTime(0)
@@ -1610,17 +1515,9 @@ model TrackingHistory {
 
 
 
-enum ComicStatus {
-  draft
-  published
-  completed
-  hidden
-}
-
-enum ChapterStatus {
-  draft
-  published
-}
+// ============================================
+// Comic - Chapter
+// ============================================
 
 model Comic {
   id                      BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
@@ -1629,7 +1526,7 @@ model Comic {
   description             String?     @db.Text
   cover_image             String?     @db.VarChar(500)
   author                  String?     @db.VarChar(255)
-  status                  ComicStatus @default(draft)
+  status                  String      @default("draft") @db.VarChar(30)
   created_user_id         BigInt?     @db.UnsignedBigInt
   updated_user_id         BigInt?     @db.UnsignedBigInt
   created_at              DateTime    @default(now()) @db.DateTime(0)
@@ -1684,7 +1581,7 @@ model Chapter {
   title           String        @db.VarChar(255)
   chapter_index   Int
   chapter_label   String?       @db.VarChar(50)
-  status          ChapterStatus @default(draft)
+  status          String        @default("draft") @db.VarChar(30)
   view_count      BigInt        @default(0) @db.UnsignedBigInt
   created_user_id BigInt?       @db.UnsignedBigInt
   updated_user_id BigInt?       @db.UnsignedBigInt
@@ -1752,7 +1649,7 @@ model ComicComment {
   chapter_id      BigInt?       @db.UnsignedBigInt
   parent_id       BigInt?       @db.UnsignedBigInt
   content         String        @db.Text
-  status          CommentStatus @default(visible)
+  status          String        @default("visible") @db.VarChar(30)
   created_user_id BigInt?       @db.UnsignedBigInt
   updated_user_id BigInt?       @db.UnsignedBigInt
   created_at      DateTime      @default(now()) @db.DateTime(0)
