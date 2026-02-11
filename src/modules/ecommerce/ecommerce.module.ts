@@ -17,12 +17,14 @@ import { PublicCartModule } from './cart/public/cart.module';
 import { PublicReviewModule } from './product-review/public/review.module';
 import { TrackingModule } from './shipping/public/tracking.module';
 import { PublicDiscountModule } from './discount/public/discount.module';
+import { AdminProductDigitalAssetModule } from './product-digital-asset/admin/product-digital-asset.module';
 
 @Module({
   imports: [
     // Product
     AdminProductModule,
     PublicProductModule,
+    AdminProductDigitalAssetModule,
 
     // Category
     AdminProductCategoryModule,
@@ -61,6 +63,7 @@ import { PublicDiscountModule } from './discount/public/discount.module';
   exports: [
     AdminProductModule,
     PublicProductModule,
+    AdminProductDigitalAssetModule,
     AdminProductCategoryModule,
     PublicProductCategoryModule,
     AdminOrderModule,

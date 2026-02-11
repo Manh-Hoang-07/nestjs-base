@@ -9,6 +9,7 @@ import { OrderStockService } from './order-stock.service';
 import { PaymentService } from '@/modules/payment/public/services/payment.service';
 import { generateOrderAccessKey, verifyOrderAccessKey } from '../utils/order-access.helper';
 import { IOrderRepository, ORDER_REPOSITORY } from '../../domain/order.repository';
+import { EncryptionService } from '@/common/encryption/encryption.service';
 
 @Injectable()
 export class PublicOrderService {
@@ -21,6 +22,7 @@ export class PublicOrderService {
     private readonly creationService: OrderCreationService,
     private readonly stockService: OrderStockService,
     private readonly paymentService: PaymentService,
+    private readonly encryptionService: EncryptionService,
   ) { }
 
   /**
@@ -173,7 +175,7 @@ export class PublicOrderService {
     if (userId && order.user_id !== BigInt(userId)) {
       throw new ForbiddenException('Unauthorized access to order');
     }
-    return order;
+    return this.decryptOrderAssets(order);
   }
 
   /**
@@ -193,6 +195,21 @@ export class PublicOrderService {
       throw new BadRequestException('Invalid access key');
     }
 
+    return this.decryptOrderAssets(order);
+  }
+
+  private decryptOrderAssets(order: any): any {
+    if (order.items) {
+      order.items = order.items.map((item: any) => {
+        if (item.digital_assets) {
+          item.digital_assets = item.digital_assets.map((asset: any) => ({
+            ...asset,
+            content: this.encryptionService.decrypt(asset.content)
+          }));
+        }
+        return item;
+      });
+    }
     return order;
   }
 

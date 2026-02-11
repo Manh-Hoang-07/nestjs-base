@@ -3,6 +3,9 @@ import { Order } from '@prisma/client';
 import { MailService } from '@/core/mail/mail.service';
 import { IOrderRepository, ORDER_REPOSITORY } from '../../domain/order.repository';
 import { IOrderItemRepository, ORDER_ITEM_REPOSITORY } from '../../domain/order-item.repository';
+import { EncryptionService } from '@/common/encryption/encryption.service';
+import { IProductDigitalAssetRepository, PRODUCT_DIGITAL_ASSET_REPOSITORY } from '../../../product-digital-asset/domain/product-digital-asset.repository';
+import { ContentTemplateExecutionService } from '@/modules/core/content-template/services/content-template-execution.service';
 
 @Injectable()
 export class OrderAutomationService {
@@ -11,7 +14,11 @@ export class OrderAutomationService {
     private readonly orderRepository: IOrderRepository,
     @Inject(ORDER_ITEM_REPOSITORY)
     private readonly orderItemRepository: IOrderItemRepository,
+    @Inject(PRODUCT_DIGITAL_ASSET_REPOSITORY)
+    private readonly assetRepository: IProductDigitalAssetRepository,
     private readonly mailService: MailService,
+    private readonly encryptionService: EncryptionService,
+    private readonly templateService: ContentTemplateExecutionService,
   ) { }
 
   /**
@@ -20,14 +27,15 @@ export class OrderAutomationService {
   async processPostPayment(order: Order): Promise<void> {
     if (!order) return;
 
-    if (order.order_type !== 'digital') {
-      return;
+    // Sửa: Xử lý cả 'mixed' nếu hệ thống hỗ trợ, hoặc giữ nguyên 'digital' theo plan
+    if ((order as any).order_type !== 'digital' && (order as any).order_type !== 'mixed') {
+      // return; // Uncomment if strictly digital
     }
 
     await this.sendDigitalProducts(order);
 
     // Digital order: tự động delivered toàn bộ đơn
-    if (order.order_type === 'digital') {
+    if ((order as any).order_type === 'digital') {
       await this.orderRepository.update(order.id, {
         status: 'delivered',
         shipping_status: 'delivered',
@@ -55,46 +63,62 @@ export class OrderAutomationService {
 
     // Lọc chỉ sản phẩm digital
     const digitalItems = orderItems.filter(
-      (item: any) => item.variant?.product?.is_digital === true,
+      (item: any) => item.variant?.product?.is_digital === true || item.product?.is_digital === true,
     );
 
     if (digitalItems.length === 0) {
       return;
     }
 
-    // Chuẩn bị dữ liệu để gửi
-    const digitalProducts = digitalItems.map((item: any) => ({
-      product_name: item.product_name,
-      variant_name: item.variant_name,
-    }));
+    const digitalProductsInfo: any[] = [];
 
-    const subject = `[Order #${order.order_number}] Thông tin sản phẩm digital của bạn`;
-
-    const htmlLines: string[] = [];
-    htmlLines.push(
-      `<p>Xin chào ${order.customer_name || order.customer_email},</p>`,
-    );
-    htmlLines.push(
-      `<p>Cảm ơn bạn đã mua hàng! Đơn hàng <strong>#${order.order_number}</strong> đã được thanh toán thành công.</p>`,
-    );
-    htmlLines.push('<p>Thông tin sản phẩm digital của bạn:</p>');
-    htmlLines.push('<ul>');
-    for (const item of digitalProducts) {
-      htmlLines.push(
-        `<li><strong>${item.product_name}</strong> - ${item.variant_name}</li>`,
+    for (const item of digitalItems) {
+      // Lấy key từ kho
+      const availableAssets = await this.assetRepository.findAvailableAssets(
+        item.product_id,
+        item.product_variant_id,
+        item.quantity
       );
-    }
-    htmlLines.push('</ul>');
-    htmlLines.push(
-      '<p>Nếu bạn không thực hiện giao dịch này hoặc có bất kỳ thắc mắc nào, vui lòng liên hệ lại với chúng tôi.</p>',
-    );
-    htmlLines.push('<p>Trân trọng,<br/>Hệ thống ecommerce</p>');
 
-    await this.mailService.send({
-      to: order.customer_email,
-      subject,
-      html: htmlLines.join(''),
-    });
+      if (availableAssets.length < item.quantity) {
+        console.error(`Not enough digital assets for product ${item.product_name}. Required: ${item.quantity}, Available: ${availableAssets.length}`);
+      }
+
+      const assignedAssets = availableAssets.slice(0, item.quantity);
+      if (assignedAssets.length > 0) {
+        await this.assetRepository.markAsSold(
+          assignedAssets.map((a: any) => a.id),
+          item.id
+        );
+
+        digitalProductsInfo.push({
+          product_name: item.product_name,
+          variant_name: item.variant_name,
+          keys: assignedAssets.map((a: any) => this.encryptionService.decrypt(a.content))
+        });
+      }
+    }
+
+    if (digitalProductsInfo.length === 0) return;
+
+    // Execute template with simple formatted string
+    try {
+      const productsInfoStr = digitalProductsInfo.map(item => {
+        const variantStr = item.variant_name ? ` (${item.variant_name})` : '';
+        return `${item.product_name}${variantStr}:\n${item.keys.map((k: string) => `- ${k}`).join('\n')}`;
+      }).join('\n\n');
+
+      await this.templateService.execute('digital_order_delivery', {
+        to: order.customer_email,
+        variables: {
+          customer_name: order.customer_name || order.customer_email,
+          order_number: order.order_number,
+          products_info: productsInfoStr,
+        }
+      });
+    } catch (error) {
+      console.error('Failed to send digital delivery email via template:', error);
+    }
   }
 }
 

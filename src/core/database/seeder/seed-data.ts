@@ -28,6 +28,7 @@ import { SeedComics } from '@/core/database/seeder/seed-comics';
 import { SeedChapters } from '@/core/database/seeder/seed-chapters';
 import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
 import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
+import { SeedProductDigitalAssets } from '@/core/database/seeder/seed-product-digital-assets';
 
 @Injectable()
 export class SeedService {
@@ -65,6 +66,7 @@ export class SeedService {
     private readonly seedChapters: SeedChapters,
     private readonly seedComicLastChapter: SeedComicLastChapter,
     private readonly seedComicComments: SeedComicComments,
+    private readonly seedProductDigitalAssets: SeedProductDigitalAssets,
   ) { }
 
   async seedAll(): Promise<void> {
@@ -112,6 +114,7 @@ export class SeedService {
 
       // Ecommerce (products, categories, variants, attributes, coupons, shipping, payment)
       await this.seedEcommerce.seed();
+      await this.seedProductDigitalAssets.seed();
 
       // Ecommerce - Warehouse & Inventory (tồn kho)
       await this.seedWarehouseInventory.seed();

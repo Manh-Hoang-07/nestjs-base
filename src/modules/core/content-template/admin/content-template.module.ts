@@ -5,11 +5,13 @@ import { ContentTemplateRepositoryModule } from '../content-template.repository.
 import { ContentRendererService } from '../services/content-renderer.service';
 import { ContentTemplateExecutionService } from '../services/content-template-execution.service';
 import { AppMailModule } from '@/core/mail/mail.module';
+import { RbacModule } from '@/modules/core/rbac/rbac.module';
 
 @Module({
     imports: [
         ContentTemplateRepositoryModule,
         AppMailModule,
+        RbacModule,
     ],
     controllers: [ContentTemplateController],
     providers: [
@@ -17,6 +19,6 @@ import { AppMailModule } from '@/core/mail/mail.module';
         ContentRendererService,
         ContentTemplateExecutionService,
     ],
-    exports: [ContentTemplateService, ContentTemplateExecutionService],
+    exports: [ContentTemplateService, ContentTemplateExecutionService, ContentRendererService],
 })
 export class ContentTemplateAdminModule { }

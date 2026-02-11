@@ -11,7 +11,8 @@ export class ContentRendererService {
         if (!variables) return content;
 
         return content.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, key) => {
-            return this.getValueByPath(variables, key) ?? match;
+            const value = this.getValueByPath(variables, key);
+            return value !== undefined ? String(value) : match;
         });
     }
 

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/core/database/prisma/prisma.module';
+import { EncryptionModule } from '@/common/encryption/encryption.module';
 import { SeedService } from '@/core/database/seeder/seed-data';
 import { SeedPermissions } from '@/core/database/seeder/seed-permissions';
 import { SeedRoles } from '@/core/database/seeder/seed-roles';
@@ -29,9 +30,10 @@ import { SeedComics } from '@/core/database/seeder/seed-comics';
 import { SeedChapters } from '@/core/database/seeder/seed-chapters';
 import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
 import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
+import { SeedProductDigitalAssets } from '@/core/database/seeder/seed-product-digital-assets';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, EncryptionModule],
   providers: [
     // Main seed service
     SeedService,
@@ -68,6 +70,7 @@ import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
     SeedChapters,
     SeedComicLastChapter,
     SeedComicComments,
+    SeedProductDigitalAssets,
   ],
   exports: [SeedService],
 })

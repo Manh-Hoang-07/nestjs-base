@@ -3,6 +3,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { AuthService } from '@/common/auth/services';
 import { CacheService } from '@/common/cache/services';
 import { ContextModule } from '@/modules/core/context/context.module';
+import { EncryptionModule } from './encryption/encryption.module';
+import { EncryptionService } from './encryption/encryption.service';
 
 /**
  * Common Module - Cung cấp các services dùng chung
@@ -16,9 +18,10 @@ import { ContextModule } from '@/modules/core/context/context.module';
       max: 100, // Maximum number of items in cache
     }),
     ContextModule,
+    EncryptionModule,
   ],
-  providers: [AuthService, CacheService],
-  exports: [AuthService, CacheService, ContextModule],
+  providers: [AuthService, CacheService, EncryptionService],
+  exports: [AuthService, CacheService, ContextModule, EncryptionModule, EncryptionService],
 })
 export class CommonModule { }
 

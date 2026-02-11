@@ -9,6 +9,7 @@ export type PrismaDelegate = {
     findUnique?: (args: any) => Promise<any | null>; // Some models use findUnique
     count: (args: any) => Promise<number>;
     create: (args: any) => Promise<any>;
+    createMany?: (args: any) => Promise<any>; // Optional because not all models support it (e.g. SQLite limitations or specific models)
     update: (args: any) => Promise<any>;
     updateMany: (args: any) => Promise<{ count: number }>;
     upsert: (args: any) => Promise<any>;

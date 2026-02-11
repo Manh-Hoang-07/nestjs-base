@@ -50,7 +50,18 @@ export class OrderRepositoryImpl extends PrismaRepository<
                 select: { name: true, code: true, type: true }
             },
             items: {
-                select: { id: true, variant_name: true, quantity: true, unit_price: true, total_price: true }
+                select: {
+                    id: true,
+                    product_id: true,
+                    product_name: true,
+                    variant_name: true,
+                    quantity: true,
+                    unit_price: true,
+                    total_price: true,
+                    digital_assets: {
+                        select: { content: true }
+                    }
+                }
             },
             payments: true
         };

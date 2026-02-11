@@ -113,6 +113,39 @@ export class SeedContentTemplates {
                     subject: 'Mã OTP xác thực khôi phục mật khẩu',
                     variables: ['otp']
                 }
+            },
+            {
+                code: 'digital_order_delivery',
+                name: 'Giao hàng sản phẩm số',
+                content: `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6; color: #333;">
+    <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Thông Tin Sản Phẩm Digital</h2>
+    <p>Xin chào <strong>{{customer_name}}</strong>,</p>
+    <p>Cảm ơn bạn đã mua hàng! Đơn hàng <strong>#{{order_number}}</strong> của bạn đã được thanh toán thành công.</p>
+    
+    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #2980b9;">Chi tiết sản phẩm:</h3>
+        <div style="white-space: pre-wrap; background: #fff; padding: 15px; border-radius: 5px; border: 1px solid #ddd; font-family: monospace;">
+{{products_info}}
+        </div>
+    </div>
+
+    <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #ffeeba; font-size: 14px;">
+        <strong>Lưu ý:</strong> Vui lòng bảo mật thông tin tài khoản/mã sản phẩm trên. Không chia sẻ cho bất kỳ ai để tránh mất mát.
+    </div>
+
+    <p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi.</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+    <p style="font-size: 12px; color: #7f8c8d; text-align: center;">Trân trọng,<br/><strong>Hệ thống Ecommerce</strong></p>
+</div>
+                `,
+                type: TemplateType.email,
+                category: TemplateCategory.render,
+                status: BasicStatus.active,
+                metadata: {
+                    subject: '[Order #{{order_number}}] Thông tin sản phẩm digital của bạn',
+                    variables: ['customer_name', 'order_number', 'products_info']
+                }
             }
         ];
 

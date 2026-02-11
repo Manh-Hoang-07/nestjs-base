@@ -16,6 +16,9 @@ import { ProductVariantRepositoryModule } from '../../product-variant/product-va
 import { ShippingMethodRepositoryModule } from '../../shipping-method/shipping-method.repository.module';
 import { WarehouseRepositoryModule } from '../../warehouse/warehouse.repository.module';
 import { PaymentRepositoryModule } from '@/modules/payment/payment.repository.module';
+import { ProductDigitalAssetRepositoryModule } from '../../product-digital-asset/product-digital-asset.repository.module';
+import { EncryptionModule } from '@/common/encryption/encryption.module';
+import { ContentTemplateModule } from '@/modules/core/content-template/content-template.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { PaymentRepositoryModule } from '@/modules/payment/payment.repository.mo
     ShippingMethodRepositoryModule,
     WarehouseRepositoryModule,
     PaymentRepositoryModule,
+    ProductDigitalAssetRepositoryModule,
+    EncryptionModule,
+    ContentTemplateModule,
     RbacModule,
     AppMailModule,
     PublicPaymentModule,

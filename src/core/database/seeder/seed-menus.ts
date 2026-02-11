@@ -635,6 +635,20 @@ export class SeedMenus {
         show_in_menu: true,
         permission_code: 'product_category.manage',
       },
+      {
+        code: 'ecommerce-product-digital-assets',
+        name: 'Sản phẩm số (Keys/Accounts)',
+        path: '/admin/ecommerce/products/digital-assets',
+        api_path: 'api/admin/ecommerce/product-digital-assets',
+        icon: '🔑',
+        type: MenuType.route,
+        status: BasicStatus.active,
+        parent_code: 'product-management',
+        sort_order: 60,
+        is_public: false,
+        show_in_menu: true,
+        permission_code: 'product.manage',
+      },
 
       // ========== QUẢN LÝ KHO (GROUP) ==========
       {

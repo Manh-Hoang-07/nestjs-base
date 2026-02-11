@@ -102,25 +102,38 @@ export class SeedEcommerce {
       const slug = `product-${i}-${Date.now()}`;
       const sku = `SKU-${1000 + i}`;
 
-      const product = await this.prisma.product.create({
-        data: {
-          name: baseName,
-          slug,
-          sku,
-          description: `Mô tả chi tiết cho ${baseName}`,
-          short_description: `Mô tả ngắn cho ${baseName}`,
-          status: 'active',
-          is_featured: i % 7 === 0,
-          is_variable: true,
-          group_id: shopId, // ✅ Assigned to shop
-        } as any,
-      });
+      const existingProduct = await this.prisma.product.findUnique({ where: { sku } });
+      let product;
+      if (existingProduct) {
+        product = existingProduct;
+      } else {
+        product = await this.prisma.product.create({
+          data: {
+            name: baseName,
+            slug,
+            sku,
+            description: `Mô tả chi tiết cho ${baseName}`,
+            short_description: `Mô tả ngắn cho ${baseName}`,
+            status: 'active',
+            is_featured: i % 7 === 0,
+            is_variable: true,
+            group_id: shopId, // ✅ Assigned to shop
+          } as any,
+        });
+      }
 
       // Gán category (chỉ chọn category global hoặc category của shop mình)
       const compatibleCategories = allCategories.filter(c => (c as any).group_id === null || (c as any).group_id === shopId);
       const cat = compatibleCategories[i % compatibleCategories.length];
-      await this.prisma.productProductCategory.create({
-        data: {
+      await this.prisma.productProductCategory.upsert({
+        where: {
+          product_id_product_category_id: {
+            product_id: product.id,
+            product_category_id: cat.id,
+          }
+        },
+        update: {},
+        create: {
           product_id: product.id,
           product_category_id: cat.id,
         },
@@ -131,32 +144,37 @@ export class SeedEcommerce {
         const color = allColorValues[j % allColorValues.length];
         const capacity = allCapacityValues[j % allCapacityValues.length];
         const variantSku = `${sku}-${color.id}-${capacity.id}-${j}`;
+        const existingVariant = await this.prisma.productVariant.findUnique({ where: { sku: variantSku } });
 
-        const variant = await this.prisma.productVariant.create({
-          data: {
-            product_id: product.id,
-            name: `${baseName} - ${color.label} - ${capacity.label}`,
-            sku: variantSku,
-            price: 1000000 + (j * 100000),
-            stock_quantity: 50,
-            is_active: true,
-            group_id: shopId, // ✅ Inherit group_id
-          } as any,
-        });
+        if (!existingVariant) {
+          const variant = await this.prisma.productVariant.create({
+            data: {
+              product_id: product.id,
+              name: `${baseName} - ${color.label} - ${capacity.label}`,
+              sku: variantSku,
+              price: 1000000 + (j * 100000),
+              stock_quantity: 50,
+              is_active: true,
+              group_id: shopId, // ✅ Inherit group_id
+            } as any,
+          });
 
-        await this.prisma.productVariantAttribute.createMany({
-          data: [
-            { product_variant_id: variant.id, product_attribute_id: colorAttr.id, product_attribute_value_id: color.id },
-            { product_variant_id: variant.id, product_attribute_id: capacityAttr.id, product_attribute_value_id: capacity.id },
-          ],
-        });
+          await this.prisma.productVariantAttribute.createMany({
+            data: [
+              { product_variant_id: variant.id, product_attribute_id: colorAttr.id, product_attribute_value_id: color.id },
+              { product_variant_id: variant.id, product_attribute_id: capacityAttr.id, product_attribute_value_id: capacity.id },
+            ],
+          });
+        }
       }
     }
 
     // 4. Coupons (Shop-specific)
     if (shop1) {
-      await this.prisma.coupon.create({
-        data: {
+      await this.prisma.coupon.upsert({
+        where: { code: 'SHOP1_10' },
+        update: {},
+        create: {
           code: 'SHOP1_10',
           name: 'Shop 1 Welcome Discount',
           type: 'percent',
@@ -167,8 +185,10 @@ export class SeedEcommerce {
       });
     }
     if (shop2) {
-      await this.prisma.coupon.create({
-        data: {
+      await this.prisma.coupon.upsert({
+        where: { code: 'SHOP2_FIXED' },
+        update: {},
+        create: {
           code: 'SHOP2_FIXED',
           name: 'Shop 2 Fixed Discount',
           type: 'fixed_amount',

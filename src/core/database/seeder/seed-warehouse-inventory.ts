@@ -52,8 +52,16 @@ export class SeedWarehouseInventory {
 
     for (const v of variants) {
       // Tồn kho trong kho dùng chung (kế thừa group_id từ variant/product)
-      await this.prisma.warehouseInventory.create({
-        data: {
+      await this.prisma.warehouseInventory.upsert({
+        where: {
+          warehouse_id_product_id_product_variant_id: {
+            warehouse_id: whShared.id,
+            product_id: v.product_id,
+            product_variant_id: v.id,
+          }
+        },
+        update: {},
+        create: {
           warehouse_id: whShared.id,
           product_id: v.product_id,
           product_variant_id: v.id,
@@ -65,8 +73,16 @@ export class SeedWarehouseInventory {
 
       // Nếu variant thuộc shop 1, tạo tồn kho trong kho của shop 1
       if (shop1 && Number((v as any).group_id) === Number(shop1.id)) {
-        await this.prisma.warehouseInventory.create({
-          data: {
+        await this.prisma.warehouseInventory.upsert({
+          where: {
+            warehouse_id_product_id_product_variant_id: {
+              warehouse_id: whShop1.id,
+              product_id: v.product_id,
+              product_variant_id: v.id,
+            }
+          },
+          update: {},
+          create: {
             warehouse_id: whShop1.id,
             product_id: v.product_id,
             product_variant_id: v.id,
