@@ -32,7 +32,57 @@ Hiển thị dạng danh sách các thẻ (Card) hoặc Radio list.
     *   Click vào toàn bộ vùng (Box) -> Chọn Radio.
     *   Khi chọn: Update ngay dòng "Phí vận chuyển" và "Tổng cộng" ở cột Order Summary.
 
-### 1.3. Trường Hợp Đặc Biệt
+### 1.3. API Tích Hợp (API Integration)
+
+#### A. Lấy danh sách phương thức vận chuyển
+*   **Endpoint**: `GET /api/public/shipping-methods/active`
+*   **Mô tả**: Trả về danh sách các phương thức vận chuyển đang hoạt động.
+*   **Response Example**:
+    ```json
+    {
+      "success": true,
+      "data": [
+        {
+          "id": 1,
+          "name": "Giao hàng tiêu chuẩn",
+          "code": "standard",
+          "description": "Nhận hàng sau 3-5 ngày làm việc",
+          "base_cost": 30000
+        },
+        {
+          "id": 2,
+          "name": "Nội thành hỏa tốc",
+          "code": "express",
+          "description": "Giao ngay trong vòng 2h",
+          "base_cost": 50000
+        }
+      ]
+    }
+    ```
+
+#### B. Tính phí vận chuyển dựa trên địa chỉ/giỏ hàng
+*   **Endpoint**: `POST /api/public/shipping-methods/calculate`
+*   **Body**:
+    ```json
+    {
+      "shipping_method_id": 1,
+      "cart_value": 500000,
+      "weight": 1.5, // Cân nặng (kg) - Nếu backend có tính theo cân nặng
+      "destination": "Quận 1, TP. Hồ Chí Minh" // Hoặc ID của Tỉnh/Thành
+    }
+    ```
+*   **Response**: 
+    ```json
+    {
+      "success": true,
+      "data": {
+        "shipping_fee": 30000,
+        "estimated_days": "3-5 ngày"
+      }
+    }
+    ```
+
+### 1.4. Trường Hợp Đặc Biệt
 *   **Digital Product**: Ẩn hoàn toàn component này hoặc hiển thị text: "*Sản phẩm sẽ được gửi qua email. Không cần vận chuyển.*"
 *   **Free Ship**: Nếu giá = 0 -> Hiển thị text "Miễn phí" hoặc "0đ" (Màu xanh lá cây).
 
@@ -63,22 +113,67 @@ Khi user click chọn một phương thức, có thể sổ ra (collapse) nội 
     *   *Lưu ý*: Không hiện QR Code ngay tại bước này để tránh user chuyển tiền mà chưa bấm "Đặt hàng".
 *   **Với Online (VNPay)**: Text: "Bạn sẽ được chuyển hướng sang cổng thanh toán VNPay để hoàn tất."
 
+#### C. API Tích Hợp
+*   **Endpoint**: `GET /api/public/payment-methods`
+*   **Response Example**:
+    ```json
+    {
+      "success": true,
+      "data": [
+        { "id": 1, "code": "cod", "name": "Thanh toán khi nhận hàng (COD)", "type": "offline" },
+        { "id": 2, "code": "bank_transfer", "name": "Chuyển khoản ngân hàng", "type": "offline" },
+        { "id": 3, "code": "vnpay", "name": "Ví VNPAY / Thẻ ATM / QR Code", "type": "online" }
+      ]
+    }
+    ```
+
 ### 2.3. Logic Ẩn/Hiện (Validation Logic)
-Frontend cần xử lý logic hiển thị dựa trên giỏ hàng:
-1.  **Check Cart Items**: Duyệt qua danh sách item trong giỏ.
-2.  **Condition**: Nếu có *bất kỳ* item nào có `is_digital = true`.
-3.  **Action**:
-    *   Tìm phương thức có `code = 'cod'`.
-    *   Thêm class `disabled` (làm mờ, không click được).
-    *   Thêm Tooltip hoặc dòng thông báo nhỏ dưới COD: "*Không khả dụng cho đơn hàng có sản phẩm số*".
+*   **Check Cart Items**: Duyệt qua danh sách item trong giỏ.
+*   **Condition**: Nếu có *bất kỳ* item nào có `is_digital = true`.
+*   **Action**: Backend/Frontend cần làm mờ (disable) phương thức `COD`.
 
 ---
 
-## 3. Giao Diện Kết Quả Thanh Toán (Payment Result UI)
+## 3. Component: Mã Giảm Giá (Coupon / Voucher)
+
+Thường nằm ở bên cạnh hoặc phía trên phần Order Summary.
+
+### 3.1. Giao Diện (UI)
+*   **Input Group**: Ô nhập mã text + Nút "Áp dụng".
+*   **Trạng thái đã áp dụng**: Hiện mã code (vd: `GIAM30K` 🏷️) kèm nút [X] để gỡ mã.
+*   **Thông báo**: Hiện dòng text màu xanh nếu thành công, màu đỏ nếu mã hết hạn/không hợp lệ.
+
+### 3.2. API Tích Hợp
+
+#### A. Lấy danh sách mã giảm giá khả dụng
+*   **Endpoint**: `GET /api/public/discounts/coupons/available`
+*   **Mô tả**: Trả về các mã public mà user này có thể dùng.
+
+#### B. Kiểm tra mã giảm giá (Validate)
+*   **Endpoint**: `POST /api/public/discounts/validate-coupon`
+*   **Body**: `{ "coupon_code": "HELLO2026", "cart_total": 500000 }`
+
+#### C. Áp dụng mã vào giỏ hàng
+*   **Endpoint**: `POST /api/public/discounts/apply-coupon`
+*   **Body**: 
+    ```json
+    {
+      "cart_uuid": "...", 
+      "coupon_code": "GIAM30K"
+    }
+    ```
+*   **Response**: Trả về object Giỏ hàng mới (`updatedCart`) với trường `discount_amount` đã được tính lại.
+
+#### D. Gỡ mã giảm giá
+*   **Endpoint**: `DELETE /api/public/discounts/remove-coupon/:cart_uuid`
+
+---
+
+## 4. Giao Diện Kết Quả Thanh Toán (Payment Result UI)
 
 Trang hiển thị sau khi quay lại từ cổng thanh toán (Return URL).
 
-### 3.1. Thành Công (Success)
+### 4.1. Thành Công (Success)
 *   **Màu chủ đạo**: Xanh lá cây.
 *   **Icon**: Checkmark tròn lớn, animation vẽ vòng tròn.
 *   **Title**: "Thanh toán thành công!".
