@@ -81,7 +81,7 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
       );
 
       // 8. Return updated cart
-      return await this.getCartSummary(cartHeader.uuid || undefined, userId);
+      return await this.getCartSummary(cartHeader.uuid || undefined, userId, tx);
     });
   }
 
@@ -131,7 +131,7 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
         cartHeader.id,
       );
 
-      return await this.getCartSummary(cartHeader.uuid || undefined, userId);
+      return await this.getCartSummary(cartHeader.uuid || undefined, userId, tx);
     });
   }
 
@@ -162,7 +162,7 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
         cartHeader.id,
       );
 
-      return await this.getCartSummary(cartHeader.uuid || undefined, userId);
+      return await this.getCartSummary(cartHeader.uuid || undefined, userId, tx);
     });
   }
 
@@ -183,13 +183,14 @@ export class PublicCartService extends BaseService<CartHeader, ICartRepository> 
   async getCartSummary(
     cartUuid?: string,
     userId?: number | bigint,
+    tx?: any,
   ): Promise<any> {
     const cartHeader = await this.managementService.getOrCreateCart(
       cartUuid,
       userId,
     );
 
-    return this.managementService.getCartSummary(cartHeader);
+    return this.managementService.getCartSummary(cartHeader, tx);
   }
 
   /**

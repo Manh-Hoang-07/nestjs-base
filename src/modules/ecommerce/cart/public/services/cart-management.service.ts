@@ -60,18 +60,35 @@ export class CartManagementService {
    */
   async getCartSummary(
     cartHeader: CartHeader,
+    tx?: any,
   ): Promise<any> {
-    const fullCart = await this.cartRepository.findFirstRaw({
-      where: { id: (this.cartRepository as any).toPrimaryKey(cartHeader.id) },
-      include: {
-        items: {
-          include: {
-            product: { select: { name: true, image: true, sku: true } },
-            variant: { select: { name: true, image: true, sku: true, price: true } }
+    let fullCart;
+
+    if (tx) {
+      fullCart = await tx.cartHeader.findFirst({
+        where: { id: cartHeader.id },
+        include: {
+          items: {
+            include: {
+              product: { select: { name: true, image: true, sku: true } },
+              variant: { select: { name: true, image: true, sku: true, price: true } }
+            }
           }
         }
-      }
-    });
+      });
+    } else {
+      fullCart = await this.cartRepository.findFirstRaw({
+        where: { id: (this.cartRepository as any).toPrimaryKey(cartHeader.id) },
+        include: {
+          items: {
+            include: {
+              product: { select: { name: true, image: true, sku: true } },
+              variant: { select: { name: true, image: true, sku: true, price: true } }
+            }
+          }
+        }
+      });
+    }
 
     if (!fullCart) throw new NotFoundException('Cart not found');
 
