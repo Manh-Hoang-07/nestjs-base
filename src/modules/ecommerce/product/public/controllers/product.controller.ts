@@ -58,7 +58,7 @@ export class PublicProductController {
 
     // If product has categories, try to filter by the first category
     if (currentProduct.categories && currentProduct.categories.length > 0) {
-      const firstCategoryId = currentProduct.categories[0].category.id;
+      const firstCategoryId = currentProduct.categories[0].id;
       query.category_id = firstCategoryId;
     }
 

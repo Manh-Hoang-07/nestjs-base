@@ -32,6 +32,17 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
       delete prepared.category_slug;
     }
 
+    // Xử lý price filters
+    if (prepared.min_price !== undefined) {
+      prepared.minPrice = prepared.min_price;
+      delete prepared.min_price;
+    }
+
+    if (prepared.max_price !== undefined) {
+      prepared.maxPrice = prepared.max_price;
+      delete prepared.max_price;
+    }
+
     return prepared;
   }
 

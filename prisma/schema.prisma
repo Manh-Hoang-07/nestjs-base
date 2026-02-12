@@ -1059,6 +1059,10 @@ model ProductVariant {
   @@index([product_id], map: "idx_product_variants_product_id")
   @@index([sku], map: "idx_product_variants_sku")
   @@index([group_id], map: "idx_product_variants_group_id")
+  @@index([is_active], map: "idx_product_variants_is_active")
+  @@index([deleted_at], map: "idx_product_variants_deleted_at")
+  @@index([is_active, deleted_at, price], map: "idx_product_variants_active_price")
+  @@index([is_active, deleted_at, sale_price], map: "idx_product_variants_active_sale_price")
   @@map("product_variants")
 }
 

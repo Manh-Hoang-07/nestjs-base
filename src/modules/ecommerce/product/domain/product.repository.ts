@@ -13,6 +13,8 @@ export interface ProductFilter {
     isDigital?: boolean;
     groupId?: number | bigint;
     deleted_at?: Date | null;
+    minPrice?: number;
+    maxPrice?: number;
 }
 
 export interface IProductRepository extends IRepository<Product> {
