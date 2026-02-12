@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
 import { ProductVariant } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '../../domain/product-variant.repository';
@@ -7,14 +7,18 @@ import { UpdateProductVariantDto } from '../dtos/update-product-variant.dto';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
 import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 import { IProductVariantAttributeRepository, PRODUCT_VARIANT_ATTRIBUTE_REPOSITORY } from '../../domain/product-variant-attribute.repository';
+import { ProductPriceSyncService } from '@/modules/ecommerce/product/infrastructure/services/product-price-sync.service';
 
 @Injectable()
 export class AdminProductVariantService extends BaseService<ProductVariant, IProductVariantRepository> {
+  private readonly logger = new Logger(AdminProductVariantService.name);
+
   constructor(
     @Inject(PRODUCT_VARIANT_REPOSITORY)
     protected readonly productVariantRepository: IProductVariantRepository,
     @Inject(PRODUCT_VARIANT_ATTRIBUTE_REPOSITORY)
     private readonly attributeRepository: IProductVariantAttributeRepository,
+    private readonly priceSyncService: ProductPriceSyncService,
   ) {
     super(productVariantRepository);
     this.autoAddGroupId = true;
@@ -85,6 +89,15 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
           })
           .filter(Boolean) as any[]
       );
+    }
+
+    // 🚀 AUTO-SYNC: Update product price after creating variant
+    try {
+      await this.priceSyncService.syncProductPrice(entity.product_id);
+      this.logger.debug(`Auto-synced price for product ${entity.product_id} after variant creation`);
+    } catch (error) {
+      this.logger.error(`Failed to sync price for product ${entity.product_id}`, error);
+      // Don't throw - variant was created successfully, price sync is secondary
     }
   }
 
@@ -165,6 +178,38 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
             })
             .filter(Boolean) as any[]
         );
+      }
+    }
+
+    // 🚀 AUTO-SYNC: Update product price if price-related fields changed
+    const needsSync =
+      data.price !== undefined ||
+      data.sale_price !== undefined ||
+      data.status !== undefined;
+
+    if (needsSync) {
+      try {
+        await this.priceSyncService.syncProductPrice(entity.product_id);
+        this.logger.debug(`Auto-synced price for product ${entity.product_id} after variant update`);
+      } catch (error) {
+        this.logger.error(`Failed to sync price for product ${entity.product_id}`, error);
+        // Don't throw - variant was updated successfully, price sync is secondary
+      }
+    }
+  }
+
+  /**
+   * Override delete to add price sync
+   */
+  protected override async afterDelete(id: bigint, entity?: ProductVariant): Promise<void> {
+    // 🚀 AUTO-SYNC: Update product price after deleting variant
+    if (entity) {
+      try {
+        await this.priceSyncService.syncProductPrice(entity.product_id);
+        this.logger.debug(`Auto-synced price for product ${entity.product_id} after variant deletion`);
+      } catch (error) {
+        this.logger.error(`Failed to sync price for product ${entity.product_id}`, error);
+        // Don't throw - variant was deleted successfully, price sync is secondary
       }
     }
   }

@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Product } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../domain/product.repository';
+import { CategoryCacheService } from '../../infrastructure/services/category-cache.service';
 
 @Injectable()
 export class PublicProductService extends BaseService<Product, IProductRepository> {
@@ -10,6 +11,7 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
   constructor(
     @Inject(PRODUCT_REPOSITORY)
     protected readonly productRepository: IProductRepository,
+    private readonly categoryCacheService: CategoryCacheService,
   ) {
     super(productRepository);
   }
@@ -26,10 +28,19 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
     // Luôn chỉ lấy sản phẩm active
     prepared.status = 'active';
 
-    // Xử lý categorySlug qua repository filter
+    // OPTIMIZED: Resolve category slug → ID using cache (eliminates JOIN!)
     if (prepared.category_slug) {
-      prepared.categorySlug = prepared.category_slug;
-      delete prepared.category_slug;
+      const categoryId = await this.categoryCacheService.getCategoryIdBySlug(prepared.category_slug);
+
+      if (categoryId) {
+        // Use categoryId for direct filtering (1 JOIN instead of 2)
+        prepared.categoryId = categoryId;
+        delete prepared.category_slug;
+      } else {
+        // Fallback to slug-based query if not in cache
+        prepared.categorySlug = prepared.category_slug;
+        delete prepared.category_slug;
+      }
     }
 
     // Xử lý price filters

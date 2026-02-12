@@ -971,32 +971,37 @@ model ProductCategory {
 }
 
 model Product {
-  id                BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
-  name              String        @db.VarChar(255)
-  slug              String        @unique @db.VarChar(255)
-  sku               String        @unique @db.VarChar(100)
-  description       String?       @db.LongText
-  short_description String?       @db.Text
-  min_stock_level   Int           @default(0)
-  image             String?       @db.VarChar(500)
-  gallery           Json?
-  status            String        @default("active") @db.VarChar(30)
-  is_featured       Boolean       @default(false)
-  is_variable       Boolean       @default(true)
-  is_digital        Boolean       @default(false)
-  download_limit    Int?
-  meta_title        String?       @db.VarChar(255)
-  meta_description  String?       @db.Text
-  canonical_url     String?       @db.VarChar(500)
-  og_title          String?       @db.VarChar(255)
-  og_description    String?       @db.Text
-  og_image          String?       @db.VarChar(500)
-  group_id          BigInt?       @db.UnsignedBigInt
-  created_user_id   BigInt?       @db.UnsignedBigInt
-  updated_user_id   BigInt?       @db.UnsignedBigInt
-  created_at        DateTime      @default(now()) @db.DateTime(0)
-  updated_at        DateTime      @updatedAt @db.DateTime(0)
-  deleted_at        DateTime?     @db.DateTime(0)
+  id                    BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String        @db.VarChar(255)
+  slug                  String        @unique @db.VarChar(255)
+  sku                   String        @unique @db.VarChar(100)
+  description           String?       @db.LongText
+  short_description     String?       @db.Text
+  min_stock_level       Int           @default(0)
+  image                 String?       @db.VarChar(500)
+  gallery               Json?
+  status                String        @default("active") @db.VarChar(30)
+  is_featured           Boolean       @default(false)
+  is_variable           Boolean       @default(true)
+  is_digital            Boolean       @default(false)
+  download_limit        Int?
+  
+  // Denormalized price fields for fast filtering (no JOIN needed!)
+  min_effective_price   Decimal?      @db.Decimal(15, 2)
+  max_effective_price   Decimal?      @db.Decimal(15, 2)
+  
+  meta_title            String?       @db.VarChar(255)
+  meta_description      String?       @db.Text
+  canonical_url         String?       @db.VarChar(500)
+  og_title              String?       @db.VarChar(255)
+  og_description        String?       @db.Text
+  og_image              String?       @db.VarChar(500)
+  group_id              BigInt?       @db.UnsignedBigInt
+  created_user_id       BigInt?       @db.UnsignedBigInt
+  updated_user_id       BigInt?       @db.UnsignedBigInt
+  created_at            DateTime      @default(now()) @db.DateTime(0)
+  updated_at            DateTime      @updatedAt @db.DateTime(0)
+  deleted_at            DateTime?     @db.DateTime(0)
 
   categories      ProductProductCategory[]
   variants        ProductVariant[]
@@ -1012,6 +1017,7 @@ model Product {
   @@index([is_featured], map: "idx_products_is_featured")
   @@index([group_id], map: "idx_products_group_id")
   @@index([deleted_at], map: "idx_products_deleted_at")
+  @@index([min_effective_price, max_effective_price], map: "idx_products_price_range")
   @@map("products")
 }
 
