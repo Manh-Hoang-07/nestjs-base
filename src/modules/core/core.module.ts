@@ -8,6 +8,7 @@ import { MenuModule } from './menu/menu.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { ContentTemplateModule } from './content-template/content-template.module';
 import { QueueWorkerModule } from './queue/queue.module';
+import { LocationModule } from './location/location.module';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { QueueWorkerModule } from './queue/queue.module';
         SystemConfigModule,
         ContentTemplateModule,
         QueueWorkerModule,
+        LocationModule,
     ],
     exports: [
         AuthModule,
@@ -31,6 +33,7 @@ import { QueueWorkerModule } from './queue/queue.module';
         SystemConfigModule,
         ContentTemplateModule,
         QueueWorkerModule,
+        LocationModule,
     ],
 })
 export class CoreModulesModule { }
