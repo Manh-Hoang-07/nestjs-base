@@ -1,0 +1,364 @@
+{
+  "country": {
+    "id": 1,
+    "code": "VN",
+    "code_alpha3": "VNM",
+    "name": "Việt Nam",
+    "official_name": "Cộng hòa Xã hội chủ nghĩa Việt Nam",
+    "phone_code": "+84",
+    "currency_code": "VND",
+    "flag_emoji": "🇻🇳",
+    "status": "active"
+  },
+  "provinces": [
+    {
+      "id": 1,
+      "code": "01",
+      "name": "Hà Nội",
+      "type": "Municipality",
+      "phone_code": "024",
+      "country_id": 1,
+      "status": "active",
+      "note": "Thủ đô - Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 2,
+      "code": "79",
+      "name": "Thành phố Hồ Chí Minh",
+      "type": "Municipality",
+      "phone_code": "028",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Bà Rịa - Vũng Tàu, Bình Dương"
+    },
+    {
+      "id": 3,
+      "code": "48",
+      "name": "Đà Nẵng",
+      "type": "Municipality",
+      "phone_code": "0236",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Quảng Nam"
+    },
+    {
+      "id": 4,
+      "code": "31",
+      "name": "Hải Phòng",
+      "type": "Municipality",
+      "phone_code": "0225",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Hải Dương"
+    },
+    {
+      "id": 5,
+      "code": "92",
+      "name": "Cần Thơ",
+      "type": "Municipality",
+      "phone_code": "0292",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Hậu Giang, Sóc Trăng"
+    },
+    {
+      "id": 6,
+      "code": "46",
+      "name": "Huế",
+      "type": "Municipality",
+      "phone_code": "0234",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập (trước là Thừa Thiên Huế)"
+    },
+    {
+      "id": 7,
+      "code": "02",
+      "name": "Cao Bằng",
+      "type": "Province",
+      "phone_code": "026",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 8,
+      "code": "04",
+      "name": "Lào Cai",
+      "type": "Province",
+      "phone_code": "0214",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Yên Bái"
+    },
+    {
+      "id": 9,
+      "code": "10",
+      "name": "Lai Châu",
+      "type": "Province",
+      "phone_code": "0213",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 10,
+      "code": "11",
+      "name": "Điện Biên",
+      "type": "Province",
+      "phone_code": "0215",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 11,
+      "code": "14",
+      "name": "Sơn La",
+      "type": "Province",
+      "phone_code": "0212",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 12,
+      "code": "08",
+      "name": "Tuyên Quang",
+      "type": "Province",
+      "phone_code": "0207",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Hà Giang"
+    },
+    {
+      "id": 13,
+      "code": "20",
+      "name": "Lạng Sơn",
+      "type": "Province",
+      "phone_code": "025",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 14,
+      "code": "19",
+      "name": "Thái Nguyên",
+      "type": "Province",
+      "phone_code": "0208",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Bắc Kạn"
+    },
+    {
+      "id": 15,
+      "code": "22",
+      "name": "Quảng Ninh",
+      "type": "Province",
+      "phone_code": "0203",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 16,
+      "code": "25",
+      "name": "Phú Thọ",
+      "type": "Province",
+      "phone_code": "0210",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Vĩnh Phúc, Hòa Bình"
+    },
+    {
+      "id": 17,
+      "code": "27",
+      "name": "Bắc Ninh",
+      "type": "Province",
+      "phone_code": "0222",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Bắc Giang"
+    },
+    {
+      "id": 18,
+      "code": "33",
+      "name": "Hưng Yên",
+      "type": "Province",
+      "phone_code": "0221",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Thái Bình"
+    },
+    {
+      "id": 19,
+      "code": "37",
+      "name": "Ninh Bình",
+      "type": "Province",
+      "phone_code": "0229",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Hà Nam, Nam Định"
+    },
+    {
+      "id": 20,
+      "code": "38",
+      "name": "Thanh Hóa",
+      "type": "Province",
+      "phone_code": "0237",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 21,
+      "code": "40",
+      "name": "Nghệ An",
+      "type": "Province",
+      "phone_code": "0238",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 22,
+      "code": "42",
+      "name": "Hà Tĩnh",
+      "type": "Province",
+      "phone_code": "0239",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 23,
+      "code": "44",
+      "name": "Quảng Trị",
+      "type": "Province",
+      "phone_code": "0233",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Quảng Bình"
+    },
+    {
+      "id": 24,
+      "code": "51",
+      "name": "Quảng Ngãi",
+      "type": "Province",
+      "phone_code": "0255",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Kon Tum"
+    },
+    {
+      "id": 25,
+      "code": "54",
+      "name": "Gia Lai",
+      "type": "Province",
+      "phone_code": "0269",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Bình Định"
+    },
+    {
+      "id": 26,
+      "code": "56",
+      "name": "Khánh Hòa",
+      "type": "Province",
+      "phone_code": "0258",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Ninh Thuận"
+    },
+    {
+      "id": 27,
+      "code": "68",
+      "name": "Lâm Đồng",
+      "type": "Province",
+      "phone_code": "0263",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Đắk Nông, Bình Thuận"
+    },
+    {
+      "id": 28,
+      "code": "66",
+      "name": "Đắk Lắk",
+      "type": "Province",
+      "phone_code": "0262",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Phú Yên"
+    },
+    {
+      "id": 29,
+      "code": "74",
+      "name": "Đồng Nai",
+      "type": "Province",
+      "phone_code": "0251",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Long An, Bình Phước"
+    },
+    {
+      "id": 30,
+      "code": "70",
+      "name": "Tây Ninh",
+      "type": "Province",
+      "phone_code": "0276",
+      "country_id": 1,
+      "status": "active",
+      "note": "Giữ nguyên sau sáp nhập"
+    },
+    {
+      "id": 31,
+      "code": "83",
+      "name": "Đồng Tháp",
+      "type": "Province",
+      "phone_code": "0277",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Tiền Giang"
+    },
+    {
+      "id": 32,
+      "code": "87",
+      "name": "Vĩnh Long",
+      "type": "Province",
+      "phone_code": "0270",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Bến Tre, Trà Vinh"
+    },
+    {
+      "id": 33,
+      "code": "96",
+      "name": "Cà Mau",
+      "type": "Province",
+      "phone_code": "0290",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Bạc Liêu"
+    },
+    {
+      "id": 34,
+      "code": "89",
+      "name": "An Giang",
+      "type": "Province",
+      "phone_code": "0296",
+      "country_id": 1,
+      "status": "active",
+      "note": "Sáp nhập Kiên Giang"
+    }
+  ],
+  "metadata": {
+    "total_provinces": 34,
+    "total_municipalities": 6,
+    "total_standard_provinces": 28,
+    "effective_date": "2025-07-01",
+    "resolution": "Nghị quyết 202/2025/QH15",
+    "approved_date": "2025-06-12",
+    "note": "Danh sách 34 tỉnh thành Việt Nam sau sáp nhập, có hiệu lực từ ngày 01/07/2025"
+  }
+}
