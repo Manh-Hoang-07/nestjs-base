@@ -29,6 +29,7 @@ import { SeedChapters } from '@/core/database/seeder/seed-chapters';
 import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
 import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
 import { SeedProductDigitalAssets } from '@/core/database/seeder/seed-product-digital-assets';
+import { SeedLocations } from '@/core/database/seeder/seed-locations';
 
 @Injectable()
 export class SeedService {
@@ -67,6 +68,7 @@ export class SeedService {
     private readonly seedComicLastChapter: SeedComicLastChapter,
     private readonly seedComicComments: SeedComicComments,
     private readonly seedProductDigitalAssets: SeedProductDigitalAssets,
+    private readonly seedLocations: SeedLocations,
   ) { }
 
   async seedAll(): Promise<void> {
@@ -129,6 +131,9 @@ export class SeedService {
       // Backfill last chapter data sau khi seed chapters
       await this.seedComicLastChapter.seed();
 
+      // Location seed (Countries, Provinces, Wards)
+      await this.seedLocations.seed();
+
       this.logger.log('Database seeding completed successfully');
     } catch (error) {
       this.logger.error('Database seeding failed', error);
@@ -141,6 +146,9 @@ export class SeedService {
 
     try {
       // Clear in reverse order (children first, then parents)
+      // Location data (Wards -> Provinces -> Countries)
+      await this.seedLocations.clear();
+
       // Clear junction tables first (many-to-many)
       await this.prisma.userRoleAssignment.deleteMany({});
       await this.prisma.userGroup.deleteMany({});

@@ -31,6 +31,7 @@ import { SeedChapters } from '@/core/database/seeder/seed-chapters';
 import { SeedComicLastChapter } from '@/core/database/seeder/seed-comic-last-chapter';
 import { SeedComicComments } from '@/core/database/seeder/seed-comic-comments';
 import { SeedProductDigitalAssets } from '@/core/database/seeder/seed-product-digital-assets';
+import { SeedLocations } from '@/core/database/seeder/seed-locations';
 
 @Module({
   imports: [PrismaModule, EncryptionModule],
@@ -71,6 +72,7 @@ import { SeedProductDigitalAssets } from '@/core/database/seeder/seed-product-di
     SeedComicLastChapter,
     SeedComicComments,
     SeedProductDigitalAssets,
+    SeedLocations,
   ],
   exports: [SeedService],
 })

@@ -646,6 +646,81 @@ model Contact {
 }
 
 // ============================================
+// Location - Địa lý
+// ============================================
+
+model Country {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String    @unique @db.VarChar(10)
+  code_alpha3     String?   @db.VarChar(10)
+  name            String    @db.VarChar(255)
+  official_name   String?   @db.VarChar(255)
+  phone_code      String?   @db.VarChar(20)
+  currency_code   String?   @db.VarChar(20)
+  flag_emoji      String?   @db.VarChar(20)
+  status          String    @default("active") @db.VarChar(30)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  provinces Province[]
+
+  @@index([status], map: "idx_countries_status")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("countries")
+}
+
+model Province {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code            String    @unique @db.VarChar(20)
+  name            String    @db.VarChar(255)
+  type            String    @db.VarChar(50)
+  phone_code      String?   @db.VarChar(20)
+  country_id      BigInt    @db.UnsignedBigInt
+  status          String    @default("active") @db.VarChar(30)
+  note            String?   @db.Text
+  code_bnv        String?   @db.VarChar(20)
+  code_tms        String?   @db.VarChar(20)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  country Country @relation(fields: [country_id], references: [id], onDelete: Restrict)
+  wards   Ward[]
+
+  @@index([country_id], map: "idx_provinces_country_id")
+  @@index([status], map: "idx_provinces_status")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("provinces")
+}
+
+model Ward {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  province_id     BigInt    @db.UnsignedBigInt
+  name            String    @db.VarChar(255)
+  type            String    @db.VarChar(50)
+  code            String    @db.VarChar(20)
+  status          String    @default("active") @db.VarChar(30)
+  created_user_id BigInt?   @db.UnsignedBigInt
+  updated_user_id BigInt?   @db.UnsignedBigInt
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  province Province @relation(fields: [province_id], references: [id], onDelete: Cascade)
+
+  @@index([province_id], map: "idx_wards_province_id")
+  @@index([code], map: "idx_wards_code")
+  @@index([status], map: "idx_wards_status")
+  @@index([deleted_at], map: "idx_deleted_at")
+  @@map("wards")
+}
+
+// ============================================
 // Phase 1: Core Modules - Introduction
 // ============================================
 
