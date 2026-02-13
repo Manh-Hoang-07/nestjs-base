@@ -10,18 +10,26 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/payment.service';
+import { PaymentProcessorService } from '../services/payment-processor.service';
+import { PaymentManagementService } from '../services/payment-management.service';
 import { CreatePaymentUrlDto } from '../dtos/create-payment-url.dto';
 import { CreatePaymentDto } from '../dtos/create-payment.dto';
 import { GetPaymentsDto } from '../dtos/get-payments.dto';
+import { Permission } from '@/common/auth/decorators/rbac.decorators';
 
 @Controller('payment')
 export class PaymentController {
-    constructor(private readonly paymentService: PaymentService) { }
+    constructor(
+        private readonly paymentService: PaymentService,
+        private readonly paymentProcessor: PaymentProcessorService,
+        private readonly paymentManagement: PaymentManagementService,
+    ) { }
 
     /**
      * Create payment URL for online payment
      */
     @Post('create-url')
+    @Permission('public')
     async createPaymentUrl(@Body() dto: CreatePaymentUrlDto) {
         return this.paymentService.create(dto);
     }
@@ -30,6 +38,7 @@ export class PaymentController {
      * Create offline payment record
      */
     @Post('create')
+    @Permission('public')
     async createPayment(@Body() dto: CreatePaymentDto) {
         return this.paymentService.create(dto);
     }
@@ -38,15 +47,16 @@ export class PaymentController {
      * VNPay return callback
      */
     @Get('vnpay/return')
+    @Permission('public')
     async vnpayReturn(@Query() query: any, @Res() res: Response) {
         try {
-            const result = await this.paymentService.verifyPayment('vnpay', query);
+            const result = await this.paymentProcessor.verifyAndProcess('vnpay', query);
 
-            // Redirect to success or failure page
             if (result.success) {
-                return res.redirect(`/payment/success?order_id=${result.transactionId}`);
+                // Sử dụng order_id từ kết quả trả về
+                return res.redirect(`/payment/success?order_id=${result.order_id}`);
             } else {
-                return res.redirect(`/payment/failed?message=${encodeURIComponent(result.message)}`);
+                return res.redirect(`/payment/failed?message=${encodeURIComponent(result.message || 'Thanh toán thất bại')}`);
             }
         } catch (error) {
             return res.redirect(`/payment/failed?message=${encodeURIComponent(error.message)}`);
@@ -57,8 +67,9 @@ export class PaymentController {
      * VNPay IPN (Instant Payment Notification)
      */
     @Post('vnpay/ipn')
+    @Permission('public')
     async vnpayIPN(@Body() body: any) {
-        return this.paymentService.handleWebhook('vnpay', body);
+        return this.paymentProcessor.handleWebhook('vnpay', body);
     }
 
     /**
@@ -66,7 +77,7 @@ export class PaymentController {
      */
     @Get()
     async getPayments(@Query() query: GetPaymentsDto) {
-        return this.paymentService.getPayments(query);
+        return this.paymentManagement.getList(query);
     }
 
     /**
@@ -74,6 +85,6 @@ export class PaymentController {
      */
     @Get(':id')
     async getPaymentById(@Param('id') id: string) {
-        return this.paymentService.getPaymentById(parseInt(id));
+        return this.paymentManagement.getOne(id);
     }
 }

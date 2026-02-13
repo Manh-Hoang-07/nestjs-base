@@ -49,18 +49,13 @@ export class PublicOrderService {
     const finalCustomerPhone = customer_phone || (shipping_address as any)?.phone || '';
     const finalCustomerEmail = customer_email || (shipping_address as any)?.email || '';
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // 1. Validate và lấy cart
       const cartHeader = await this.validationService.validateAndGetCart(
         tx as any,
         userId,
         cart_uuid,
       );
-
-      // Ownership check (redundant but safe)
-      if (userId && cartHeader.owner_key !== `user_${userId}`) {
-        throw new ForbiddenException('Cart does not belong to this user');
-      }
 
       // 2. Validate cart items
       const cartItems = await this.validationService.validateCartItems(
@@ -127,26 +122,61 @@ export class PublicOrderService {
       // 10. Clear cart
       await this.creationService.clearCart(tx as any, cartHeader.id);
 
-      // Generate access key
-      const hashKey = generateOrderAccessKey({
-        id: savedOrder.id,
-        order_number: savedOrder.order_number,
-        customer_email: savedOrder.customer_email,
-        customer_phone: savedOrder.customer_phone,
-        total_amount: savedOrder.total_amount,
-      });
-      const baseUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
-      const orderAccessUrl = `${baseUrl}/api/public/orders/access?orderCode=${savedOrder.order_number}&hashKey=${hashKey}`;
-
       return {
-        order_id: savedOrder.id,
-        order_number: savedOrder.order_number,
-        status: savedOrder.status,
-        total_amount: savedOrder.total_amount,
+        savedOrder: {
+          ...savedOrder,
+          id: savedOrder.id.toString(),
+        },
         items_count: cartItems.length,
-        access_url: orderAccessUrl,
       };
     });
+
+    const { savedOrder, items_count } = result;
+
+    // 11. Xử lý online payment URL (nếu có) - THỰC HIỆN NGOÀI TRANSACTION
+    let paymentUrl = null;
+    let isOnline = false;
+
+    if (payment_method_id) {
+      const paymentMethod = await this.prisma.paymentMethod.findUnique({
+        where: { id: BigInt(payment_method_id) },
+      });
+
+      if (paymentMethod && paymentMethod.type === 'online') {
+        isOnline = true;
+        const paymentResult = await this.paymentService.create({
+          order_id: Number(savedOrder.id),
+          payment_method_id: Number(paymentMethod.id),
+          payment_method_code: paymentMethod.code as any,
+          customer_name: finalCustomerName,
+          customer_email: finalCustomerEmail,
+          customer_phone: finalCustomerPhone,
+        } as any);
+        paymentUrl = paymentResult.payment_url;
+      }
+    }
+
+    // Generate access key
+    const hashKey = generateOrderAccessKey({
+      id: BigInt(savedOrder.id),
+      order_number: savedOrder.order_number,
+      customer_email: savedOrder.customer_email,
+      customer_phone: savedOrder.customer_phone,
+      total_amount: savedOrder.total_amount,
+    });
+    const baseUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const orderAccessUrl = `${baseUrl}/api/public/orders/access?orderCode=${savedOrder.order_number}&hashKey=${hashKey}`;
+
+    return {
+      order_id: savedOrder.id.toString(),
+      order_number: savedOrder.order_number,
+      status: savedOrder.status,
+      total_amount: savedOrder.total_amount,
+      items_count: items_count,
+      access_url: orderAccessUrl,
+      payment_url: paymentUrl,
+      is_online: isOnline,
+    };
   }
 
   /**

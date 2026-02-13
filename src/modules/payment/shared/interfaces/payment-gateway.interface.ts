@@ -17,6 +17,7 @@ export interface CreatePaymentParams {
   customerName?: string;
   metadata?: Record<string, any>;
   clientIp?: string; // Client IP address for VNPay
+  bankCode?: string; // Optional: NCB, VISA, MASTERCARD...
 }
 
 export interface PaymentResponse {

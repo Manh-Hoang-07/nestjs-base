@@ -21,4 +21,12 @@ export class CreatePaymentUrlDto {
     @IsOptional()
     @IsString()
     customer_name?: string;
+
+    @IsOptional()
+    @IsString()
+    bank_code?: string;
+
+    @IsOptional()
+    @IsString()
+    clientIp?: string;
 }

@@ -13,6 +13,7 @@ import { AdminProductVariantModule } from './product-variant/admin/product-varia
 import { AdminWarehouseModule } from './warehouse/admin/warehouse.module';
 import { AdminCouponModule } from './coupon/admin/coupon.module';
 import { AdminShippingMethodModule } from './shipping-method/admin/shipping-method.module';
+import { PublicShippingMethodModule } from './shipping-method/public/shipping-method.module';
 import { PublicCartModule } from './cart/public/cart.module';
 import { PublicReviewModule } from './product-review/public/review.module';
 import { TrackingModule } from './shipping/public/tracking.module';
@@ -49,6 +50,7 @@ import { AdminProductDigitalAssetModule } from './product-digital-asset/admin/pr
 
     // Shipping
     AdminShippingMethodModule,
+    PublicShippingMethodModule,
     TrackingModule,
 
     // Cart
@@ -74,6 +76,7 @@ import { AdminProductDigitalAssetModule } from './product-digital-asset/admin/pr
     AdminWarehouseModule,
     AdminCouponModule,
     AdminShippingMethodModule,
+    PublicShippingMethodModule,
     TrackingModule,
     PublicCartModule,
     PublicReviewModule,

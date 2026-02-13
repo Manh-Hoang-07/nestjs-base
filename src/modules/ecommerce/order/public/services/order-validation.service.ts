@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, UnauthorizedException, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { ICartRepository, CART_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart.repository';
 import { ICartItemRepository, CART_ITEM_REPOSITORY } from '@/modules/ecommerce/cart/domain/cart-item.repository';
@@ -33,6 +33,12 @@ export class OrderValidationService {
     let cartHeader: any = null;
 
     if (userId) {
+      // Kiểm tra user có tồn tại trong DB không (tránh lỗi stale ID sau khi refresh seed)
+      const user = await tx.user.findUnique({ where: { id: BigInt(userId) } });
+      if (!user) {
+        throw new UnauthorizedException('Phiên đăng nhập không hợp lệ hoặc người dùng không tồn tại. Vui lòng đăng nhập lại.');
+      }
+
       // Nếu đã đăng nhập, tìm cart theo userId
       cartHeader = await tx.cartHeader.findFirst({
         where: { owner_key: `user_${userId}` },
@@ -158,15 +164,17 @@ export class OrderValidationService {
     orderType: string,
     paymentMethodId?: number | bigint,
   ): Promise<void> {
-    if (orderType === 'digital' || orderType === 'mixed') {
-      if (paymentMethodId) {
-        const paymentMethod = await tx.paymentMethod.findUnique({
-          where: { id: BigInt(paymentMethodId) },
-        });
+    if (paymentMethodId) {
+      const paymentMethod = await tx.paymentMethod.findUnique({
+        where: { id: BigInt(paymentMethodId), status: 'active' },
+      });
 
-        if (paymentMethod?.code?.toUpperCase() === 'COD') {
-          throw new BadRequestException('COD is not available for digital or mixed orders');
-        }
+      if (!paymentMethod) {
+        throw new BadRequestException('Phương thức thanh toán không tồn tại hoặc đã bị vô hiệu hóa');
+      }
+
+      if ((orderType === 'digital' || orderType === 'mixed') && paymentMethod.code?.toUpperCase() === 'COD') {
+        throw new BadRequestException('COD không khả dụng cho đơn hàng có sản phẩm kỹ thuật số');
       }
     }
   }

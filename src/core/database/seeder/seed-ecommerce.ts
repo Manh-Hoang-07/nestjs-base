@@ -201,15 +201,39 @@ export class SeedEcommerce {
 
     // 5. Global Configs (No group_id as requested)
     await this.prisma.shippingMethod.upsert({
+      where: { code: 'ECONOMY' },
+      update: {},
+      create: { name: 'Giao hàng tiết kiệm', code: 'ECONOMY', price: 15000, status: 'active' }
+    });
+
+    await this.prisma.shippingMethod.upsert({
       where: { code: 'STANDARD' },
       update: {},
       create: { name: 'Giao hàng tiêu chuẩn', code: 'STANDARD', price: 30000, status: 'active' }
+    });
+
+    await this.prisma.shippingMethod.upsert({
+      where: { code: 'EXPRESS' },
+      update: {},
+      create: { name: 'Giao hàng hỏa tốc', code: 'EXPRESS', price: 50000, status: 'active' }
     });
 
     await this.prisma.paymentMethod.upsert({
       where: { code: 'COD' },
       update: {},
       create: { name: 'Thanh toán khi nhận hàng (COD)', code: 'COD', type: 'offline', status: 'active' }
+    });
+
+    await this.prisma.paymentMethod.upsert({
+      where: { code: 'BANK_TRANSFER' },
+      update: {},
+      create: { name: 'Chuyển khoản ngân hàng', code: 'BANK_TRANSFER', type: 'offline', status: 'active' }
+    });
+
+    await this.prisma.paymentMethod.upsert({
+      where: { code: 'VNPAY' },
+      update: {},
+      create: { name: 'Thanh toán online (VNPAY)', code: 'VNPAY', type: 'online', status: 'active' }
     });
 
     this.logger.log('Ecommerce data seeding completed');

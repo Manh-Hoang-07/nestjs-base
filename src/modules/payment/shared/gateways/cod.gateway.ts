@@ -38,7 +38,7 @@ export class CODGateway implements IPaymentGateway {
         return {
             success: true,
             transactionId: params.transactionId,
-            amount: 0, // Amount will be collected on delivery
+            amount: 0,
             status: 'pending',
             message: 'Đơn hàng sẽ được thanh toán khi nhận hàng',
         };

@@ -148,11 +148,17 @@ export class SeedService {
       await this.prisma.roleContext.deleteMany({});
       await this.prisma.menuPermission.deleteMany({});
       // Clear main tables
+      // Comic system
+      await this.prisma.bookmark.deleteMany({});
+      await this.prisma.readingHistory.deleteMany({});
+      await this.prisma.comicFollow.deleteMany({});
+      await this.prisma.comicView.deleteMany({});
+      await this.prisma.comicReview.deleteMany({});
       await this.prisma.chapterPage.deleteMany({});
       await this.prisma.chapter.deleteMany({});
       await this.prisma.comicStats.deleteMany({});
-      await this.prisma.comic.deleteMany({});
       await this.prisma.comicComment.deleteMany({});
+      await this.prisma.comic.deleteMany({});
       await this.prisma.comicCategory.deleteMany({});
 
       // Clear main tables
@@ -197,6 +203,8 @@ export class SeedService {
       await this.prisma.postCategory.deleteMany({});
 
       // Ecommerce - Orders & Warehouse (clear children -> parents)
+      await this.prisma.cart.deleteMany({});
+      await this.prisma.cartHeader.deleteMany({});
       await this.prisma.trackingHistory.deleteMany({});
       await this.prisma.payment.deleteMany({});
       await this.prisma.orderItem.deleteMany({});
@@ -207,6 +215,7 @@ export class SeedService {
 
       // Ecommerce - Product & Config (clear children -> parents)
       await this.prisma.productReview.deleteMany({});
+      await this.prisma.productDigitalAsset.deleteMany({});
       await this.prisma.productVariantAttribute.deleteMany({});
       await this.prisma.productVariant.deleteMany({});
       await this.prisma.productProductCategory.deleteMany({});
@@ -217,7 +226,6 @@ export class SeedService {
       await this.prisma.coupon.deleteMany({});
       await this.prisma.shippingMethod.deleteMany({});
       await this.prisma.paymentMethod.deleteMany({});
-      await this.prisma.cart.deleteMany({});
 
       this.logger.log('Database cleared successfully');
     } catch (error) {
