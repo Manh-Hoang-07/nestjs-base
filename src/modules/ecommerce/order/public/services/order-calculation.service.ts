@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Cart, ProductVariant } from '@prisma/client';
 
 @Injectable()
 export class OrderCalculationService {
@@ -32,6 +31,33 @@ export class OrderCalculationService {
       return 'physical';
     }
   }
+
+  /**
+   * Tính toán các đầu số cuối cùng cho Order
+   */
+  calculateOrderTotals(
+    cartHeader: any,
+    shippingMethod: any,
+    orderType: string,
+  ) {
+    const subtotal = Number(cartHeader.subtotal) || 0;
+    const taxAmount = Number(cartHeader.tax_amount) || 0;
+    const discountAmount = Number(cartHeader.discount_amount) || 0;
+
+    // Logic: Nếu là đơn Digital toàn bộ thì phí ship = 0 bất chấp FE gửi gì
+    let shippingAmount = 0;
+    if (orderType !== 'digital' && shippingMethod) {
+      shippingAmount = Number(shippingMethod.price) || 0;
+    }
+
+    const totalAmount = subtotal + taxAmount + shippingAmount - discountAmount;
+
+    return {
+      subtotal,
+      taxAmount,
+      shippingAmount,
+      discountAmount,
+      totalAmount,
+    };
+  }
 }
-
-
