@@ -143,8 +143,17 @@ export class OrderValidationService {
    */
   async validateShippingMethod(
     tx: Prisma.TransactionClient,
-    shippingMethodId: number | bigint,
+    orderType: string,
+    shippingMethodId?: number | bigint,
   ): Promise<any> {
+    if (orderType === 'digital') {
+      return null;
+    }
+
+    if (!shippingMethodId) {
+      throw new BadRequestException('Phương thức vận chuyển là bắt buộc cho sản phẩm vật lý');
+    }
+
     const shippingMethod = await tx.shippingMethod.findUnique({
       where: { id: BigInt(shippingMethodId), status: 'active' },
     });
@@ -154,6 +163,19 @@ export class OrderValidationService {
     }
 
     return shippingMethod;
+  }
+
+  /**
+   * Validate shipping address
+   */
+  validateShippingAddress(orderType: string, shippingAddress?: any): void {
+    if (orderType === 'digital') {
+      return;
+    }
+
+    if (!shippingAddress || (typeof shippingAddress === 'object' && Object.keys(shippingAddress).length === 0)) {
+      throw new BadRequestException('Địa chỉ giao hàng là bắt buộc cho sản phẩm vật lý');
+    }
   }
 
   /**

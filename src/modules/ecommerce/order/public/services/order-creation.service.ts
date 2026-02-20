@@ -50,9 +50,9 @@ export class OrderCreationService {
       customerName: string;
       customerEmail: string;
       customerPhone: string;
-      shippingAddress: any;
+      shippingAddress?: any;
       billingAddress?: any;
-      shippingMethodId: number | bigint;
+      shippingMethodId?: number | bigint | null;
       paymentMethodId?: number | bigint;
       notes?: string;
       userId?: number | bigint;
@@ -65,7 +65,7 @@ export class OrderCreationService {
       customer_name: data.customerName,
       customer_email: data.customerEmail,
       customer_phone: data.customerPhone,
-      status: 'pending',
+      status: data.orderType === 'digital' ? 'processing' : 'pending',
       order_type: data.orderType as any,
       currency: data.cartHeader.currency,
       subtotal: data.cartHeader.subtotal,
@@ -73,10 +73,10 @@ export class OrderCreationService {
       shipping_amount: data.cartHeader.shipping_amount || 0,
       discount_amount: data.cartHeader.discount_amount || 0,
       total_amount: data.cartHeader.total_amount,
-      shipping_address: JSON.stringify(data.shippingAddress),
+      shipping_address: JSON.stringify(data.shippingAddress || {}),
       billing_address: data.billingAddress
         ? JSON.stringify(data.billingAddress)
-        : JSON.stringify(data.shippingAddress),
+        : JSON.stringify(data.shippingAddress || {}),
       shipping_method: data.shippingMethodId
         ? { connect: { id: BigInt(data.shippingMethodId) } }
         : undefined,

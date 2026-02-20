@@ -62,8 +62,12 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
    * - Flatten categories structure
    * - Calculate price from variants
    */
-  protected override transform(product: any): any {
-    if (!product) return product;
+  protected override transform(entity: any): any {
+    if (!entity) return null;
+
+    // Gọi transform của parent để xử lý BigInt và convert sang object an toàn
+    const product = super.transform(entity) as any;
+    if (!product) return null;
 
     // Flatten categories: categories[].category -> categories[]
     if (product.categories && Array.isArray(product.categories)) {
@@ -72,21 +76,29 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
 
     // Calculate price from variants
     if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
-      const prices = product.variants.map((v: any) => Number(v.sale_price || v.price));
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-
-      product.price = minPrice;
-      product.max_price = maxPrice !== minPrice ? maxPrice : null;
-
-      // Calculate sale info
+      // 1. Lấy danh sách các mức giá (chuyển về Number để tính toán chính xác)
+      const regularPrices = product.variants.map((v: any) => Number(v.price || 0));
+      const effectivePrices = product.variants.map((v: any) => Number(v.sale_price || v.price || 0));
       const salePrices = product.variants
-        .filter((v: any) => v.sale_price)
+        .filter((v: any) => v.sale_price && Number(v.sale_price) > 0)
         .map((v: any) => Number(v.sale_price));
 
-      if (salePrices.length > 0) {
-        product.sale_price = Math.min(...salePrices);
-      }
+      // 2. Tính toán các giá trị biên
+      const minRegularPrice = Math.min(...regularPrices);
+      const maxRegularPrice = Math.max(...regularPrices);
+      const minEffectivePrice = Math.min(...effectivePrices);
+      const maxEffectivePrice = Math.max(...effectivePrices);
+
+      // 3. Gán giá trị đồng nhất kiểu dữ liệu Number
+      // price: Giá gốc thấp nhất (để hiển thị giá chưa giảm)
+      product.price = minRegularPrice;
+
+      // sale_price: Giá bán hiện tại thấp nhất (sau khi đã tính khuyến mãi)
+      product.sale_price = salePrices.length > 0 ? Math.min(...salePrices) : null;
+
+      // max_price: Giá bán hiện tại cao nhất (để hiển thị khoảng giá "Từ ... đến ...")
+      // Chỉ set nếu có sự chênh lệch giữa giá thấp nhất và cao nhất
+      product.max_price = maxEffectivePrice !== minEffectivePrice ? maxEffectivePrice : null;
     }
 
     return product;

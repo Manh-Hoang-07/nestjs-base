@@ -79,9 +79,13 @@ export class PublicOrderService {
         payment_method_id,
       );
 
-      // 6. Validate shipping method
+      // 6. Validate shipping address
+      this.validationService.validateShippingAddress(orderType, shipping_address);
+
+      // 7. Validate shipping method
       const shippingMethod = await this.validationService.validateShippingMethod(
         tx as any,
+        orderType,
         shipping_method_id,
       );
 
@@ -108,7 +112,7 @@ export class PublicOrderService {
           customerPhone: finalCustomerPhone,
           shippingAddress: shipping_address,
           billingAddress: billing_address,
-          shippingMethodId: shipping_method_id,
+          shippingMethodId: shipping_method_id ? BigInt(shipping_method_id) : null,
           paymentMethodId: payment_method_id,
           notes,
           userId,

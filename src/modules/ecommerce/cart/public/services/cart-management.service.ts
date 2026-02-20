@@ -70,7 +70,7 @@ export class CartManagementService {
         include: {
           items: {
             include: {
-              product: { select: { name: true, image: true, sku: true } },
+              product: { select: { name: true, image: true, sku: true, is_digital: true } },
               variant: { select: { name: true, image: true, sku: true, price: true } }
             }
           }
@@ -82,7 +82,7 @@ export class CartManagementService {
         include: {
           items: {
             include: {
-              product: { select: { name: true, image: true, sku: true } },
+              product: { select: { name: true, image: true, sku: true, is_digital: true } },
               variant: { select: { name: true, image: true, sku: true, price: true } }
             }
           }
@@ -111,7 +111,20 @@ export class CartManagementService {
         product_id: Number(item.product_id),
         product_variant_id: item.product_variant_id ? Number(item.product_variant_id) : null
       })),
+      cart_type: this.calculateCartType(items),
     };
+  }
+
+  /**
+   * Determine cart type based on its items
+   */
+  private calculateCartType(items: any[]): string {
+    const hasPhysical = items.some(item => item.product?.is_digital === false);
+    const hasDigital = items.some(item => item.product?.is_digital === true);
+
+    if (hasPhysical && hasDigital) return 'mixed';
+    if (hasDigital) return 'digital';
+    return 'physical';
   }
 
   /**

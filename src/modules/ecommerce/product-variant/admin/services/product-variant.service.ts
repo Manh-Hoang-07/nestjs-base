@@ -41,6 +41,18 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
       delete raw.status;
     }
 
+    // Convert empty strings to null for nullable fields and validate decimals
+    const numericFields = ['price', 'sale_price'];
+    for (const field of numericFields) {
+      if (raw[field] === '') {
+        raw[field] = null;
+      }
+    }
+
+    if (raw['image'] === '') {
+      raw['image'] = null;
+    }
+
     // Chỉ giữ lại các field hợp lệ. LƯU Ý: Không cho phép set stock_quantity trực tiếp tại đây
     const allowedKeys = [
       'name',
@@ -123,6 +135,18 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
     if (raw.status) {
       raw.is_active = raw.status === 'active';
       delete raw.status;
+    }
+
+    // Convert empty strings to null for nullable fields and validate decimals
+    const numericFields = ['price', 'sale_price'];
+    for (const field of numericFields) {
+      if (raw[field] === '') {
+        raw[field] = null;
+      }
+    }
+
+    if (raw['image'] === '') {
+      raw['image'] = null;
     }
 
     // Chỉ giữ lại các field hợp lệ. KHÔNG cho phép cập nhật stock_quantity trực tiếp.

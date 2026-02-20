@@ -69,6 +69,8 @@ export class ProductRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: ProductFilter): Prisma.ProductWhereInput {
         const where: Prisma.ProductWhereInput = {};
 
+        if (filter.id) where.id = this.toPrimaryKey(filter.id);
+        if (filter.slug) where.slug = filter.slug;
         if (filter.status) where.status = filter.status as any;
         if (filter.isFeatured !== undefined) where.is_featured = filter.isFeatured;
         if (filter.isVariable !== undefined) where.is_variable = filter.isVariable;

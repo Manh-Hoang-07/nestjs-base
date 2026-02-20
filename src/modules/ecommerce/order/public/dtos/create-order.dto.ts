@@ -14,15 +14,16 @@ export class CreateOrderDto {
   @IsString()
   customer_phone?: string;
 
-  @IsNotEmpty()
-  shipping_address: any;
+  @IsOptional()
+  shipping_address?: any;
 
   @IsOptional()
   billing_address?: any;
 
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  shipping_method_id: number;
+  shipping_method_id?: number;
 
   @IsOptional()
   @IsNumber()

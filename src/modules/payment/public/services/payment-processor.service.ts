@@ -1,4 +1,5 @@
 import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { PaymentGatewayService } from '../../shared/payment-gateway.service';
 import { PAYMENT_REPOSITORY } from '../../domain/payment.repository';
@@ -10,7 +11,7 @@ export class PaymentProcessorService {
 
     constructor(
         private readonly prisma: PrismaService,
-        @Inject(PAYMENT_REPOSITORY)
+        private readonly moduleRef: ModuleRef,
         @Inject(ORDER_REPOSITORY)
         private readonly orderRepository: IOrderRepository,
         private readonly paymentGatewayService: PaymentGatewayService,
@@ -86,13 +87,39 @@ export class PaymentProcessorService {
             }
 
             // Cập nhật trạng thái đơn hàng
-            await tx.order.update({
+            // Đối với đơn digital, sau khi thanh toán thành công thì chuyển thẳng sang delivered
+            const isDigital = order.order_type === 'digital';
+            const nextStatus = isSuccess
+                ? (isDigital ? 'delivered' : 'confirmed')
+                : order.status;
+
+            const updatedOrder = await tx.order.update({
                 where: { id: order.id },
                 data: {
                     payment_status: status,
-                    status: isSuccess ? 'confirmed' : order.status
+                    status: nextStatus,
+                    delivered_at: (isSuccess && isDigital) ? new Date() : undefined,
+                    shipping_status: (isSuccess && isDigital) ? 'delivered' : undefined,
                 }
             });
+
+            // 5. Nếu thanh toán thành công và là đơn digital/mixed, kích hoạt tự động giao hàng
+            if (isSuccess) {
+                try {
+                    // Sử dụng ModuleRef để lấy OrderAutomationService nhằm tránh circular dependency
+                    // Lưu ý: OrderAutomationService phải được export từ PublicOrderModule
+                    const { OrderAutomationService } = await import('@/modules/ecommerce/order/public/services/order-automation.service');
+                    const automationService = this.moduleRef.get(OrderAutomationService, { strict: false });
+                    if (automationService) {
+                        // Chạy async không đợi (Fire and forget) hoặc đợi tùy nhu cầu
+                        automationService.processPostPayment(updatedOrder as any).catch(err => {
+                            this.logger.error(`Failed to process post-payment automation for order ${order.order_number}: ${err.message}`);
+                        });
+                    }
+                } catch (err) {
+                    this.logger.warn(`OrderAutomationService not available or failed to trigger for order ${order.order_number}`);
+                }
+            }
 
             return {
                 success: isSuccess,

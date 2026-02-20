@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import * as path from 'path';
@@ -26,7 +26,7 @@ export class S3StorageStrategy implements IUploadStrategy {
       },
       forcePathStyle: this.forcePathStyle,
     });
-    
+
     // Dùng nguyên giá trị baseUrl từ config/env, chỉ bỏ trailing slash nếu có.
     // Người dùng tự cấu hình đúng URL mong muốn (ví dụ: https://minio1.webtui.vn:9000/bucket-s3monmon).
     const rawBaseUrl = s3Config?.baseUrl || '';
@@ -43,21 +43,34 @@ export class S3StorageStrategy implements IUploadStrategy {
     const randomString = Math.random().toString(36).substring(2, 15);
     const ext = path.extname(file.originalname);
     const filename = `${timestamp}-${randomString}${ext}`;
-    
-    // Upload lên S3/MinIO (phần quyền truy cập public/private xử lý bằng bucket policy, không dùng ACL)
+
+    // Upload lên S3/MinIO
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: filename,
       Body: file.buffer,
       ContentType: file.mimetype,
     });
-    
-    await this.s3Client.send(command);
-    
+
+    try {
+      await this.s3Client.send(command);
+    } catch (error) {
+      // Bắt các lỗi cụ thể từ AWS SDK để trả về message dễ hiểu hơn
+      if (error.name === 'DeserializationError' || error.message?.includes('Deserialization error')) {
+        const response = (error as any).$response;
+        let details = '';
+        if (response) {
+          details = ` (Status: ${response.statusCode})`;
+        }
+        throw new BadRequestException(`S3 Storage Error: Failed to parse response from storage provider${details}. Please check your S3/MinIO endpoint and credentials. Original error: ${error.message}`);
+      }
+      throw error;
+    }
+
     // Tạo URL để truy cập file (đảm bảo baseUrl không có trailing slash)
     const baseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
     const url = `${baseUrl}/${filename}`;
-    
+
     return {
       path: filename, // Key trong S3
       url,
