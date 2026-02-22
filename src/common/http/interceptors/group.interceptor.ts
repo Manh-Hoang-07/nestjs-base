@@ -59,7 +59,11 @@ export class GroupInterceptor implements NestInterceptor {
       if (userId && !isPublicEndpoint) {
         const userGroups = await this.userGroupService.getUserGroups(userId);
         const groupIdNumber = Number(group.id); // Convert BigInt to number for comparison
-        const hasAccess = userGroups.some((g: any) => g.id === groupIdNumber);
+        let hasAccess = userGroups.some((g: any) => g.id === groupIdNumber);
+
+        if (!hasAccess) {
+          hasAccess = await this.groupService.isSystemAdmin(userId);
+        }
 
         if (!hasAccess) {
           throw new ForbiddenException(

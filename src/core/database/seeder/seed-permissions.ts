@@ -71,6 +71,10 @@ export class SeedPermissions {
       // ========== CONTENT TEMPLATE MODULE ==========
       { code: 'content_template.manage', name: 'Quản lý Mẫu tài liệu', status: 'active', parent_code: null },
 
+      // ========== LOCATION MODULE ==========
+      { code: 'admin.location.view', name: 'Xem Địa điểm (Admin)', status: 'active', parent_code: null },
+      { code: 'location.manage', name: 'Quản lý Địa điểm', status: 'active', parent_code: null },
+
       // ========== ECOMMERCE MODULES ==========
       { code: 'product.manage', name: 'Quản lý Sản phẩm', status: 'active', parent_code: null },
       { code: 'product_category.manage', name: 'Quản lý Danh mục sản phẩm', status: 'active', parent_code: null },

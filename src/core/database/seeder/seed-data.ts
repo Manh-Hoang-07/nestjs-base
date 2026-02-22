@@ -141,13 +141,15 @@ export class SeedService {
     }
   }
 
-  async clearAll(): Promise<void> {
+  async clearAll(includeLocations = true): Promise<void> {
     this.logger.log('Clearing database...');
 
     try {
       // Clear in reverse order (children first, then parents)
       // Location data (Wards -> Provinces -> Countries)
-      await this.seedLocations.clear();
+      if (includeLocations) {
+        await this.seedLocations.clear();
+      }
 
       // Clear junction tables first (many-to-many)
       await this.prisma.userRoleAssignment.deleteMany({});
@@ -242,8 +244,8 @@ export class SeedService {
     }
   }
 
-  async clearDatabase(): Promise<void> {
+  async clearDatabase(includeLocations = true): Promise<void> {
     this.logger.log('Clearing database...');
-    await this.clearAll();
+    await this.clearAll(includeLocations);
   }
 }

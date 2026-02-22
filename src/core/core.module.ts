@@ -115,7 +115,7 @@ import { AppQueueModule } from '@/core/queue/queue.module';
     AppQueueModule,
   ],
   providers: [RedisUtil, TokenBlacklistService, AttemptLimiterService],
-  exports: [ConfigModule, PrismaModule, RedisUtil, TokenBlacklistService, AttemptLimiterService],
+  exports: [ConfigModule, PrismaModule, SeederModule, RedisUtil, TokenBlacklistService, AttemptLimiterService],
 })
 export class CoreModule {
   constructor(private readonly configService: ConfigService) {
