@@ -11,6 +11,7 @@ import { registerShutdown } from '@/bootstrap/shutdown';
 import { setupStaticAssets } from '@/bootstrap/static-assets';
 import { setupLogging } from '@/bootstrap/logging';
 import { patchBigInt } from '@/bootstrap/bigint';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   // Patch BigInt methods
@@ -63,6 +64,40 @@ async function bootstrap() {
 
   // Serve static files
   setupStaticAssets(app, configService);
+
+  // Swagger / OpenAPI setup
+  const swaggerEnabled = configService.get('app.environment') !== 'production';
+  if (swaggerEnabled) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle(appConfig.name || 'NestJS Backend API')
+      .setDescription('API documentation for the NestJS backend')
+      .setVersion(appConfig.version)
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          in: 'header',
+        },
+        'access-token',
+      )
+      .build();
+
+    const document = SwaggerModule.createDocument(app, swaggerConfig, {
+      ignoreGlobalPrefix: false,
+    });
+
+    const swaggerPath = `${appConfig.globalPrefix}/docs`;
+    SwaggerModule.setup(swaggerPath, app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+
+    logger.log(`📚 Swagger documentation available at: http://localhost:${appConfig.port}${swaggerPath}`);
+  } else {
+    logger.log('Swagger is disabled in production environment');
+  }
 
   // Global validation pipe with enhanced configuration
   applyGlobalPipes(app, { production: appConfig.environment === 'production' });
