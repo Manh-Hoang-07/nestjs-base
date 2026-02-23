@@ -115,6 +115,24 @@ export abstract class PrismaRepository<
         const select = effectiveSelect ? effectiveSelect : undefined;
         const include = !select && effectiveInclude ? effectiveInclude : undefined;
 
+        // [M6] skipCount: bỏ qua count query khi không cần phân trang (ví dụ: dropdown, tree)
+        const skipCount = (options as any).skipCount === true;
+
+        if (skipCount) {
+            const data = await this.delegate.findMany({
+                where,
+                orderBy,
+                skip: (page - 1) * limit,
+                take: limit,
+                select,
+                include,
+            });
+            return {
+                data,
+                meta: createPaginationMeta(page, limit, data.length),
+            };
+        }
+
         const [data, total] = await Promise.all([
             this.delegate.findMany({
                 where,

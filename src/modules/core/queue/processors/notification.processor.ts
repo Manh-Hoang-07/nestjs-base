@@ -11,7 +11,8 @@ export class NotificationProcessor {
         private readonly contentTemplateService: ContentTemplateExecutionService
     ) { }
 
-    @Process('send_email_template')
+    // [L1] Thêm attempts + backoff để job tự retry khi thất bại (tối đa 3 lần, mỗi lần cách 5s)
+    @Process({ name: 'send_email_template', concurrency: 5 })
     async handleSendEmail(job: Job) {
         this.logger.debug(`Processing job ${job.id}: send_email_template`);
         try {

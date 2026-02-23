@@ -114,27 +114,38 @@ export class RbacService {
   }
 
   /**
-   * Check system-level permissions (khi groupId = null)
-   * Query trực tiếp system group
+   * [C3] Check system-level permissions (khi groupId = null)
+   * Đã thêm cache để tránh 4 DB queries mỗi request
    */
   private async checkSystemPermissions(
     userId: number,
     required: string[],
   ): Promise<boolean> {
-    // Query từ system group
+    // [C3] Check cache trước
+    const cached = await this.rbacCache.getSystemPermissions(userId);
+    if (cached !== null) {
+      for (const need of required) {
+        if (cached.has(need)) return true;
+      }
+      return false;
+    }
+
+    // Cache miss: query DB
     const systemAdminGroup = await this.groupRepo.findFirstRaw({
       where: { code: 'system', status: 'active' as any }
     });
 
     if (!systemAdminGroup) {
-      return false; // Không có system group → không có system permissions
+      await this.rbacCache.setSystemPermissions(userId, []);
+      return false;
     }
 
     // Check user thuộc system group
     const userInGroup = await this.userGroupRepo.findUnique(userId, Number(systemAdminGroup.id));
 
     if (!userInGroup) {
-      return false; // User không thuộc system group → không có system permissions
+      await this.rbacCache.setSystemPermissions(userId, []);
+      return false;
     }
 
     // Query permissions từ user_role_assignments
@@ -147,7 +158,10 @@ export class RbacService {
       select: { role_id: true },
     });
 
-    if (!assignments.length) return false;
+    if (!assignments.length) {
+      await this.rbacCache.setSystemPermissions(userId, []);
+      return false;
+    }
 
     const roleIds = Array.from(
       new Set(assignments.map((a: any) => a.role_id)),
@@ -174,6 +188,9 @@ export class RbacService {
         set.add(perm.parent.code);
       }
     }
+
+    // [C3] Lưu vào cache
+    await this.rbacCache.setSystemPermissions(userId, set);
 
     // OR logic: chỉ cần 1 permission
     for (const need of required) {
@@ -277,18 +294,18 @@ export class RbacService {
         throw new BadRequestException('Some role IDs are invalid');
       }
 
-      // Validate roles nếu không phải system admin
+      // [C2] Validate roles bằng 1 batch query thay vì N+1 loop
       if (!skipValidation) {
-        // Kiểm tra roles phải có context của group trong role_contexts
-        // We can use roleContextRepo to batch check
+        const validContexts = await this.roleContextRepo.findMany({
+          where: {
+            role_id: { in: roleIdsBigInt },
+            context_id: (group as any).context_id,
+          },
+        });
+
+        const validRoleIds = new Set(validContexts.map(rc => rc.role_id.toString()));
         for (const roleId of roleIds) {
-          const rc = await this.roleContextRepo.findFirst({
-            where: {
-              role_id: BigInt(roleId),
-              context_id: (group as any).context_id,
-            }
-          });
-          if (!rc) {
+          if (!validRoleIds.has(String(BigInt(roleId)))) {
             const role = roles.find(r => Number(r.id) === roleId);
             throw new BadRequestException(
               `Cannot assign roles that are not available in this context. Invalid role: ${role?.code}`
@@ -304,11 +321,15 @@ export class RbacService {
       group_id: BigInt(groupId),
     });
 
-    // Thêm roles mới
+    // [H3] Bulk insert thay vì sequential loop (N roles = 1 DB call thay vì N calls)
     if (roles.length > 0) {
-      for (const role of roles) {
-        await this.assignRoleToUser(userId, Number(role.id), groupId);
-      }
+      await this.assignmentRepo.createMany(
+        roles.map(role => ({
+          user_id: BigInt(userId),
+          role_id: BigInt(role.id),
+          group_id: BigInt(groupId),
+        }))
+      );
     }
 
     // Clear cache

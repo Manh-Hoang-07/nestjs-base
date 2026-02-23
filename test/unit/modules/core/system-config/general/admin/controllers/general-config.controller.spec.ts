@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GeneralConfigController } from '@/modules/core/system-config/general/admin/controllers/general-config.controller';
 import { GeneralConfigService } from '@/modules/core/system-config/general/admin/services/general-config.service';
 import { AuthService } from '@/common/auth/services';
+import { RedisUtil } from '@/core/utils/redis.util';
+import { Reflector } from '@nestjs/core';
 
 describe('GeneralConfigController', () => {
     let auth: any;
@@ -16,6 +18,8 @@ describe('GeneralConfigController', () => {
             providers: [
                 { provide: GeneralConfigService, useValue: service },
                 { provide: AuthService, useValue: auth },
+                { provide: RedisUtil, useValue: { isEnabled: jest.fn().mockReturnValue(false) } },
+                { provide: Reflector, useValue: { get: jest.fn() } }
             ],
         }).compile();
         controller = module.get<GeneralConfigController>(GeneralConfigController);

@@ -30,6 +30,14 @@ export class UserRoleAssignmentRepositoryImpl extends PrismaRepository<
         });
     }
 
+    // [H3] Bulk insert để tránh N round-trips đến DB khi sync nhiều roles
+    async createMany(data: any[]): Promise<{ count: number }> {
+        return this.prisma.userRoleAssignment.createMany({
+            data,
+            skipDuplicates: true, // Tự bỏ qua nếu đã tồn tại
+        });
+    }
+
     protected buildWhere(filter: any): Prisma.UserRoleAssignmentWhereInput {
         const where: Prisma.UserRoleAssignmentWhereInput = {};
         if (filter.user_id) where.user_id = BigInt(filter.user_id);

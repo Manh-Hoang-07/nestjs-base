@@ -14,12 +14,16 @@ describe('UserContextService', () => {
         contextRepo = {
             findManyRaw: jest.fn(),
             findOne: jest.fn(),
+            findActiveByIds: jest.fn(),
+            findById: jest.fn(),
         };
         groupRepo = {
             findManyRaw: jest.fn(),
+            findActiveByIds: jest.fn(),
         };
         userGroupRepo = {
             findManyRaw: jest.fn(),
+            findByUserId: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -40,9 +44,9 @@ describe('UserContextService', () => {
 
     describe('getUserContexts', () => {
         it('should return contexts mapped to user groups', async () => {
-            userGroupRepo.findManyRaw.mockResolvedValue([{ group_id: 10 }]);
-            groupRepo.findManyRaw.mockResolvedValue([{ id: BigInt(10), context_id: 100 }]);
-            contextRepo.findManyRaw.mockResolvedValue([{ id: BigInt(100), name: 'CTX 1', status: 'active' }]);
+            userGroupRepo.findByUserId.mockResolvedValue([{ group_id: 10 }]);
+            groupRepo.findActiveByIds.mockResolvedValue([{ id: BigInt(10), context_id: 100 }]);
+            contextRepo.findActiveByIds.mockResolvedValue([{ id: BigInt(100), name: 'CTX 1', status: 'active' }]);
 
             const result = await service.getUserContexts(1);
 
@@ -52,7 +56,7 @@ describe('UserContextService', () => {
         });
 
         it('should return empty if user has no groups', async () => {
-            userGroupRepo.findManyRaw.mockResolvedValue([]);
+            userGroupRepo.findByUserId.mockResolvedValue([]);
             const result = await service.getUserContexts(1);
             expect(result).toEqual([]);
         });
@@ -60,8 +64,8 @@ describe('UserContextService', () => {
 
     describe('getUserContextsForTransfer', () => {
         it('should include system context (ID=1)', async () => {
-            contextRepo.findOne.mockResolvedValue({ id: BigInt(1), name: 'System' }); // System context
-            userGroupRepo.findManyRaw.mockResolvedValue([]); // No other contexts
+            contextRepo.findById.mockResolvedValue({ id: BigInt(1), name: 'System', status: 'active' }); // System context
+            userGroupRepo.findByUserId.mockResolvedValue([]); // No other contexts
 
             const result = await service.getUserContextsForTransfer(1);
 

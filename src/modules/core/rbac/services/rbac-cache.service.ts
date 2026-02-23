@@ -148,6 +148,33 @@ export class RbacCacheService {
     // Bump version to invalidate all caches
     await this.bumpVersion();
   }
+
+  // ─── [C3] System-level permission cache ────────────────────────────────────
+  // Dùng key đặc biệt 'system' để cache quyền system-level, tránh 4 DB queries mỗi request
+
+  private systemPermsKey(userId: number, version: number): string {
+    return `rbac:user:${userId}:system:v${version}`;
+  }
+
+  async getSystemPermissions(userId: number): Promise<Set<string> | null> {
+    if (!this.redis.isEnabled()) return null;
+    const version = await this.getVersion();
+    const raw = await this.redis.get(this.systemPermsKey(userId, version));
+    if (!raw) return null;
+    try {
+      const arr = JSON.parse(raw) as string[];
+      return new Set(arr);
+    } catch {
+      return null;
+    }
+  }
+
+  async setSystemPermissions(userId: number, permissions: Iterable<string>): Promise<void> {
+    if (!this.redis.isEnabled()) return;
+    const version = await this.getVersion();
+    const arr = Array.from(new Set(permissions));
+    await this.redis.set(this.systemPermsKey(userId, version), JSON.stringify(arr), this.ttlSeconds);
+  }
 }
 
 

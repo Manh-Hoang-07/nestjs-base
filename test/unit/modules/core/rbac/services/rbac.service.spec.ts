@@ -23,9 +23,9 @@ describe('RbacService', () => {
 
     beforeEach(async () => {
         userGroupRepo = { findUnique: jest.fn() };
-        assignmentRepo = { findManyRaw: jest.fn(), findUnique: jest.fn(), create: jest.fn(), deleteMany: jest.fn() };
+        assignmentRepo = { findManyRaw: jest.fn(), findUnique: jest.fn(), create: jest.fn(), createMany: jest.fn(), deleteMany: jest.fn() };
         roleHasPermRepo = { findMany: jest.fn() };
-        roleContextRepo = { findFirst: jest.fn() };
+        roleContextRepo = { findFirst: jest.fn(), findMany: jest.fn() };
         groupRepo = { findFirstRaw: jest.fn(), findById: jest.fn() };
         userRepo = { findById: jest.fn() };
         roleRepo = { findManyRaw: jest.fn() };
@@ -33,6 +33,8 @@ describe('RbacService', () => {
             getUserPermissionsInGroup: jest.fn(),
             setUserPermissionsInGroup: jest.fn(),
             clearUserPermissionsInGroup: jest.fn(),
+            getSystemPermissions: jest.fn(),
+            setSystemPermissions: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -123,24 +125,27 @@ describe('RbacService', () => {
             userGroupRepo.findUnique.mockResolvedValue({ id: 1 });
             roleRepo.findManyRaw.mockResolvedValue([{ id: 5 }]);
             roleContextRepo.findFirst.mockResolvedValue({ id: 1 });
+            roleContextRepo.findMany.mockResolvedValue([{ role_id: BigInt(5) }]);
             assignmentRepo.findUnique.mockResolvedValue(null);
 
             await service.syncRolesInGroup(1, 10, [5]);
 
             expect(assignmentRepo.deleteMany).toHaveBeenCalled();
-            expect(assignmentRepo.create).toHaveBeenCalled();
+            expect(assignmentRepo.createMany).toHaveBeenCalled();
             expect(rbacCache.clearUserPermissionsInGroup).toHaveBeenCalledWith(1, 10);
         });
     });
 
     describe('checkSystemPermissions', () => {
         it('should return false if system group not found', async () => {
+            rbacCache.getSystemPermissions.mockResolvedValue(null);
             groupRepo.findFirstRaw.mockResolvedValue(null);
             const result = await (service as any).checkSystemPermissions(1, ['p1']);
             expect(result).toBe(false);
         });
 
         it('should return true if user has p1 in system group', async () => {
+            rbacCache.getSystemPermissions.mockResolvedValue(null);
             groupRepo.findFirstRaw.mockResolvedValue({ id: 1 });
             userGroupRepo.findUnique.mockResolvedValue({ id: 1 });
             assignmentRepo.findManyRaw.mockResolvedValue([{ role_id: 5 }]);

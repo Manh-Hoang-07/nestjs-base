@@ -144,16 +144,32 @@ export class ProductRepositoryImpl extends PrismaRepository<
     }
 
     async findVariants(productId: number | bigint): Promise<any[]> {
+        // [H4] Dùng select thay include để tránh over-fetch toàn bộ attribute_value record
         return this.prisma.productVariant.findMany({
             where: {
                 product_id: this.toPrimaryKey(productId),
                 is_active: true,
                 deleted_at: null,
             },
-            include: {
+            select: {
+                id: true,
+                name: true,
+                sku: true,
+                price: true,
+                sale_price: true,
+                stock_quantity: true,
+                image: true,
                 attributes: {
-                    include: {
-                        attribute_value: true,
+                    select: {
+                        attribute_value: {
+                            select: {
+                                id: true,
+                                value: true,
+                                attribute: {
+                                    select: { id: true, name: true },
+                                },
+                            },
+                        },
                     },
                 },
             },

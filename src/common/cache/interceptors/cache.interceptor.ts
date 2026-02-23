@@ -31,17 +31,18 @@ export class CacheInterceptor implements NestInterceptor {
     if (evictOptions && this.redis.isEnabled()) {
       return next.handle().pipe(
         tap(async () => {
-          // Clear all specified keys
-          for (const keyTemplate of evictOptions.keys) {
-            const cacheKey = this.buildCacheKey(keyTemplate, request, args);
-
-            // If key ends with *, it's a pattern delete
-            if (cacheKey.endsWith('*')) {
-              await this.deletePattern(cacheKey);
-            } else {
-              await this.redis.del(cacheKey);
-            }
-          }
+          // [H2] Parallel eviction thay vì sequential
+          await Promise.all(
+            evictOptions.keys.map(async (keyTemplate) => {
+              const cacheKey = this.buildCacheKey(keyTemplate, request, args);
+              // [C1] Dùng SCAN thay vì KEYS để không block Redis event loop
+              if (cacheKey.endsWith('*')) {
+                await this.deletePattern(cacheKey);
+              } else {
+                await this.redis.del(cacheKey);
+              }
+            }),
+          );
         }),
       );
     }
@@ -98,45 +99,61 @@ export class CacheInterceptor implements NestInterceptor {
   }
 
   /**
-   * Delete by pattern (prefix)
+   * [C1] Delete by pattern — dùng SCAN thay vì KEYS để không block Redis
    */
   private async deletePattern(pattern: string): Promise<void> {
-    const keys = await this.redis.keys(pattern);
+    const keys = await this.redis.scan(pattern); // Non-blocking SCAN iteration
     if (keys.length > 0) {
+      // Parallel delete
       await Promise.all(keys.map(k => this.redis.del(k)));
     }
   }
 
   /**
-   * Build cache key from template and parameters
+   * Build cache key from template and parameters.
    * Example: 'product:${id}' with id=123 becomes 'product:123'
+   *
+   * [H5] Tránh tạo new RegExp() mỗi iteration — dùng simple string replace với
+   *      encodeParam để tránh conflict ký tự đặc biệt.
+   * [L3] Encode param values để tránh cache key conflict với ký tự đặc biệt.
    */
   private buildCacheKey(template: string, request: any, args: any[]): string {
     let key = template;
 
-    // Replace ${param} with actual values from request params
+    // [H5] Replace ${param} với actual values — dùng replaceAll với string đơn giản
+    // cho từng param thay vì new RegExp() để tránh overhead
     const params = request.params || {};
     for (const [paramName, paramValue] of Object.entries(params)) {
-      key = key.replace(new RegExp(`\\$\\{${paramName}\\}`, 'g'), String(paramValue));
+      // [L3] Encode value để tránh conflict với ký tự đặc biệt trong cache key
+      key = key.split(`\${${paramName}}`).join(this.encodeParam(String(paramValue)));
     }
 
     // Replace ${query.param} with query values
     const query = request.query || {};
     for (const [queryName, queryValue] of Object.entries(query)) {
-      key = key.replace(new RegExp(`\\$\\{query\\.${queryName}\\}`, 'g'), String(queryValue));
+      key = key.split(`\${query.${queryName}}`).join(this.encodeParam(String(queryValue)));
     }
 
     // Replace ${body.param} with body values
     const body = request.body || {};
     for (const [bodyName, bodyValue] of Object.entries(body)) {
-      key = key.replace(new RegExp(`\\$\\{body\\.${bodyName}\\}`, 'g'), String(bodyValue));
+      key = key.split(`\${body.${bodyName}}`).join(this.encodeParam(String(bodyValue)));
     }
 
     // Replace ${args[n]} with method arguments
     args.forEach((arg, index) => {
-      key = key.replace(new RegExp(`\\$\\{args\\[${index}\\]\\}`, 'g'), String(arg));
+      key = key.split(`\${args[${index}]}`).join(this.encodeParam(String(arg)));
     });
 
     return key;
+  }
+
+  /**
+   * [L3] Encode cache key segment để tránh conflict với ký tự đặc biệt
+   * Chỉ giữ lại alphanumeric, dấu gạch ngang, gạch dưới, dấu chấm
+   */
+  private encodeParam(value: string): string {
+    // Thay thế ký tự đặc biệt (khoảng trắng, *, ?, [, ], ...) bằng underscore
+    return value.replace(/[^a-zA-Z0-9\-_.]/g, '_');
   }
 }

@@ -31,6 +31,7 @@ export class PublicProductCategoryController {
   }
 
   @Permission('public')
+  @Cacheable({ key: 'product-categories:root', ttl: 3600 })
   @Get('root')
   async getRoot(@Query(ValidationPipe) query: any) {
     return this.productCategoryService.getCategories({ ...query, format: 'tree' });

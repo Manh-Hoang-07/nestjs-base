@@ -83,6 +83,18 @@ export class ProductCategoryRepositoryImpl extends PrismaRepository<
         return this.findOne({ slug });
     }
 
+    // [H1] Chỉ select các fields cần thiết thay vì fetch toàn bộ columns → giảm payload
+    private readonly treeSelect = {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+        icon: true,
+        sort_order: true,
+        status: true,
+        parent_id: true,
+    };
+
     async getTree(groupId?: number | bigint | null): Promise<ProductCategory[]> {
         const where: any = { parent_id: null, deleted_at: null };
 
@@ -95,17 +107,22 @@ export class ProductCategoryRepositoryImpl extends PrismaRepository<
 
         return this.prisma.productCategory.findMany({
             where: where as any,
-            include: {
+            select: {
+                ...this.treeSelect,
                 children: {
                     where: { deleted_at: null },
-                    include: {
+                    select: {
+                        ...this.treeSelect,
                         children: {
-                            where: { deleted_at: null }
-                        }
-                    }
-                }
+                            where: { deleted_at: null },
+                            select: this.treeSelect,
+                            orderBy: { sort_order: 'asc' },
+                        },
+                    },
+                    orderBy: { sort_order: 'asc' },
+                },
             },
-            orderBy: { sort_order: 'asc' }
+            orderBy: { sort_order: 'asc' },
         }) as any;
     }
 }

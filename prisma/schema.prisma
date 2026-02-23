@@ -716,6 +716,8 @@ model Ward {
   @@index([province_id], map: "idx_wards_province_id")
   @@index([code], map: "idx_wards_code")
   @@index([status], map: "idx_wards_status")
+  // [M2] Composite index cho query phổ biến: WHERE province_id = ? AND status = 'active'
+  @@index([province_id, status], map: "idx_wards_province_status")
   @@index([deleted_at], map: "idx_deleted_at")
   @@map("wards")
 }

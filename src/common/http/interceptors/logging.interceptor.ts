@@ -17,7 +17,7 @@ export class LoggingInterceptor implements NestInterceptor {
   constructor(
     private readonly logger: CustomLoggerService,
     private readonly reflector: Reflector,
-  ) {}
+  ) { }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     if (context.getType() !== 'http') {
@@ -50,39 +50,39 @@ export class LoggingInterceptor implements NestInterceptor {
     const requestId = Array.isArray(ridHeader)
       ? (ridHeader[0] as string)
       : (typeof ridHeader === 'string' && ridHeader.length > 0
-          ? ridHeader
-          : this.generateRequestId());
-    
+        ? ridHeader
+        : this.generateRequestId());
+
     // Add request ID to response headers
     response.setHeader('X-Request-ID', requestId);
 
     // Xác định file log: ưu tiên header > decorator options > tự động tạo từ class_method
     const filePathHeader = (headers['x-log-file'] as string) || undefined;
     const fileBaseNameHeader = (headers['x-log-base-name'] as string) || undefined;
-    
+
     // Tạo file path dựa trên options
     let logFilePath: string | undefined;
     let logFileBaseName: string | undefined;
-    
+
     if (filePathHeader) {
       // Nếu có filePath từ header, dùng trực tiếp
       logFilePath = filePathHeader;
     } else if (logConfig.filePath) {
       // Nếu có filePath từ decorator, dùng nó
       logFilePath = logConfig.filePath;
+    } else {
+      // Lấy fileBaseName: ưu tiên header > decorator options (bắt buộc phải có)
+      if (fileBaseNameHeader) {
+        logFileBaseName = fileBaseNameHeader;
+      } else if (logConfig.fileBaseName) {
+        logFileBaseName = logConfig.fileBaseName;
       } else {
-        // Lấy fileBaseName: ưu tiên header > decorator options (bắt buộc phải có)
-        if (fileBaseNameHeader) {
-          logFileBaseName = fileBaseNameHeader;
-        } else if (logConfig.fileBaseName) {
-          logFileBaseName = logConfig.fileBaseName;
-        } else {
-          // Nếu không có fileBaseName, không log (hoặc có thể throw error)
-          // Tạm thời dùng mặc định để tránh lỗi
-          logFileBaseName = 'api-requests';
-        }
+        // Nếu không có fileBaseName, không log (hoặc có thể throw error)
+        // Tạm thời dùng mặc định để tránh lỗi
+        logFileBaseName = 'api-requests';
       }
-    
+    }
+
     const user = Auth.user(context);
     const contextBase = {
       context: 'HTTP',
@@ -97,7 +97,8 @@ export class LoggingInterceptor implements NestInterceptor {
       extra: {
         params: Object.keys(params || {}).length ? params : undefined,
         query: Object.keys(query || {}).length ? query : undefined,
-        bodySize: body ? JSON.stringify(body).length : 0,
+        // [M4] Đọc Content-Length header thay vì JSON.stringify toàn bộ body để tính size
+        bodySize: parseInt(request.get('content-length') || '0', 10) || 0,
       },
     } as const;
 
@@ -117,10 +118,10 @@ export class LoggingInterceptor implements NestInterceptor {
               logDetails: { end: duration },
             },
           },
-          logFilePath 
-            ? { filePath: logFilePath } 
-            : logFileBaseName 
-              ? { fileBaseName: logFileBaseName } 
+          logFilePath
+            ? { filePath: logFilePath }
+            : logFileBaseName
+              ? { fileBaseName: logFileBaseName }
               : undefined,
         );
       }),
@@ -140,10 +141,10 @@ export class LoggingInterceptor implements NestInterceptor {
               logDetails: { end: duration },
             },
           },
-          logFilePath 
-            ? { filePath: logFilePath } 
-            : logFileBaseName 
-              ? { fileBaseName: logFileBaseName } 
+          logFilePath
+            ? { filePath: logFilePath }
+            : logFileBaseName
+              ? { fileBaseName: logFileBaseName }
               : undefined,
         );
 
@@ -153,7 +154,11 @@ export class LoggingInterceptor implements NestInterceptor {
   }
 
   private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // [L2] Dùng crypto.randomUUID() thay Math.random + substr (deprecated)
+    const uuid = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID().replace(/-/g, '').substring(0, 9)
+      : Math.random().toString(36).substring(2, 11);
+    return `req_${Date.now()}_${uuid}`;
   }
 
 

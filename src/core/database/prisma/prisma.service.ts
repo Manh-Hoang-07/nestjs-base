@@ -24,13 +24,4 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   async onModuleDestroy() {
     await this.$disconnect();
   }
-
-  /**
-   * Ensure Prisma connection is closed when the Nest application shuts down.
-   */
-  async enableShutdownHooks(app: any) {
-    (this as any).$on('beforeExit', async () => {
-      await app.close();
-    });
-  }
 }
