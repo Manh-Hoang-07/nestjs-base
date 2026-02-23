@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
 import { CacheService } from '@/common/cache/services';
-import { IEmailConfigRepository, EMAIL_CONFIG_REPOSITORY } from '@/modules/core/system-config/system-config/domain/email-config.repository';
+import { IEmailConfigRepository, EMAIL_CONFIG_REPOSITORY } from '@/modules/core/system-config/email/domain/repositories/email-config.repository';
 
 export interface SendMailOptions {
   to: string | string[];

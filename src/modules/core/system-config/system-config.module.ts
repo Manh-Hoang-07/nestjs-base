@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AdminSystemConfigModule } from './admin/system-config.module';
-import { PublicGeneralConfigModule } from './public/general-config.module';
+import { GeneralConfigModule } from './general/general-config.module';
+import { EmailConfigModule } from './email/email-config.module';
 
 @Module({
   imports: [
-    AdminSystemConfigModule,
-    PublicGeneralConfigModule,
+    GeneralConfigModule,
+    EmailConfigModule,
   ],
-  exports: [],
+  exports: [
+    GeneralConfigModule,
+    EmailConfigModule,
+  ],
 })
-export class SystemConfigModule {}
+export class SystemConfigModule { }

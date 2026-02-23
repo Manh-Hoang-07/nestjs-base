@@ -3,7 +3,7 @@ import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './rbac/rbac.module';
 import { ContextModule } from './context/context.module';
 import { NotificationModule } from './notification/notification.module';
-import { UserManagementModule } from './iam/user-management.module';
+import { IamModule } from './iam/iam.module';
 import { MenuModule } from './menu/menu.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { ContentTemplateModule } from './content-template/content-template.module';
@@ -16,7 +16,7 @@ import { LocationModule } from './location/location.module';
         RbacModule,
         ContextModule,
         NotificationModule,
-        UserManagementModule,
+        IamModule,
         MenuModule,
         SystemConfigModule,
         ContentTemplateModule,
@@ -28,7 +28,7 @@ import { LocationModule } from './location/location.module';
         RbacModule,
         ContextModule,
         NotificationModule,
-        UserManagementModule,
+        IamModule,
         MenuModule,
         SystemConfigModule,
         ContentTemplateModule,
