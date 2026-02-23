@@ -11,10 +11,12 @@ export interface GroupFilter {
     status?: string;
     contextId?: number;
     ownerId?: number;
+    ids?: (number | bigint)[];
 }
 
 export interface IGroupRepository extends IRepository<Group> {
     findByCode(code: string): Promise<Group | null>;
+    findActiveByIds(ids: (number | bigint)[]): Promise<Group[]>;
 }
 
 

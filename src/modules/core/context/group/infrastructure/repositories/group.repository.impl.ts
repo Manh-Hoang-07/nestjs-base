@@ -48,11 +48,19 @@ export class GroupRepositoryImpl extends PrismaRepository<
             where.owner_id = BigInt(filter.ownerId);
         }
 
+        if (filter.ids) {
+            where.id = { in: filter.ids.map(id => this.toPrimaryKey(id)) };
+        }
+
         return where;
     }
 
     async findByCode(code: string): Promise<Group | null> {
         return this.findOne({ code });
+    }
+
+    async findActiveByIds(ids: (number | bigint)[]): Promise<Group[]> {
+        return this.findMany({ ids, status: 'active' });
     }
 }
 

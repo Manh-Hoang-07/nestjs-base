@@ -29,6 +29,10 @@ export class UserGroupRepositoryImpl extends PrismaRepository<
         });
     }
 
+    async findByUserId(userId: number | bigint): Promise<UserGroup[]> {
+        return this.findMany({ user_id: userId });
+    }
+
     protected buildWhere(filter: any): Prisma.UserGroupWhereInput {
         const where: Prisma.UserGroupWhereInput = {};
         if (filter.user_id) where.user_id = this.toPrimaryKey(filter.user_id);

@@ -44,6 +44,10 @@ export class ContextRepositoryImpl extends PrismaRepository<
             where.status = filter.status;
         }
 
+        if (filter.ids) {
+            where.id = { in: filter.ids.map(id => this.toPrimaryKey(id)) };
+        }
+
         return where;
     }
 
@@ -53,6 +57,10 @@ export class ContextRepositoryImpl extends PrismaRepository<
 
     async findByCode(code: string): Promise<Context | null> {
         return this.findOne({ code });
+    }
+
+    async findActiveByIds(ids: (number | bigint)[]): Promise<Context[]> {
+        return this.findMany({ ids, status: 'active' });
     }
 }
 
