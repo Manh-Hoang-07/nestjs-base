@@ -135,10 +135,15 @@ export abstract class BaseService<T, R extends IRepository<T>> {
         // 4. Gọi repository
         const result = await this.repository.findAll(normalized);
 
-        // 5. Transform kết quả
-        result.data = await Promise.all(
-            result.data.map((item) => this.transform(item) as T)
-        );
+        // 5. Transform kết quả - Optimize: Avoid Promise.all if transform is synchronous
+        // and avoid creating new promises for every item.
+        const transformedData = new Array(result.data.length);
+        for (let i = 0; i < result.data.length; i++) {
+            const transformed = this.transform(result.data[i]);
+            // Nếu transform trả về Promise (hiếm khi), thì mới dùng await
+            transformedData[i] = transformed instanceof Promise ? await transformed : transformed;
+        }
+        result.data = transformedData as T[];
 
         return this.afterGetList(result);
     }
@@ -214,34 +219,38 @@ export abstract class BaseService<T, R extends IRepository<T>> {
     protected deepConvertBigInt(obj: any): any {
         if (obj === null || obj === undefined) return obj;
 
-        // Chuyển đổi BigInt sang Number
-        if (typeof obj === 'bigint') return Number(obj);
+        const type = typeof obj;
+
+        // Chuyển đổi BigInt sang Number (Trường hợp hay gặp nhất ở các field đơn)
+        if (type === 'bigint') return Number(obj);
 
         // Nếu không phải object hoặc array thì giữ nguyên
-        if (typeof obj !== 'object') return obj;
+        if (type !== 'object') return obj;
 
         // Xử lý Date: Trả về đối tượng Date để JSON.stringify tự xử lý sang chuỗi ISO
-        if (Object.prototype.toString.call(obj) === '[object Date]') {
-            return obj;
-        }
+        if (obj instanceof Date) return obj;
 
-        // Xử lý Array
+        // Xử lý Array: Dùng loop thay vì map để nhanh hơn một chút ở mảng lớn
         if (Array.isArray(obj)) {
-            return obj.map((v) => this.deepConvertBigInt(v));
+            const res = new Array(obj.length);
+            for (let i = 0; i < obj.length; i++) {
+                res[i] = this.deepConvertBigInt(obj[i]);
+            }
+            return res;
         }
 
-        // Xử lý Object: Tạo clone và convert đệ quy các thuộc tính
-        // Chỉ xử lý sâu các plain object ({}), các class instance khác giữ nguyên
-        const isPlainObject = obj.constructor === undefined || obj.constructor.name === 'Object';
+        // Xử lý Object: Chỉ xử lý sâu các plain object ({})
+        const constructor = obj.constructor;
+        const isPlainObject = constructor === undefined || constructor.name === 'Object';
         if (!isPlainObject) {
             return obj;
         }
 
         const res: any = {};
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                res[key] = this.deepConvertBigInt(obj[key]);
-            }
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            res[key] = this.deepConvertBigInt(obj[key]);
         }
         return res;
     }

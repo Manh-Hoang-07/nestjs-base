@@ -17,6 +17,51 @@ export class PublicProductService extends BaseService<Product, IProductRepositor
   }
 
   /**
+   * Tối ưu hóa: Chỉ lấy các trường cần thiết cho danh sách, loại bỏ các trường dữ liệu lớn (LongText)
+   */
+  protected override async prepareOptions(options: any): Promise<any> {
+    const prepared = await super.prepareOptions(options);
+
+    // Nếu request chưa có select/include cụ thể, áp dụng default select để tối ưu hiệu năng
+    if (!prepared.select && !prepared.include) {
+      prepared.select = {
+        id: true,
+        name: true,
+        slug: true,
+        sku: true,
+        short_description: true,
+        image: true,
+        status: true,
+        is_featured: true,
+        is_variable: true,
+        min_effective_price: true,
+        max_effective_price: true,
+        created_at: true,
+        // Cần variants để tính toán giá trong transform nếu record cũ chưa có denormalized price
+        variants: {
+          select: {
+            price: true,
+            sale_price: true,
+          },
+        },
+        categories: {
+          select: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      };
+    }
+
+    return prepared;
+  }
+
+  /**
    * Chuẩn bị filters cho public API
    */
   protected override async prepareFilters(

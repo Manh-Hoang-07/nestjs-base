@@ -15,13 +15,41 @@ export class CacheInterceptor implements NestInterceptor {
   constructor(
     private readonly reflector: Reflector,
     private readonly redis: RedisUtil,
-  ) {}
+  ) { }
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
-    // Check if caching is enabled for this handler
+    const handler = context.getHandler();
+    const request = context.switchToHttp().getRequest();
+    const args = context.getArgs();
+
+    // 1. Handle CacheEvict first (if any)
+    const evictOptions = this.reflector.get<{ keys: string[] }>(
+      'cache:evict',
+      handler,
+    );
+
+    if (evictOptions && this.redis.isEnabled()) {
+      return next.handle().pipe(
+        tap(async () => {
+          // Clear all specified keys
+          for (const keyTemplate of evictOptions.keys) {
+            const cacheKey = this.buildCacheKey(keyTemplate, request, args);
+
+            // If key ends with *, it's a pattern delete
+            if (cacheKey.endsWith('*')) {
+              await this.deletePattern(cacheKey);
+            } else {
+              await this.redis.del(cacheKey);
+            }
+          }
+        }),
+      );
+    }
+
+    // 2. Handle Cacheable
     const cacheOptions = this.reflector.get<CacheOptions>(
       CACHE_TTL_METADATA,
-      context.getHandler(),
+      handler,
     );
 
     if (!cacheOptions || !this.redis.isEnabled()) {
@@ -31,8 +59,8 @@ export class CacheInterceptor implements NestInterceptor {
     // Build cache key from template and method arguments
     const cacheKey = this.buildCacheKey(
       cacheOptions.key,
-      context.switchToHttp().getRequest(),
-      context.getArgs(),
+      request,
+      args,
     );
 
     // Try to get from cache
@@ -64,10 +92,19 @@ export class CacheInterceptor implements NestInterceptor {
           );
         } catch (error) {
           // Log error but don't fail the request
-          // Removed console.error for production
         }
       }),
     );
+  }
+
+  /**
+   * Delete by pattern (prefix)
+   */
+  private async deletePattern(pattern: string): Promise<void> {
+    const keys = await this.redis.keys(pattern);
+    if (keys.length > 0) {
+      await Promise.all(keys.map(k => this.redis.del(k)));
+    }
   }
 
   /**

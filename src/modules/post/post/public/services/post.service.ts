@@ -13,6 +13,63 @@ export class PostService extends BaseContentService<Post, IPostRepository> {
     super(postRepo);
   }
 
+  /**
+   * Tối ưu hóa: Chỉ lấy các trường cần thiết cho danh sách bài viết
+   */
+  protected override async prepareOptions(options: any): Promise<any> {
+    const prepared = await super.prepareOptions(options);
+
+    // Nếu request chưa có select/include cụ thể, áp dụng default select
+    if (!prepared.select && !prepared.include) {
+      prepared.select = {
+        id: true,
+        name: true,
+        slug: true,
+        excerpt: true,
+        image: true,
+        post_type: true,
+        is_featured: true,
+        published_at: true,
+        view_count: true,
+        created_at: true,
+        // Loại bỏ content (LongText) nặng nề
+        primary_category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
+          }
+        },
+        categories: {
+          select: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                status: true,
+              }
+            }
+          }
+        },
+        tags: {
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              }
+            }
+          }
+        }
+      };
+    }
+
+    return prepared;
+  }
+
   protected async prepareFilters(filter: any) {
     // Public API chỉ hiển thị published, normalize snake_case/camelCase
     const normalized = { ...filter };

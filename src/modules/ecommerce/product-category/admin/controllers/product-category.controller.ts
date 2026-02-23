@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   ValidationPipe,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/common/auth/guards/jwt-auth.guard';
 import { RbacGuard } from '@/common/auth/guards/rbac.guard';
@@ -19,9 +20,11 @@ import { CreateProductCategoryDto } from '../dtos/create-product-category.dto';
 import { UpdateProductCategoryDto } from '../dtos/update-product-category.dto';
 import { prepareQuery } from '@/common/core/utils/list-query.helper';
 import { LogRequest } from '@/common/shared/decorators/log-request.decorator';
+import { CacheInterceptor, CacheEvict } from '@/common/cache';
 
 @Controller('admin/product-categories')
 @UseGuards(JwtAuthGuard, RbacGuard)
+@UseInterceptors(CacheInterceptor)
 export class AdminProductCategoryController {
   constructor(private readonly productCategoryService: AdminProductCategoryService) { }
 
@@ -64,6 +67,7 @@ export class AdminProductCategoryController {
   @LogRequest()
   @Post()
   @Permission('product_category.manage')
+  @CacheEvict({ keys: ['product-categories:list:*', 'product-categories:tree'] })
   async create(@Body(ValidationPipe) dto: CreateProductCategoryDto) {
     return this.productCategoryService.create(dto);
   }
@@ -71,6 +75,7 @@ export class AdminProductCategoryController {
   @LogRequest()
   @Put(':id')
   @Permission('product_category.manage')
+  @CacheEvict({ keys: ['product-categories:list:*', 'product-categories:tree', 'product-categories:slug:*'] })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) dto: UpdateProductCategoryDto,
@@ -88,6 +93,7 @@ export class AdminProductCategoryController {
   @LogRequest()
   @Delete(':id')
   @Permission('product_category.manage')
+  @CacheEvict({ keys: ['product-categories:list:*', 'product-categories:tree', 'product-categories:slug:*'] })
   async delete(@Param('id', ParseIntPipe) id: number) {
     return this.productCategoryService.delete(id);
   }
