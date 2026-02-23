@@ -4,6 +4,7 @@ import { BannerService } from '@/modules/marketing/banner/admin/services/banner.
 import { BasicStatus } from '@/shared/enums/types/basic-status.enum';
 
 import { JwtAuthGuard, RbacGuard } from '@/common/auth/guards';
+import { TokenBlacklistService } from '@/core/security/token-blacklist.service';
 
 describe('BannerController (Admin)', () => {
     let controller: BannerController;
@@ -25,8 +26,8 @@ describe('BannerController (Admin)', () => {
             controllers: [BannerController],
             providers: [
                 { provide: BannerService, useValue: service },
-                { provide: 'JwtAuthGuard', useValue: { canActivate: jest.fn(() => true) } },
-                { provide: 'RbacGuard', useValue: { canActivate: jest.fn(() => true) } },
+                // Provide TokenBlacklistService to satisfy JwtAuthGuard constructor deps
+                { provide: TokenBlacklistService, useValue: { has: jest.fn().mockResolvedValue(false) } },
             ],
         })
             .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
