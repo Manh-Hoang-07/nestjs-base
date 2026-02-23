@@ -62,9 +62,12 @@ describe('Notification & Content Template (Functional)', () => {
             const newTemplate = {
                 code: templateCode,
                 name: 'Test Welcome Email',
-                subject: 'Welcome to our platform',
-                content: '<p>Hello {{name}}</p>',
+                category: 'render',
                 type: 'email',
+                content: '<p>Hello {{name}}</p>',
+                metadata: {
+                    subject: 'Welcome to our platform'
+                },
                 status: 'active'
             };
 

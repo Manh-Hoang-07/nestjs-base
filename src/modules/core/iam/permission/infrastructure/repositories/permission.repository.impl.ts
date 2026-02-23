@@ -40,6 +40,10 @@ export class PermissionRepositoryImpl extends PrismaRepository<
             ];
         }
 
+        if (filter.code) {
+            where.code = filter.code;
+        }
+
         if (filter.status) {
             where.status = filter.status;
         }

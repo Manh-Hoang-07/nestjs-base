@@ -28,6 +28,10 @@ export class GroupRepositoryImpl extends PrismaRepository<
             ];
         }
 
+        if (filter.code) {
+            where.code = filter.code;
+        }
+
         if (filter.type) {
             where.type = filter.type;
         }

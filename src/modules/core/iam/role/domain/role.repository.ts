@@ -6,6 +6,7 @@ export const ROLE_REPOSITORY = 'IRoleRepository';
 
 export interface RoleFilter {
     search?: string;
+    code?: string;
     status?: string;
     parentId?: number | bigint;
 }

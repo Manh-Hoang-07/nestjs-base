@@ -20,7 +20,7 @@ export class SeedPosts {
             return;
         }
 
-        const adminUser = await this.prisma.user.findFirst({ where: { username: 'admin' } });
+        const adminUser = await this.prisma.user.findFirst({ where: { username: 'systemadmin' } });
         const defaultUserId = adminUser ? Number(adminUser.id) : null;
 
         // ========== SEED POST CATEGORIES ==========
@@ -346,31 +346,24 @@ export class SeedPosts {
                     og_image: post.image,
                     created_user_id: defaultUserId ? BigInt(defaultUserId) : null,
                     updated_user_id: defaultUserId ? BigInt(defaultUserId) : null,
+                    // Use nested create for many-to-many relationship
+                    categories: {
+                        create: {
+                            postcategory_id: category.id
+                        }
+                    },
+                    // Use nested create for many-to-many relationship
+                    tags: {
+                        create: post.tags.map(tagName => {
+                            const tag = createdTags.get(tagName);
+                            return tag ? { posttag_id: tag.id } : null;
+                        }).filter(Boolean) as any[]
+                    }
                 },
             });
 
-            // Create post-category relationship
-            await this.prisma.postPostcategory.create({
-                data: {
-                    post_id: savedPost.id,
-                    postcategory_id: category.id,
-                },
-            });
+            this.logger.log(`Created post: ${savedPost.name} with ID ${savedPost.id}`);
 
-            // Create post-tag relationships
-            for (const tagName of post.tags) {
-                const tag = createdTags.get(tagName);
-                if (tag) {
-                    await this.prisma.postPosttag.create({
-                        data: {
-                            post_id: savedPost.id,
-                            posttag_id: tag.id,
-                        },
-                    });
-                }
-            }
-
-            this.logger.log(`Created post: ${savedPost.name} (${post.tags.length} tags)`);
         }
 
         // ========== SEED ADDITIONAL RANDOM POSTS ==========
@@ -426,26 +419,20 @@ export class SeedPosts {
                     meta_description: `Mô tả ngắn cho SEO của bài viết mẫu số ${i} thuộc chủ đề ${randomCategoryName}.`,
                     created_user_id: defaultUserId ? BigInt(defaultUserId) : null,
                     updated_user_id: defaultUserId ? BigInt(defaultUserId) : null,
-                },
-            });
-
-            // Create post-category relationship
-            await this.prisma.postPostcategory.create({
-                data: {
-                    post_id: savedPost.id,
-                    postcategory_id: category.id,
-                },
-            });
-
-            // Create post-tag relationships
-            for (const tag of randomTags) {
-                await this.prisma.postPosttag.create({
-                    data: {
-                        post_id: savedPost.id,
-                        posttag_id: tag.id,
+                    // Use nested create for many-to-many relationship
+                    categories: {
+                        create: {
+                            postcategory_id: category.id
+                        }
                     },
-                });
-            }
+                    // Use nested create for many-to-many relationship
+                    tags: {
+                        create: randomTags.map(tag => ({
+                            posttag_id: tag.id
+                        }))
+                    }
+                },
+            });
 
             this.logger.log(`Created random post ${i}: ${savedPost.name}`);
         }

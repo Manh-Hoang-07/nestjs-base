@@ -6,6 +6,7 @@ export const PERMISSION_REPOSITORY = 'IPermissionRepository';
 
 export interface PermissionFilter {
     search?: string;
+    code?: string;
     status?: string;
     parentId?: number | bigint;
     scope?: string;

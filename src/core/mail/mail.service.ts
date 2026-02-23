@@ -127,6 +127,11 @@ export class MailService {
       throw new InternalServerErrorException('Either html or text content must be provided when sending email.');
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('SKIP MAIL SENDING IN TEST ENV:', options.subject, 'to:', options.to);
+      return;
+    }
+
     const config = await this.getActiveConfig();
     const transporter = await this.getTransporter();
 
@@ -164,6 +169,11 @@ export class MailService {
       if (!email.html && !email.text) {
         throw new InternalServerErrorException(`Email at index ${i} must have either html or text content.`);
       }
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('SKIP BULK MAIL SENDING IN TEST ENV:', options.emails.length, 'emails');
+      return { success: options.emails.length, failed: 0, errors: [] };
     }
 
     const config = await this.getActiveConfig();

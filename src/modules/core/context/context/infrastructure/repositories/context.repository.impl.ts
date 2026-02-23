@@ -27,12 +27,17 @@ export class ContextRepositoryImpl extends PrismaRepository<
             ];
         }
 
+        if (filter.code) {
+            where.code = filter.code;
+        }
+
         if (filter.type) {
             where.type = filter.type;
         }
 
-        if (filter.refId !== undefined) {
-            where.ref_id = filter.refId === null ? null : BigInt(filter.refId);
+        if (filter.refId !== undefined || (filter as any).ref_id !== undefined) {
+            const rid = filter.refId !== undefined ? filter.refId : (filter as any).ref_id;
+            where.ref_id = rid === null ? null : BigInt(rid);
         }
 
         if (filter.status) {

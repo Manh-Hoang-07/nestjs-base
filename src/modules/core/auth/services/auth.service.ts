@@ -47,7 +47,6 @@ export class AuthService {
     // Tìm user bằng email (case-insensitive) - repo findByEmailForAuth will include password
     const user = await this.userRepo.findByEmailForAuth(dto.email.toLowerCase());
 
-    console.log("DEBUG LOGIN user:", user);
 
     let authError: string | null = null;
 
@@ -56,7 +55,6 @@ export class AuthService {
       authError = 'Email hoặc mật khẩu không đúng.';
     } else {
       const isPasswordValid = await bcrypt.compare(dto.password, (user as any).password);
-      console.log("DEBUG LOGIN isPasswordValid:", isPasswordValid, "dto.password:", dto.password);
       if (!isPasswordValid) {
         await this.accountLockoutService.add(scope, identifier);
         authError = 'Email hoặc mật khẩu không đúng.';

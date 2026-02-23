@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { RedisThrottlerStorageService } from './redis-throttler-storage.service';
 import { RedisUtil } from '@/core/utils/redis.util';
+import { AppThrottlerGuard } from './app-throttler.guard';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { RedisUtil } from '@/core/utils/redis.util';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: AppThrottlerGuard,
     },
   ],
   exports: [],

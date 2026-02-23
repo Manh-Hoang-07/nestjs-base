@@ -79,7 +79,7 @@ export class AdminGroupService extends BaseService<any, IGroupRepository> {
       }
 
       const ownerRole = await this.roleRepo.findOne({
-        where: { code: 'admin' },
+        code: 'admin',
       });
       if (ownerRole) {
         await this.rbacService.assignRoleToUser(Number(group.owner_id), Number(ownerRole.id), Number(group.id));

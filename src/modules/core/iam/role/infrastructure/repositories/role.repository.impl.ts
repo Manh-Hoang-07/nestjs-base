@@ -41,6 +41,10 @@ export class RoleRepositoryImpl extends PrismaRepository<
             ];
         }
 
+        if (filter.code) {
+            where.code = filter.code;
+        }
+
         if (filter.status) {
             where.status = filter.status;
         }

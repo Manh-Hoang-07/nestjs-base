@@ -6,6 +6,7 @@ export const CONTEXT_REPOSITORY = 'IContextRepository';
 
 export interface ContextFilter {
     search?: string;
+    code?: string;
     type?: string;
     refId?: number | null;
     status?: string;
