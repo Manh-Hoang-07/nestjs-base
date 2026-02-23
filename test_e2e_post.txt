@@ -1,0 +1,43 @@
+
+> nestjs-backend@1.0.0 test:e2e
+> jest --config ./test/jest-e2e.json --runInBand test/e2e/modules/post.e2e-spec.ts
+
+  console.log
+    Γ£à Created content template: registration_success
+
+      at SeedContentTemplates.seed (../src/core/database/seeder/seed-content-templates.ts:164:25)
+
+  console.log
+    Γ£à Created content template: reset_password_success
+
+      at SeedContentTemplates.seed (../src/core/database/seeder/seed-content-templates.ts:164:25)
+
+  console.log
+    Γ£à Created content template: send_otp_register
+
+      at SeedContentTemplates.seed (../src/core/database/seeder/seed-content-templates.ts:164:25)
+
+  console.log
+    Γ£à Created content template: send_otp_forgot_password
+
+      at SeedContentTemplates.seed (../src/core/database/seeder/seed-content-templates.ts:164:25)
+
+  console.log
+    Γ£à Created content template: digital_order_delivery
+
+      at SeedContentTemplates.seed (../src/core/database/seeder/seed-content-templates.ts:164:25)
+
+PASS test/e2e/modules/post.e2e-spec.ts (27.021 s)
+  Post Module (Functional)
+    Public Post API
+      ΓêÜ should fetch list of posts (34 ms)
+      ΓêÜ should fetch featured posts (16 ms)
+    Admin Post API
+      ΓêÜ should fetch list of posts for admin (63 ms)
+      ΓêÜ should create a new post (47 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        27.504 s
+Ran all test suites matching /test\\e2e\\modules\\post.e2e-spec.ts/i.
