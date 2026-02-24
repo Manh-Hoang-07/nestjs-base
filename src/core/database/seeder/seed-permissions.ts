@@ -72,8 +72,10 @@ export class SeedPermissions {
       { code: 'content_template.manage', name: 'Quản lý Mẫu tài liệu', status: 'active', parent_code: null },
 
       // ========== LOCATION MODULE ==========
-      { code: 'admin.location.view', name: 'Xem Địa điểm (Admin)', status: 'active', parent_code: null },
       { code: 'location.manage', name: 'Quản lý Địa điểm', status: 'active', parent_code: null },
+      { code: 'country.manage', name: 'Quản lý Quốc gia', status: 'active', parent_code: 'location.manage' },
+      { code: 'province.manage', name: 'Quản lý Tỉnh/Thành phố', status: 'active', parent_code: 'location.manage' },
+      { code: 'ward.manage', name: 'Quản lý Phường/Xã', status: 'active', parent_code: 'location.manage' },
 
       // ========== ECOMMERCE MODULES ==========
       { code: 'product.manage', name: 'Quản lý Sản phẩm', status: 'active', parent_code: null },
