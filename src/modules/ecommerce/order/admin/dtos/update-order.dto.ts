@@ -1,5 +1,6 @@
 import { IsOptional, IsString, IsNumber, ValidateNested, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
+import { OrderAddressDto } from '@/modules/ecommerce/order/public/dtos/create-order.dto';
 
 export class UpdateOrderDto {
   @IsOptional()
@@ -16,11 +17,15 @@ export class UpdateOrderDto {
 
   @IsOptional()
   @IsObject()
-  shipping_address?: any;
+  @ValidateNested()
+  @Type(() => OrderAddressDto)
+  shipping_address?: OrderAddressDto;
 
   @IsOptional()
   @IsObject()
-  billing_address?: any;
+  @ValidateNested()
+  @Type(() => OrderAddressDto)
+  billing_address?: OrderAddressDto;
 
   @IsOptional()
   @IsNumber()

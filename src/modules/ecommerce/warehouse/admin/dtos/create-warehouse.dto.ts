@@ -7,6 +7,7 @@ import {
   Max,
   MaxLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateWarehouseDto {
   @IsString()
@@ -30,6 +31,21 @@ export class CreateWarehouseDto {
   @IsString()
   @MaxLength(100)
   district?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  country_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  province_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  ward_id?: number;
 
   @IsOptional()
   @IsNumber()

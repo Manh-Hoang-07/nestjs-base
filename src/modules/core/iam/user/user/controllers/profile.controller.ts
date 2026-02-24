@@ -30,7 +30,7 @@ export class ProfileController {
 
         // Tự động phân loại: name, image thuộc User; các trường còn lại thuộc Profile
         const userFields = ['name', 'image'];
-        const profileFields = ['birthday', 'gender', 'address', 'about'];
+        const profileFields = ['birthday', 'gender', 'address', 'about', 'country_id', 'province_id', 'ward_id'];
 
         const updatePayload: any = {};
         const profileData: any = {};

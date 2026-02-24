@@ -107,7 +107,17 @@ export class UserRepositoryImpl extends PrismaRepository<
         const pk = this.toPrimaryKey(numericId);
 
         // Chỉ lấy các trường hợp lệ của Profile
-        const validProfileFields = ['birthday', 'gender', 'address', 'about', 'created_user_id', 'updated_user_id'];
+        const validProfileFields = [
+            'birthday',
+            'gender',
+            'address',
+            'about',
+            'country_id',
+            'province_id',
+            'ward_id',
+            'created_user_id',
+            'updated_user_id',
+        ];
         const dataAny = data as any;
 
         const createData: any = { user_id: pk };

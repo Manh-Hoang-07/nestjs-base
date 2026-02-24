@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsOptional, IsString, MinLength, ValidateNested } from 'class-validator';
+import { IsArray, IsEmail, IsOptional, IsString, MinLength, ValidateNested, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ProfilePayloadDto {
@@ -13,6 +13,21 @@ class ProfilePayloadDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  country_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  province_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  ward_id?: number;
 
   @IsOptional()
   @IsString()

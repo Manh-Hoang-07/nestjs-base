@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail, MaxLength, IsArray, IsBoolean, IsNumber, ValidateNested, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsEmail, MaxLength, IsArray, IsBoolean, IsNumber, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ContactChannel } from '@/shared/interfaces/contact-channel.interface';
 
@@ -65,6 +65,21 @@ export class UpdateGeneralConfigDto {
   @IsString()
   @IsOptional()
   site_address?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  site_country_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  site_province_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  site_ward_id?: number;
 
   @IsString()
   @IsOptional()

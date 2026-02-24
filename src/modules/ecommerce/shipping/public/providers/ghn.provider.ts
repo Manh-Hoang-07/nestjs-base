@@ -175,7 +175,7 @@ export class GHNProvider implements IShippingProvider {
   }
 
   private formatAddress(address: any): string {
-    return `${address.street}, ${address.ward}, ${address.district}, ${address.city}`;
+    return `${address.address}, ${address.ward}, ${address.district}, ${address.city}`;
   }
 
   private calculateTotalWeight(items: any[]): number {

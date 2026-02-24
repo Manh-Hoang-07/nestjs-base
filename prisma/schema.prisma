@@ -54,6 +54,9 @@ model Profile {
   birthday        DateTime? @db.Date
   gender          String?   @db.VarChar(20)
   address         String?   @db.Text
+  country_id      BigInt?   @db.UnsignedBigInt
+  province_id     BigInt?   @db.UnsignedBigInt
+  ward_id         BigInt?   @db.UnsignedBigInt
   about           String?   @db.Text
   created_user_id BigInt?   @db.UnsignedBigInt
   updated_user_id BigInt?   @db.UnsignedBigInt
@@ -238,6 +241,9 @@ model GeneralConfig {
   site_email            String?   @db.VarChar(255)
   site_phone            String?   @db.VarChar(20)
   site_address          String?   @db.Text
+  site_country_id       BigInt?   @db.UnsignedBigInt
+  site_province_id      BigInt?   @db.UnsignedBigInt
+  site_ward_id          BigInt?   @db.UnsignedBigInt
   site_copyright        String?   @db.VarChar(255)
   timezone              String    @default("Asia/Ho_Chi_Minh") @db.VarChar(50)
   locale                String    @default("vi") @db.VarChar(10)
@@ -1376,6 +1382,9 @@ model Warehouse {
   address         String?     @db.Text
   city            String?     @db.VarChar(100)
   district        String?     @db.VarChar(100)
+  country_id      BigInt?     @db.UnsignedBigInt
+  province_id     BigInt?     @db.UnsignedBigInt
+  ward_id         BigInt?     @db.UnsignedBigInt
   latitude        Float?      @db.Double
   longitude       Float?      @db.Double
   phone           String?     @db.VarChar(20)
