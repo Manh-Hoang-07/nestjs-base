@@ -26,7 +26,10 @@ export function prepareQuery(query: any = {}): { filter: any; options: any } {
     sortOrder,
     format,
     filters, // Backward compatibility for filters[key]
+    filter: nestedFilter, // Common naming convention
     options, // Backward compatibility for options[key]
+    maxLimit,
+    skipCount,
     ...flatFilters
   } = query;
 
@@ -36,6 +39,8 @@ export function prepareQuery(query: any = {}): { filter: any; options: any } {
   if (limit !== undefined) rootOptions.limit = Number(limit);
   if (sort !== undefined) rootOptions.sort = sort;
   if (format !== undefined) rootOptions.format = format;
+  if (maxLimit !== undefined) rootOptions.maxLimit = Number(maxLimit);
+  if (skipCount !== undefined) rootOptions.skipCount = skipCount === 'true' || skipCount === true;
 
   // Handle sort_by/sort_order or sortBy/sortOrder (backward compatibility)
   const finalSortBy = sort_by || sortBy;
@@ -49,8 +54,8 @@ export function prepareQuery(query: any = {}): { filter: any; options: any } {
   const finalOptions = { ...rootOptions, ...(options || {}) };
 
   // 3. Build filters
-  // Priority: flat filters (preferred) merged with explicitly passed filters
-  const finalFilters = { ...flatFilters, ...(filters || {}) };
+  // Priority: flat filters (preferred) merged with explicitly passed filters (singular or plural)
+  const finalFilters = { ...flatFilters, ...(filters || {}), ...(nestedFilter || {}) };
 
   // Note: renamed 'filters' to 'filter' to match IPaginationOptions.filter
   return { filter: finalFilters, options: finalOptions };

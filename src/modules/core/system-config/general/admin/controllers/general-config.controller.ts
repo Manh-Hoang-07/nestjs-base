@@ -1,7 +1,7 @@
 import {
   Controller,
   Get,
-  Put,
+  Post,
   Body,
   ValidationPipe,
   UseInterceptors,
@@ -35,7 +35,7 @@ export class GeneralConfigController {
    */
   @Permission('config.manage')
   @LogRequest()
-  @Put()
+  @Post()
   @CacheEvict({ keys: ['system:configs:general'] })
   updateConfig(@Body(ValidationPipe) dto: UpdateGeneralConfigDto) {
     const userId = this.auth.id() || undefined;

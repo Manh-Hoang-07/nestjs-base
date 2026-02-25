@@ -110,7 +110,7 @@ export class SeedMenus {
       {
         code: 'group-management',
         name: 'Nhóm & Context',
-        path: '/admin/core/group',
+        path: '/admin/core/groups',
         api_path: 'api/admin/groups',
         icon: '👪',
         type: MenuType.group,
@@ -125,7 +125,7 @@ export class SeedMenus {
       {
         code: 'groups',
         name: 'Nhóm',
-        path: '/admin/core/group',
+        path: '/admin/core/groups',
         api_path: 'api/admin/groups',
         icon: '👪',
         type: MenuType.route,
@@ -184,7 +184,7 @@ export class SeedMenus {
       {
         code: 'config-email',
         name: 'Cấu hình Email',
-        path: '/admin/core/system-config/email',
+        path: '/admin/core/system-configs/email',
         api_path: 'api/admin/system-configs/email',
         icon: '📧',
         type: MenuType.route,
