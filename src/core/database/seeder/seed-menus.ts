@@ -155,7 +155,7 @@ export class SeedMenus {
       {
         code: 'config-management',
         name: 'Cấu hình hệ thống',
-        path: '/admin/core/system-config/general',
+        path: '/admin/core/system-configs/general',
         api_path: 'api/admin/system-configs/general',
         icon: '⚙️',
         type: MenuType.group,
@@ -170,7 +170,7 @@ export class SeedMenus {
       {
         code: 'config-general',
         name: 'Cấu hình chung',
-        path: '/admin/core/system-config/general',
+        path: '/admin/core/system-configs/general',
         api_path: 'api/admin/system-configs/general',
         icon: '📋',
         type: MenuType.route,

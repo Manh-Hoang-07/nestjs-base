@@ -307,6 +307,9 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     if (data.address !== undefined) sanitized.address = data.address;
     if (data.city !== undefined) sanitized.city = data.city;
     if (data.district !== undefined) sanitized.district = data.district;
+    if (data.country_id !== undefined) sanitized.country_id = data.country_id ? BigInt(data.country_id) : null;
+    if (data.province_id !== undefined) sanitized.province_id = data.province_id ? BigInt(data.province_id) : null;
+    if (data.ward_id !== undefined) sanitized.ward_id = data.ward_id ? BigInt(data.ward_id) : null;
     if (data.latitude !== undefined) sanitized.latitude = data.latitude;
     if (data.longitude !== undefined) sanitized.longitude = data.longitude;
     if (data.phone !== undefined) sanitized.phone = data.phone;

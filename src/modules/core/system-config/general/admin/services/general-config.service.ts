@@ -92,13 +92,13 @@ export class GeneralConfigService extends BaseService<any, IGeneralConfigReposit
 
       // Chỉ set các field location nếu DTO có gửi lên (tránh phụ thuộc type existing)
       if (dto.site_country_id !== undefined) {
-        updateData.site_country_id = BigInt(dto.site_country_id);
+        updateData.site_country_id = dto.site_country_id ? BigInt(dto.site_country_id) : null;
       }
       if (dto.site_province_id !== undefined) {
-        updateData.site_province_id = BigInt(dto.site_province_id);
+        updateData.site_province_id = dto.site_province_id ? BigInt(dto.site_province_id) : null;
       }
       if (dto.site_ward_id !== undefined) {
-        updateData.site_ward_id = BigInt(dto.site_ward_id);
+        updateData.site_ward_id = dto.site_ward_id ? BigInt(dto.site_ward_id) : null;
       }
 
       if (dto.contact_channels !== undefined) {
