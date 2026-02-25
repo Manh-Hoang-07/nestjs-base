@@ -35,6 +35,12 @@ export class ComicController {
   }
 
   @Permission('comic.manage')
+  @Get('simple')
+  async getSimpleList(@Query() query: any) {
+    return this.comicService.getSimpleList(query);
+  }
+
+  @Permission('comic.manage')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
     return this.comicService.getOne(id);

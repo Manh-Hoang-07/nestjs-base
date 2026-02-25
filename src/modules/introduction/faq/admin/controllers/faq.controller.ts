@@ -37,6 +37,12 @@ export class FaqController {
     return this.faqService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('faq.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.faqService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('faq.manage')
   findOne(@Param('id') id: string) {

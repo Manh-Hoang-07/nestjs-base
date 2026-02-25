@@ -37,6 +37,12 @@ export class GalleryController {
     return this.galleryService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('gallery.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.galleryService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('gallery.manage')
   findOne(@Param('id') id: string) {

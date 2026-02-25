@@ -107,6 +107,13 @@ export abstract class BaseService<T, R extends IRepository<T>> {
     }
 
     /**
+     * Lấy danh sách không phân trang hoặc có giới hạn lớn (thường dùng cho dropdown)
+     */
+    async getSimpleList(query: any = {}) {
+        return this.getList({ ...query, limit: (query as any).limit || 1000 });
+    }
+
+    /**
      * Lấy danh sách phân trang.
      * Chấp nhận raw query từ controller hoặc IPaginationOptions đã chuẩn hóa.
      */

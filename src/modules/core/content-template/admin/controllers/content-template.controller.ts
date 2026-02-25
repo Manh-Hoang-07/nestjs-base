@@ -36,6 +36,12 @@ export class ContentTemplateController {
     }
 
     @Permission('content_template.manage')
+    @Get('simple')
+    getSimpleList(@Query() query: any) {
+        return this.service.getSimpleList(query);
+    }
+
+    @Permission('content_template.manage')
     @Get(':id')
     findOne(@Param('id', ParseIntPipe) id: number) {
         return this.service.getOne(id);

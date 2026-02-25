@@ -34,6 +34,17 @@ export class AdminWarehouseExportController {
         });
     }
 
+    @Get('simple')
+    @Permission('warehouse_export.manage')
+    async getSimpleList(@Query(ValidationPipe) query: any) {
+        const { filter, options } = prepareQuery(query);
+        return this.warehouseService.getSimpleStockTransfers({
+            ...filter,
+            ...options,
+            type: 'export'
+        });
+    }
+
     @Get(':id')
     @Permission('warehouse_export.manage')
     async getOne(@Param('id', ParseIntPipe) id: number) {

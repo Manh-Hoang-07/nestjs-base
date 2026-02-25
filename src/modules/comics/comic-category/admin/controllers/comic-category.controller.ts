@@ -27,6 +27,12 @@ export class ComicCategoryController {
   }
 
   @Permission('comic.manage')
+  @Get('simple')
+  async getSimpleList(@Query() query: any) {
+    return this.comicCategoryService.getSimpleList(query);
+  }
+
+  @Permission('comic.manage')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
     return this.comicCategoryService.getOne(id);

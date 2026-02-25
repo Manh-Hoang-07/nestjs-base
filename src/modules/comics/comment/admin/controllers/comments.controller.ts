@@ -24,6 +24,12 @@ export class CommentsController {
   }
 
   @Permission('comic.manage')
+  @Get('simple')
+  async getSimpleList(@Query() query: any) {
+    return this.commentsService.getSimpleList(query);
+  }
+
+  @Permission('comic.manage')
   @Get('statistics')
   async getStatistics() {
     return this.commentsService.getStatistics();

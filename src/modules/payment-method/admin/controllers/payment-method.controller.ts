@@ -37,6 +37,12 @@ export class PaymentMethodController {
     return this.paymentMethodService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('payment_method.manage')
+  async getSimpleList(@Query() query: any) {
+    return this.paymentMethodService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('payment_method.manage')
   async getOne(@Param('id') id: string) {

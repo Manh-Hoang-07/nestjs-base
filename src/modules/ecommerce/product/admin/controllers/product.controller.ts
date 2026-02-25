@@ -30,6 +30,12 @@ export class AdminProductController {
     return this.productService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('product.manage')
+  async getSimpleList(@Query() query: any) {
+    return this.productService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('product.manage')
   async getOne(@Param('id') id: string) {

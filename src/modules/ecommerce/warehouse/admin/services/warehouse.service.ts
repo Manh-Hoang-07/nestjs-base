@@ -86,6 +86,10 @@ export class AdminWarehouseService extends BaseService<Warehouse, IWarehouseRepo
     });
   }
 
+  async getSimpleStockTransfers(filter: any): Promise<any> {
+    return this.getStockTransfers({ ...filter, limit: filter.limit || 1000 });
+  }
+
   async approveStockTransfer(id: number, userId: number): Promise<any> {
     const transfer = await this.stockTransferRepository.findById(id);
     if (!transfer || transfer.status !== 'pending') {

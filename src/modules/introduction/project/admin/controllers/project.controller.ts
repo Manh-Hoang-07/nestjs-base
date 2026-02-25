@@ -41,6 +41,12 @@ export class ProjectController {
     return this.projectService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('project.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.projectService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('project.manage')
   findOne(@Param('id') id: string) {

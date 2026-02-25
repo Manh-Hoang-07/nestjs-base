@@ -37,6 +37,12 @@ export class AboutController {
     return this.aboutService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('about.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.aboutService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('about.manage')
   findOne(@Param('id') id: string) {

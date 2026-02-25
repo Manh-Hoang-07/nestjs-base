@@ -25,6 +25,12 @@ export class ReviewsController {
   }
 
   @Permission('comic.manage')
+  @Get('simple')
+  async getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.reviewsService.getSimpleList(query);
+  }
+
+  @Permission('comic.manage')
   @Get('statistics')
   async getStatistics() {
     return this.reviewsService.getStatistics();

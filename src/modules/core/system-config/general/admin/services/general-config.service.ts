@@ -73,9 +73,6 @@ export class GeneralConfigService extends BaseService<any, IGeneralConfigReposit
         site_email: dto.site_email,
         site_phone: dto.site_phone,
         site_address: dto.site_address,
-        site_country_id: dto.site_country_id ? BigInt(dto.site_country_id) : existing.site_country_id,
-        site_province_id: dto.site_province_id ? BigInt(dto.site_province_id) : existing.site_province_id,
-        site_ward_id: dto.site_ward_id ? BigInt(dto.site_ward_id) : existing.site_ward_id,
         site_copyright: dto.site_copyright,
         timezone: dto.timezone,
         locale: dto.locale,
@@ -92,6 +89,17 @@ export class GeneralConfigService extends BaseService<any, IGeneralConfigReposit
         twitter_site: dto.twitter_site,
         updated_user_id: updatedBy ? BigInt(updatedBy) : existing.updated_user_id,
       };
+
+      // Chỉ set các field location nếu DTO có gửi lên (tránh phụ thuộc type existing)
+      if (dto.site_country_id !== undefined) {
+        updateData.site_country_id = BigInt(dto.site_country_id);
+      }
+      if (dto.site_province_id !== undefined) {
+        updateData.site_province_id = BigInt(dto.site_province_id);
+      }
+      if (dto.site_ward_id !== undefined) {
+        updateData.site_ward_id = BigInt(dto.site_ward_id);
+      }
 
       if (dto.contact_channels !== undefined) {
         updateData.contact_channels = dto.contact_channels;

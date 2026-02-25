@@ -30,9 +30,6 @@ export class UserService extends BaseService<any, IUserRepository> {
     return filter;
   }
 
-  async getSimpleList(query: any) {
-    return this.getList({ ...query, limit: 1000 });
-  }
 
   /**
    * Alias for update

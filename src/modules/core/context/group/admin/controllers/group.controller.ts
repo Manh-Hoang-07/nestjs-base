@@ -54,6 +54,15 @@ export class AdminGroupController {
   }
 
   /**
+   * Lấy danh sách group (đơn giản cho dropdown)
+   */
+  @Permission('public')
+  @Get('simple')
+  async getSimpleList(@Query() query: any) {
+    return this.groupService.getSimpleList(query);
+  }
+
+  /**
    * Lấy danh sách groups theo type
    */
   @Permission('public')

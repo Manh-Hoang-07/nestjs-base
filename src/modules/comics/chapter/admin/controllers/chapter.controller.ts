@@ -35,6 +35,12 @@ export class ChapterController {
   }
 
   @Permission('comic.manage')
+  @Get('simple')
+  async getSimpleList(@Query() query: any) {
+    return this.chapterService.getSimpleList(query);
+  }
+
+  @Permission('comic.manage')
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number) {
     return this.chapterService.getOne(id);

@@ -15,6 +15,12 @@ export class AdminPostCommentController {
         return this.commentService.getList(query);
     }
 
+    @Get('simple')
+    @Permission('post.manage')
+    async getSimpleList(@Query(ValidationPipe) query: any) {
+        return this.commentService.getSimpleList(query);
+    }
+
     @Get('statistics')
     @Permission('post.manage')
     async getStatistics() {

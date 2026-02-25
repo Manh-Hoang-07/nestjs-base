@@ -38,6 +38,12 @@ export class TestimonialController {
     return this.testimonialService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('testimonial.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.testimonialService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('testimonial.manage')
   findOne(@Param('id') id: string) {

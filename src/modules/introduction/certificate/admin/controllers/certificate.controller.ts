@@ -37,6 +37,12 @@ export class CertificateController {
     return this.certificateService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('certificate.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.certificateService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('certificate.manage')
   findOne(@Param('id') id: string) {

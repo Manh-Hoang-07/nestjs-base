@@ -45,6 +45,15 @@ export class AdminContextController {
   }
 
   /**
+   * Lấy danh sách context (đơn giản cho dropdown)
+   */
+  @Permission('public')
+  @Get('simple')
+  async getSimpleList(@Query() query: any) {
+    return this.contextService.getSimpleList(query);
+  }
+
+  /**
    * Lấy context theo ID
    */
   @Permission('public')

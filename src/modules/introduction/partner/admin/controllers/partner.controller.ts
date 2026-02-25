@@ -37,6 +37,12 @@ export class PartnerController {
     return this.partnerService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('partner.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.partnerService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('partner.manage')
   findOne(@Param('id') id: string) {

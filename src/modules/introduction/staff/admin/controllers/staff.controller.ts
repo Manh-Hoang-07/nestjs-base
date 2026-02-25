@@ -37,6 +37,12 @@ export class StaffController {
     return this.staffService.getList(query);
   }
 
+  @Get('simple')
+  @Permission('staff.manage')
+  getSimpleList(@Query(ValidationPipe) query: any) {
+    return this.staffService.getSimpleList(query);
+  }
+
   @Get(':id')
   @Permission('staff.manage')
   findOne(@Param('id') id: string) {
