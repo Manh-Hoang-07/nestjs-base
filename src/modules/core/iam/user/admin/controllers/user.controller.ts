@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Put, Post, Query } from '@nestjs/common';
 import { UserService } from '@/modules/core/iam/user/admin/services/user.service';
 import { CreateUserDto } from '@/modules/core/iam/user/admin/dtos/create-user.dto';
 import { UpdateUserDto } from '@/modules/core/iam/user/admin/dtos/update-user.dto';
@@ -39,7 +39,7 @@ export class UserController {
 
   @Permission('user.manage')
   @LogRequest({ fileBaseName: 'user_update' })
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     // Dto không map 1-1 với entity, service sẽ chuẩn hóa trong hooks
     return this.service.updateById(Number(id), dto as any);
