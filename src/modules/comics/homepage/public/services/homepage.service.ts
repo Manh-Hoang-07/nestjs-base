@@ -37,16 +37,15 @@ export class HomepageService {
    * Sử dụng getList với điều kiện sort thay vì các methods riêng
    */
   async getHomepageData() {
-    // Fetch tất cả dữ liệu song song với cache riêng cho từng block
+    // Fetch dữ liệu song song
     const [
       topViewedComics,
-      trendingComics,
       popularComics,
       newestComics,
       recentUpdateComics,
       comicCategories,
     ] = await Promise.all([
-      // Top viewed comics - cache 7 phút
+      // Top viewed comics - cache 7 phút (Dùng chung cho Trending vì logic hiện tại giống nhau)
       this.cacheService.getOrSet(
         this.CACHE_KEYS.TOP_VIEWED,
         async () => {
@@ -59,22 +58,7 @@ export class HomepageService {
         this.CACHE_TTL.TOP_VIEWED,
       ),
 
-      // Trending comics (hot) - cache 7 phút
-      // Sử dụng getList với sort view_count:desc
-      this.cacheService.getOrSet(
-        this.CACHE_KEYS.TRENDING,
-        async () => {
-          const result = await this.comicsService.getList({
-            limit: 8,
-            sort: 'view_count:DESC',
-          });
-          return result.data || [];
-        },
-        this.CACHE_TTL.TRENDING,
-      ),
-
-      // Popular comics (nổi bật) - cache 20 phút
-      // Sử dụng getList với sort follow_count:desc
+      // Popular comics
       this.cacheService.getOrSet(
         this.CACHE_KEYS.POPULAR,
         async () => {
@@ -87,8 +71,7 @@ export class HomepageService {
         this.CACHE_TTL.POPULAR,
       ),
 
-      // Newest comics - cache 2 phút
-      // Sử dụng getList với sort created_at:desc
+      // Newest comics
       this.cacheService.getOrSet(
         this.CACHE_KEYS.NEWEST,
         async () => {
@@ -101,9 +84,7 @@ export class HomepageService {
         this.CACHE_TTL.NEWEST,
       ),
 
-      // Recent update comics - cache 2 phút
-      // Lấy comics có chapter mới cập nhật (sort theo last_chapter_updated_at)
-      // ✅ Chỉ cần 1 query đơn giản, sort trực tiếp trên comics table!
+      // Recent update comics
       this.cacheService.getOrSet(
         this.CACHE_KEYS.LATEST_CHAPTERS,
         async () => {
@@ -116,8 +97,7 @@ export class HomepageService {
         this.CACHE_TTL.LATEST_CHAPTERS,
       ),
 
-      // Comic categories - cache 12 giờ
-      // Lưu ý: ComicCategory không có field status, chỉ cần lấy list
+      // Comic categories
       this.cacheService.getOrSet(
         this.CACHE_KEYS.COMIC_CATEGORIES,
         async () => {
@@ -131,17 +111,11 @@ export class HomepageService {
     ]);
 
     return {
-      // Truyện được xem nhiều nhất
       top_viewed_comics: topViewedComics,
-      // Truyện đang hot (trending)
-      trending_comics: trendingComics,
-      // Truyện phổ biến (nổi bật)
+      trending_comics: topViewedComics, // Tạm thời dùng chung data với top viewed để tiết kiệm query
       popular_comics: popularComics,
-      // Truyện mới nhất
       newest_comics: newestComics,
-      // Truyện có chapter mới cập nhật
       recent_update_comics: recentUpdateComics,
-      // Danh mục truyện
       comic_categories: comicCategories,
     };
   }
