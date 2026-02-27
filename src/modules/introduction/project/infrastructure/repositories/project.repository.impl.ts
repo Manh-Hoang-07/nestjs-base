@@ -19,6 +19,10 @@ export class ProjectRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: ProjectFilter): Prisma.ProjectWhereInput {
         const where: Prisma.ProjectWhereInput = {};
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.search) {
             where.OR = [
                 { name: { contains: filter.search } },

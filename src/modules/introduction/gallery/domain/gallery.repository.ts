@@ -5,6 +5,7 @@ import { IRepository } from '@/common/core/repositories';
 export const GALLERY_REPOSITORY = 'IGalleryRepository';
 
 export interface GalleryFilter {
+    slug?: string;
     search?: string;
     status?: string;
     isFeatured?: boolean;

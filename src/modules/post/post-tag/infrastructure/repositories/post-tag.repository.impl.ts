@@ -20,6 +20,10 @@ export class PostTagRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: PostTagFilter): Prisma.PostTagWhereInput {
         const where: Prisma.PostTagWhereInput = {};
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.search) {
             where.OR = [
                 { name: { contains: filter.search } },

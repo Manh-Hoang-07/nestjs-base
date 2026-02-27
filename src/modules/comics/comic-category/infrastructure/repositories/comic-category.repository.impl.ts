@@ -22,6 +22,10 @@ export class ComicCategoryRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: any): Prisma.ComicCategoryWhereInput {
         const where: Prisma.ComicCategoryWhereInput = {};
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.group_id) {
             where.OR = [
                 { group_id: this.toPrimaryKey(filter.group_id) },

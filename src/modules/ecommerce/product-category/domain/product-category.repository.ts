@@ -4,6 +4,7 @@ import { IRepository } from '@/common/core/repositories';
 export const PRODUCT_CATEGORY_REPOSITORY = 'IProductCategoryRepository';
 
 export interface ProductCategoryFilter {
+    slug?: string;
     status?: 'active' | 'inactive';
     search?: string;
     parent_id?: number | bigint;

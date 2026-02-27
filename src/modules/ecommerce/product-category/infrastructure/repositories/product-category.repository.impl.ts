@@ -38,6 +38,7 @@ export class ProductCategoryRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: ProductCategoryFilter): Prisma.ProductCategoryWhereInput {
         const where: any = {};
 
+        if (filter.slug) where.slug = filter.slug;
         if (filter.status) where.status = filter.status as any;
         if (filter.parent_id !== undefined) {
             where.parent_id = filter.parent_id === null ? null : this.toPrimaryKey(filter.parent_id);

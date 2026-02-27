@@ -5,6 +5,7 @@ import { IRepository } from '@/common/core/repositories';
 export const POST_TAG_REPOSITORY = 'IPostTagRepository';
 
 export interface PostTagFilter {
+    slug?: string;
     search?: string;
     status?: string | number;
 }

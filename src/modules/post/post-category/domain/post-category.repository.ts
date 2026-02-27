@@ -5,6 +5,7 @@ import { IRepository } from '@/common/core/repositories';
 export const POST_CATEGORY_REPOSITORY = 'IPostCategoryRepository';
 
 export interface PostCategoryFilter {
+    slug?: string;
     search?: string;
     status?: string | number;
     parentId?: number | bigint;

@@ -4,6 +4,7 @@ import { IRepository } from '@/common/core/repositories';
 export const COMIC_REPOSITORY = 'IComicRepository';
 
 export interface ComicFilter {
+    slug?: string;
     status?: string;
     author?: string;
     search?: string;

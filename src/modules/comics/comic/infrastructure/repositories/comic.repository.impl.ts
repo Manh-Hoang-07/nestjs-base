@@ -73,6 +73,10 @@ export class ComicRepositoryImpl extends PrismaRepository<
             where.group_id = filter.group_id === null ? null : this.toPrimaryKey(filter.group_id);
         }
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.status) {
             if (typeof filter.status === 'string') {
                 where.status = filter.status as any;

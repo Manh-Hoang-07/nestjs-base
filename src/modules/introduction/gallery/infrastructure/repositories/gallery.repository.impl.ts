@@ -19,6 +19,10 @@ export class GalleryRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: GalleryFilter): Prisma.GalleryWhereInput {
         const where: Prisma.GalleryWhereInput = {};
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.search) {
             where.OR = [
                 { title: { contains: filter.search } },

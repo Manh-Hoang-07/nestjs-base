@@ -1,6 +1,7 @@
 import { IRepository, IPaginatedResult, IPaginationOptions } from '@/common/core/repositories';
 
 export interface AboutFilter {
+    slug?: string;
     search?: string;
     section_type?: string;
     status?: string;

@@ -5,6 +5,7 @@ import { IRepository } from '@/common/core/repositories';
 export const PROJECT_REPOSITORY = 'IProjectRepository';
 
 export interface ProjectFilter {
+    slug?: string;
     search?: string;
     status?: string;
     isFeatured?: boolean;

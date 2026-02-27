@@ -20,6 +20,10 @@ export class PostCategoryRepositoryImpl extends PrismaRepository<
     protected buildWhere(filter: PostCategoryFilter): Prisma.PostCategoryWhereInput {
         const where: Prisma.PostCategoryWhereInput = {};
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.search) {
             where.OR = [
                 { name: { contains: filter.search } },

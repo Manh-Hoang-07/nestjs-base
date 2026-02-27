@@ -12,6 +12,10 @@ export class AboutRepositoryImpl extends PrismaRepository<any> implements IAbout
     protected buildWhere(filter: AboutFilter): any {
         const where: any = {};
 
+        if (filter.slug) {
+            where.slug = filter.slug;
+        }
+
         if (filter.search) {
             where.OR = [
                 { title: { contains: filter.search } },
