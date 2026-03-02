@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { IRepository, IPaginatedResult, IPaginationOptions } from '../repositories/repository.interface';
 import { createPaginationMeta, prepareQuery } from '../utils';
 import { RequestContext } from '@/common/shared/utils/request-context.util';
-import { getGroupFilter } from '@/common/shared/utils/group-ownership.util';
+import { getGroupFilter, assignGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 
 /**
  * Base Service DB-agnostic.
@@ -32,10 +32,7 @@ export abstract class BaseService<T, R extends IRepository<T>> {
 
         // Tự động thêm group_id nếu được bật
         if (this.autoAddGroupId) {
-            const groupId = RequestContext.get<number | null>('groupId');
-            if (groupId) {
-                (payload as any).group_id = groupId;
-            }
+            assignGroupOwnership(payload);
         }
 
         return payload;

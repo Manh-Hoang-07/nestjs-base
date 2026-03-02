@@ -71,3 +71,25 @@ export function getGroupFilter(): { group_id?: number | bigint } {
 
   return groupId ? { group_id: groupId } : {};
 }
+/**
+ * Tự động gán group_id cho payload dựa trên context hiện tại.
+ * Nếu là system context (quản tài hệ thống) -> group_id = null.
+ * Nếu là group context -> group_id = currentGroupId.
+ * 
+ * @param payload - Object cần gán group_id
+ */
+export function assignGroupOwnership(payload: any): void {
+  const context = RequestContext.get<any>('context');
+  const groupId = RequestContext.get<number | null>('groupId');
+
+  // Nếu đã có group_id trong payload (do người dùng chủ động gửi), không ghi đè
+  if (payload.group_id !== undefined) {
+    return;
+  }
+
+  if (context?.type === 'system') {
+    payload.group_id = null;
+  } else {
+    payload.group_id = groupId || null;
+  }
+}
