@@ -106,7 +106,7 @@ import { AppQueueModule } from '@/core/queue/queue.module';
         // Google OAuth (optional)
         GOOGLE_CLIENT_ID: Joi.string().allow(''),
         GOOGLE_CLIENT_SECRET: Joi.string().allow(''),
-        GOOGLE_CALLBACK_URL: Joi.string().uri({ scheme: ['http', 'https'] }).allow(''),
+        GOOGLE_CALLBACK_URL: Joi.string().allow(''),
         GOOGLE_FRONTEND_URL: Joi.string().uri({ scheme: ['http', 'https'] }).default('http://localhost:3000'),
       }),
     }),

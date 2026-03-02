@@ -12,8 +12,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ) {
     const clientId = configService.get<string>('googleOAuth.clientId') || '';
     const clientSecret = configService.get<string>('googleOAuth.clientSecret') || '';
-    const callbackURL = configService.get<string>('googleOAuth.callbackURL') || 'http://127.0.0.1:8000/api/auth/google/callback';
-    
+    const callbackURL = configService.get<string>('googleOAuth.callbackURL');
+
     super({
       clientID: clientId,
       clientSecret: clientSecret,
@@ -29,7 +29,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     const { id, name, emails, photos } = profile;
-    
+
     const user = {
       googleId: id,
       email: emails[0].value,
