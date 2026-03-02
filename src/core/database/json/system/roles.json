@@ -1,0 +1,26 @@
+[
+    {
+        "code": "system",
+        "name": "Quản trị viên Hệ thống",
+        "status": "active",
+        "parent_id": null
+    },
+    {
+        "code": "system_manager",
+        "name": "Quản lý Hệ thống",
+        "status": "active",
+        "parent_id": null
+    },
+    {
+        "code": "shop_admin",
+        "name": "Quản trị viên Shop",
+        "status": "active",
+        "parent_id": null
+    },
+    {
+        "code": "shop_manager",
+        "name": "Quản lý Shop",
+        "status": "active",
+        "parent_id": null
+    }
+]

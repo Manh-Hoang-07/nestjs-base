@@ -1,0 +1,62 @@
+[
+    {
+        "client_name": "Ông Nguyễn Văn A",
+        "client_position": "Giám đốc Điều hành",
+        "client_company": "Công ty TNHH ABC",
+        "client_avatar": "/uploads/testimonials/client-1.jpg",
+        "content": "Chúng tôi rất hài lòng với chất lượng công trình và thái độ làm việc chuyên nghiệp của đội ngũ. Dự án được hoàn thành đúng tiến độ và vượt quá mong đợi về chất lượng.",
+        "rating": 5,
+        "project_index": 0,
+        "featured": true,
+        "status": "active",
+        "sort_order": 1
+    },
+    {
+        "client_name": "Bà Trần Thị B",
+        "client_position": "Chủ tịch HĐQT",
+        "client_company": "Tập đoàn XYZ",
+        "client_avatar": "/uploads/testimonials/client-2.jpg",
+        "content": "Công ty Xây Dựng ABC đã chứng minh được năng lực và uy tín của mình. Dự án Khu đô thị sinh thái Green Valley được thi công rất chuyên nghiệp, đảm bảo chất lượng và an toàn.",
+        "rating": 5,
+        "project_index": 1,
+        "featured": true,
+        "status": "active",
+        "sort_order": 2
+    },
+    {
+        "client_name": "Ông Lê Văn C",
+        "client_position": "Tổng Giám đốc",
+        "client_company": "Công ty Cổ phần DEF",
+        "client_avatar": "/uploads/testimonials/client-3.jpg",
+        "content": "Đội ngũ kỹ thuật rất tận tâm và có trách nhiệm. Họ luôn sẵn sàng giải đáp mọi thắc mắc và đưa ra những giải pháp tối ưu cho dự án. Chúng tôi sẽ tiếp tục hợp tác trong tương lai.",
+        "rating": 5,
+        "project_index": 2,
+        "featured": true,
+        "status": "active",
+        "sort_order": 3
+    },
+    {
+        "client_name": "Bà Phạm Thị D",
+        "client_position": "Giám đốc Dự án",
+        "client_company": "Công ty TNHH GHI",
+        "client_avatar": "/uploads/testimonials/client-4.jpg",
+        "content": "Dự án bệnh viện được thi công rất cẩn thận, đảm bảo các tiêu chuẩn y tế. Đội ngũ thi công rất chuyên nghiệp và tuân thủ nghiêm ngặt các quy định về an toàn.",
+        "rating": 5,
+        "project_index": null,
+        "featured": false,
+        "status": "active",
+        "sort_order": 4
+    },
+    {
+        "client_name": "Ông Hoàng Văn E",
+        "client_position": "Giám đốc Sản xuất",
+        "client_company": "Công ty Cổ phần MNO",
+        "client_avatar": "/uploads/testimonials/client-5.jpg",
+        "content": "Nhà máy sản xuất được xây dựng đúng tiến độ, chất lượng tốt. Công ty đã hỗ trợ chúng tôi rất nhiều trong quá trình thi công và bàn giao công trình.",
+        "rating": 4,
+        "project_index": null,
+        "featured": false,
+        "status": "active",
+        "sort_order": 5
+    }
+]

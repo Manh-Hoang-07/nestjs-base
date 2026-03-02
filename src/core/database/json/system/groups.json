@@ -1,0 +1,49 @@
+{
+    "contexts": [
+        {
+            "id": 1,
+            "type": "system",
+            "ref_id": null,
+            "name": "System",
+            "code": "system",
+            "status": "active"
+        },
+        {
+            "type": "shop",
+            "ref_id": null,
+            "name": "Shop Context",
+            "code": "shop",
+            "status": "active"
+        }
+    ],
+    "groups": [
+        {
+            "type": "system",
+            "code": "system",
+            "name": "System Group",
+            "status": "active",
+            "context_code": "system"
+        },
+        {
+            "type": "shop",
+            "code": "shop1",
+            "name": "Shop 1",
+            "status": "active",
+            "context_code": "shop"
+        },
+        {
+            "type": "shop",
+            "code": "shop2",
+            "name": "Shop 2",
+            "status": "active",
+            "context_code": "shop"
+        },
+        {
+            "type": "shop",
+            "code": "shop3",
+            "name": "Shop 3",
+            "status": "active",
+            "context_code": "shop"
+        }
+    ]
+}

@@ -1,0 +1,62 @@
+[
+    {
+        "code": "home",
+        "name": "Banner Trang chủ",
+        "description": "Banner hiển thị tại trang chủ",
+        "status": "active"
+    },
+    {
+        "code": "project",
+        "name": "Banner Dự án",
+        "description": "Banner hiển thị tại trang danh sách dự án",
+        "status": "active"
+    },
+    {
+        "code": "service",
+        "name": "Banner Dịch vụ",
+        "description": "Banner hiển thị tại trang dịch vụ",
+        "status": "active"
+    },
+    {
+        "code": "about",
+        "name": "Banner Về chúng tôi",
+        "description": "Banner hiển thị tại trang giới thiệu",
+        "status": "active"
+    },
+    {
+        "code": "post",
+        "name": "Banner Tin tức",
+        "description": "Banner hiển thị tại trang tin tức/bài viết",
+        "status": "active"
+    },
+    {
+        "code": "contact",
+        "name": "Banner Liên hệ",
+        "description": "Banner hiển thị tại trang liên hệ",
+        "status": "active"
+    },
+    {
+        "code": "gallery",
+        "name": "Banner Thư viện ảnh",
+        "description": "Banner hiển thị tại trang thư viện ảnh",
+        "status": "active"
+    },
+    {
+        "code": "certificate",
+        "name": "Banner Chứng chỉ",
+        "description": "Banner hiển thị tại trang chứng chỉ & giải thưởng",
+        "status": "active"
+    },
+    {
+        "code": "staff",
+        "name": "Banner Đội ngũ",
+        "description": "Banner hiển thị tại trang đội ngũ nhân sự",
+        "status": "active"
+    },
+    {
+        "code": "faq",
+        "name": "Banner FAQ",
+        "description": "Banner hiển thị tại trang câu hỏi thường gặp",
+        "status": "active"
+    }
+]

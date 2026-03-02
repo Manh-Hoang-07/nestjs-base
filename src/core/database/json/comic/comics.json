@@ -1,0 +1,250 @@
+[
+    {
+        "slug": "one-piece",
+        "title": "One Piece",
+        "description": "Câu chuyện về Luffy và băng hải tặc Mũ Rơm trên hành trình tìm kiếm kho báu One Piece để trở thành Vua Hải Tặc.",
+        "author": "Eiichiro Oda",
+        "status": "published",
+        "cover_image": "https://via.placeholder.com/300x400?text=One+Piece",
+        "category_slugs": [
+            "action",
+            "adventure",
+            "shounen"
+        ],
+        "is_featured": true,
+        "stats": {
+            "view_count": 50000,
+            "follow_count": 12000,
+            "rating_count": 8500,
+            "rating_sum": 42500
+        }
+    },
+    {
+        "slug": "naruto",
+        "title": "Naruto",
+        "description": "Câu chuyện về Naruto Uzumaki, một ninja trẻ với ước mơ trở thành Hokage của làng Lá.",
+        "author": "Masashi Kishimoto",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Naruto",
+        "category_slugs": [
+            "action",
+            "adventure",
+            "shounen"
+        ],
+        "is_featured": true,
+        "stats": {
+            "view_count": 45000,
+            "follow_count": 11000,
+            "rating_count": 8000,
+            "rating_sum": 40000
+        }
+    },
+    {
+        "slug": "attack-on-titan",
+        "title": "Attack on Titan",
+        "description": "Nhân loại sống trong thành phố được bao quanh bởi những bức tường khổng lồ để bảo vệ khỏi Titans.",
+        "author": "Hajime Isayama",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Attack+on+Titan",
+        "category_slugs": [
+            "action",
+            "drama",
+            "horror",
+            "shounen"
+        ],
+        "is_featured": true,
+        "stats": {
+            "view_count": 40000,
+            "follow_count": 10000,
+            "rating_count": 7500,
+            "rating_sum": 37500
+        }
+    },
+    {
+        "slug": "demon-slayer",
+        "title": "Demon Slayer",
+        "description": "Câu chuyện về Tanjiro Kamado, một thanh niên trở thành thợ săn quỷ để cứu em gái khỏi lời nguyền.",
+        "author": "Koyoharu Gotouge",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Demon+Slayer",
+        "category_slugs": [
+            "action",
+            "supernatural",
+            "shounen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 38000,
+            "follow_count": 9500,
+            "rating_count": 7000,
+            "rating_sum": 35000
+        }
+    },
+    {
+        "slug": "my-hero-academia",
+        "title": "My Hero Academia",
+        "description": "Trong thế giới nơi hầu hết mọi người đều có siêu năng lực, Izuku Midoriya ước mơ trở thành anh hùng.",
+        "author": "Kohei Horikoshi",
+        "status": "published",
+        "cover_image": "https://via.placeholder.com/300x400?text=My+Hero+Academia",
+        "category_slugs": [
+            "action",
+            "comedy",
+            "school",
+            "shounen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 35000,
+            "follow_count": 9000,
+            "rating_count": 6500,
+            "rating_sum": 32500
+        }
+    },
+    {
+        "slug": "jujutsu-kaisen",
+        "title": "Jujutsu Kaisen",
+        "description": "Yuji Itadori tham gia câu lạc bộ nghiên cứu về siêu nhiên và bị cuốn vào thế giới của các lời nguyền.",
+        "author": "Gege Akutami",
+        "status": "published",
+        "cover_image": "https://via.placeholder.com/300x400?text=Jujutsu+Kaisen",
+        "category_slugs": [
+            "action",
+            "horror",
+            "supernatural",
+            "shounen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 32000,
+            "follow_count": 8500,
+            "rating_count": 6000,
+            "rating_sum": 30000
+        }
+    },
+    {
+        "slug": "spy-x-family",
+        "title": "Spy x Family",
+        "description": "Một điệp viên phải tạo ra một gia đình giả để hoàn thành nhiệm vụ, nhưng không biết rằng vợ là sát thủ và con gái là người đọc được suy nghĩ.",
+        "author": "Tatsuya Endo",
+        "status": "published",
+        "cover_image": "https://via.placeholder.com/300x400?text=Spy+x+Family",
+        "category_slugs": [
+            "action",
+            "comedy",
+            "slice-of-life"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 30000,
+            "follow_count": 8000,
+            "rating_count": 5500,
+            "rating_sum": 27500
+        }
+    },
+    {
+        "slug": "chainsaw-man",
+        "title": "Chainsaw Man",
+        "description": "Denji, một thanh niên nghèo hợp đồng với quỷ chainsaw để trở thành thợ săn quỷ.",
+        "author": "Tatsuki Fujimoto",
+        "status": "published",
+        "cover_image": "https://via.placeholder.com/300x400?text=Chainsaw+Man",
+        "category_slugs": [
+            "action",
+            "horror",
+            "supernatural",
+            "seinen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 28000,
+            "follow_count": 7500,
+            "rating_count": 5000,
+            "rating_sum": 25000
+        }
+    },
+    {
+        "slug": "tokyo-ghoul",
+        "title": "Tokyo Ghoul",
+        "description": "Ken Kaneki trở thành ghoul sau một tai nạn và phải học cách sống trong thế giới của cả con người và ghoul.",
+        "author": "Sui Ishida",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Tokyo+Ghoul",
+        "category_slugs": [
+            "action",
+            "horror",
+            "supernatural",
+            "seinen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 25000,
+            "follow_count": 7000,
+            "rating_count": 4500,
+            "rating_sum": 22500
+        }
+    },
+    {
+        "slug": "death-note",
+        "title": "Death Note",
+        "description": "Light Yagami tìm thấy một cuốn sổ có thể giết người bằng cách viết tên vào đó.",
+        "author": "Tsugumi Ohba",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Death+Note",
+        "category_slugs": [
+            "mystery",
+            "thriller",
+            "supernatural",
+            "shounen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 22000,
+            "follow_count": 6500,
+            "rating_count": 4000,
+            "rating_sum": 20000
+        }
+    },
+    {
+        "slug": "fullmetal-alchemist",
+        "title": "Fullmetal Alchemist",
+        "description": "Hai anh em Edward và Alphonse Elric tìm kiếm Hòn đá Triết học để khôi phục cơ thể của họ.",
+        "author": "Hiromu Arakawa",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Fullmetal+Alchemist",
+        "category_slugs": [
+            "action",
+            "adventure",
+            "fantasy",
+            "shounen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 20000,
+            "follow_count": 6000,
+            "rating_count": 3500,
+            "rating_sum": 17500
+        }
+    },
+    {
+        "slug": "dragon-ball",
+        "title": "Dragon Ball",
+        "description": "Cuộc phiêu lưu của Goku từ khi còn nhỏ đến khi trở thành chiến binh mạnh nhất vũ trụ.",
+        "author": "Akira Toriyama",
+        "status": "completed",
+        "cover_image": "https://via.placeholder.com/300x400?text=Dragon+Ball",
+        "category_slugs": [
+            "action",
+            "adventure",
+            "comedy",
+            "shounen"
+        ],
+        "is_featured": false,
+        "stats": {
+            "view_count": 18000,
+            "follow_count": 5500,
+            "rating_count": 3000,
+            "rating_sum": 15000
+        }
+    }
+]

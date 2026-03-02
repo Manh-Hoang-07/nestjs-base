@@ -1,184 +1,61 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class SeedGroups {
-  private readonly logger = new Logger(SeedGroups.name);
-
   constructor(private readonly prisma: PrismaService) { }
 
   async seed(): Promise<void> {
-    this.logger.log('Seeding groups and contexts...');
+    const baseDir = path.join(process.cwd(), 'src', 'core', 'database', 'json', 'system');
+    const { contexts, groups } = JSON.parse(fs.readFileSync(path.join(baseDir, 'groups.json'), 'utf8'));
 
-    // Get system context (id=1)
-    let systemContext = await this.prisma.context.findFirst({ where: { id: 1 } });
-    if (!systemContext) {
-      // Create system context if not exists
-      systemContext = await this.prisma.context.create({
-        data: {
-          id: 1,
-          type: 'system',
-          ref_id: null,
-          name: 'System',
-          code: 'system',
-          status: 'active',
-        },
-      });
-      this.logger.log('Created system context');
+    const adminUser = await this.prisma.user.findFirst({ where: { username: 'systemadmin' } });
+    const defaultOwnerId = adminUser ? adminUser.id : BigInt(1);
+
+    const contextMap = new Map<string, any>();
+    for (const data of contexts) {
+      let ctx = await this.prisma.context.findFirst({ where: { code: data.code } });
+      if (!ctx) ctx = await this.prisma.context.create({ data });
+      contextMap.set(ctx.code, ctx);
     }
 
-    // Get admin user để làm owner
-    const adminUser = await this.prisma.user.findFirst({
-      where: { username: 'systemadmin' },
-    });
-    const defaultOwnerId = adminUser ? Number(adminUser.id) : 1;
+    const groupMap = new Map<string, any>();
+    for (const data of groups) {
+      const context = contextMap.get(data.context_code);
+      if (!context) continue;
 
-    // ========== 1. SYSTEM CONTEXT - 1 GROUP: system ==========
-    // Tìm group với code 'system' trước (ưu tiên)
-    let systemGroup = await this.prisma.group.findFirst({
-      where: { code: 'system' }
-    });
+      const { context_code, ...groupData } = data;
 
-    if (systemGroup) {
-      // Đã có group với code 'system', update owner và context nếu cần
-      let needUpdate = false;
-      const updateData: any = {};
-      if (Number(systemGroup.owner_id) !== defaultOwnerId) {
-        updateData.owner_id = defaultOwnerId;
-        needUpdate = true;
-      }
-      if (Number(systemGroup.context_id) !== Number(systemContext.id)) {
-        updateData.context_id = systemContext.id;
-        needUpdate = true;
-      }
-      if (needUpdate) {
-        systemGroup = await this.prisma.group.update({
-          where: { id: systemGroup.id },
-          data: updateData,
-        });
-      }
-      this.logger.log(`✅ Found existing system group: ${systemGroup.name} (code: ${systemGroup.code})`);
-    } else {
-      // Không có group với code 'system', tìm group khác trong system context
-      const existingSystemGroups = await this.prisma.group.findMany({
-        where: {
-          context_id: systemContext.id,
-          type: 'system'
-        }
-      });
-
-      if (existingSystemGroups.length > 0) {
-        // Có group khác trong system context, update code của group đầu tiên thành 'system'
-        systemGroup = existingSystemGroups[0];
-        // Tạm thời đổi code của group cũ để tránh conflict
-        const oldCode = systemGroup.code;
-        await this.prisma.group.update({
-          where: { id: systemGroup.id },
-          data: { code: `system_old_${Date.now()}` },
-        });
-
-        // Xóa các groups còn lại (trừ group đầu tiên)
-        if (existingSystemGroups.length > 1) {
-          for (let i = 1; i < existingSystemGroups.length; i++) {
-            await this.prisma.group.delete({ where: { id: existingSystemGroups[i].id } });
-            this.logger.log(`🗑️ Removed duplicate system group: ${existingSystemGroups[i].code}`);
-          }
-        }
-
-        // Update code về 'system'
-        systemGroup = await this.prisma.group.update({
-          where: { id: systemGroup.id },
+      let group = await this.prisma.group.findFirst({ where: { code: data.code } });
+      if (!group) {
+        group = await this.prisma.group.create({
           data: {
-            code: 'system',
+            ...groupData,
+            context_id: context.id,
             owner_id: defaultOwnerId,
           },
         });
-        this.logger.log(`✅ Updated system group code from '${oldCode}' to 'system'`);
-      } else {
-        // Không có group nào trong system context, tạo mới
-        systemGroup = await this.prisma.group.create({
-          data: {
-            type: 'system',
-            code: 'system',
-            name: 'System Group',
-            status: 'active',
-            context_id: systemContext.id,
-            owner_id: defaultOwnerId,
-          },
+      } else if (group.owner_id !== defaultOwnerId || group.context_id !== context.id) {
+        group = await this.prisma.group.update({
+          where: { id: group.id },
+          data: { owner_id: defaultOwnerId, context_id: context.id },
         });
-        this.logger.log(`✅ Created system group: ${systemGroup.name} (code: ${systemGroup.code})`);
       }
+      groupMap.set(group.code, group);
     }
 
-    // ========== 2. SHOP CONTEXT - 3 GROUPS: shop1, shop2, shop3 ==========
-    let shopContext = await this.prisma.context.findFirst({ where: { code: 'shop' } });
-    if (!shopContext) {
-      shopContext = await this.prisma.context.create({
-        data: {
-          type: 'shop',
-          ref_id: null,
-          name: 'Shop Context',
-          code: 'shop',
-          status: 'active',
-        },
-      });
-      this.logger.log(`✅ Created shop context: ${shopContext.name}`);
-    } else {
-      this.logger.log(`✅ Found existing shop context: ${shopContext.name}`);
+    const shopContext = contextMap.get('shop');
+    const shop1Group = groupMap.get('shop1');
+    if (shopContext && shop1Group && shopContext.ref_id !== shop1Group.id) {
+      await this.prisma.context.update({ where: { id: shopContext.id }, data: { ref_id: shop1Group.id } });
     }
-
-    const shopGroups = [
-      { code: 'shop1', name: 'Shop 1' },
-      { code: 'shop2', name: 'Shop 2' },
-      { code: 'shop3', name: 'Shop 3' },
-    ];
-
-    const createdShopGroups: any[] = [];
-    for (const shopData of shopGroups) {
-      let shopGroup = await this.prisma.group.findFirst({
-        where: { code: shopData.code, context_id: shopContext.id }
-      });
-      if (!shopGroup) {
-        shopGroup = await this.prisma.group.create({
-          data: {
-            type: 'shop',
-            code: shopData.code,
-            name: shopData.name,
-            status: 'active',
-            context_id: shopContext.id,
-            owner_id: defaultOwnerId,
-          },
-        });
-        this.logger.log(`✅ Created shop group: ${shopGroup.name} (code: ${shopGroup.code})`);
-      } else {
-        this.logger.log(`✅ Found existing shop group: ${shopGroup.name} (code: ${shopGroup.code})`);
-      }
-      createdShopGroups.push(shopGroup);
-    }
-
-    // Update shop context ref_id to first shop group
-    if (Number(shopContext.ref_id) !== Number(createdShopGroups[0].id)) {
-      await this.prisma.context.update({
-        where: { id: shopContext.id },
-        data: { ref_id: createdShopGroups[0].id },
-      });
-    }
-
-    this.logger.log(`✅ Groups seeding completed!`);
-    this.logger.log(`   📊 Statistics:`);
-    this.logger.log(`   - System context: 1 group`);
-    this.logger.log(`   - Shop context: ${createdShopGroups.length} groups`);
   }
 
   async clear(): Promise<void> {
-    this.logger.log('Clearing groups...');
-
-    // Xóa contexts trước (vì có foreign key) - trừ system context
-    await this.prisma.context.deleteMany({
-      where: { type: { not: 'system' } },
-    });
-
+    await this.prisma.context.deleteMany({ where: { type: { not: 'system' } } });
     await this.prisma.group.deleteMany({});
-    this.logger.log('Groups cleared');
   }
 }
+

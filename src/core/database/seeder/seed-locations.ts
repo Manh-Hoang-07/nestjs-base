@@ -1,28 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
 export class SeedLocations {
-    private readonly logger = new Logger(SeedLocations.name);
-
     constructor(private readonly prisma: PrismaService) { }
 
     async seed(): Promise<void> {
-        this.logger.log('Seeding locations (countries, provinces, wards)...');
-
         const countryCount = await this.prisma.country.count();
-        if (countryCount > 0) {
-            this.logger.log('Location data already exists. Skipping seeding.');
-            return;
-        }
+        if (countryCount > 0) return;
 
         const baseDir = path.join(process.cwd(), 'src', 'core', 'database', 'json', 'address');
 
         try {
-            // 1. Seed Countries
-            this.logger.log('Reading countries.json...');
             const countriesData = JSON.parse(fs.readFileSync(path.join(baseDir, 'countries.json'), 'utf8'));
             for (const country of countriesData) {
                 await this.prisma.country.create({
@@ -39,10 +30,7 @@ export class SeedLocations {
                     },
                 });
             }
-            this.logger.log(`Seeded ${countriesData.length} countries.`);
 
-            // 2. Seed Provinces
-            this.logger.log('Reading provinces.json...');
             const provincesData = JSON.parse(fs.readFileSync(path.join(baseDir, 'provinces.json'), 'utf8'));
             for (const province of provincesData) {
                 await this.prisma.province.create({
@@ -60,13 +48,8 @@ export class SeedLocations {
                     },
                 });
             }
-            this.logger.log(`Seeded ${provincesData.length} provinces.`);
 
-            // 3. Seed Wards
-            this.logger.log('Reading wards.json...');
             const wardsData = JSON.parse(fs.readFileSync(path.join(baseDir, 'wards.json'), 'utf8'));
-
-            // Batch insert for wards since it's large (23k+ records)
             const batchSize = 1000;
             for (let i = 0; i < wardsData.length; i += batchSize) {
                 const batch = wardsData.slice(i, i + batchSize).map((ward: any) => ({
@@ -77,29 +60,17 @@ export class SeedLocations {
                     code: ward.code?.toString(),
                     status: 'active',
                 }));
-
-                await this.prisma.ward.createMany({
-                    data: batch,
-                });
-
-                if (i % 5000 === 0) {
-                    this.logger.log(`Seeded ${i + batch.length}/${wardsData.length} wards...`);
-                }
+                await this.prisma.ward.createMany({ data: batch });
             }
-            this.logger.log(`Seeded ${wardsData.length} wards.`);
-
-            this.logger.log('Location seeding completed successfully!');
         } catch (error) {
-            this.logger.error('Error seeding locations:', error);
             throw error;
         }
     }
 
     async clear(): Promise<void> {
-        this.logger.log('Clearing location data...');
-        // Order matters because of foreign keys
         await this.prisma.ward.deleteMany({});
         await this.prisma.province.deleteMany({});
         await this.prisma.country.deleteMany({});
     }
 }
+

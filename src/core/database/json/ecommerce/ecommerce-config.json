@@ -1,0 +1,122 @@
+{
+    "product_categories": [
+        {
+            "name": "Điện thoại",
+            "group_code": null
+        },
+        {
+            "name": "Laptop",
+            "group_code": null
+        },
+        {
+            "name": "Phụ kiện",
+            "group_code": null
+        },
+        {
+            "name": "Sách",
+            "group_code": "shop1"
+        },
+        {
+            "name": "Đồ gia dụng",
+            "group_code": "shop2"
+        },
+        {
+            "name": "Thời trang",
+            "group_code": null
+        }
+    ],
+    "product_attributes": [
+        {
+            "name": "Màu sắc",
+            "code": "color",
+            "type": "select",
+            "is_filterable": true,
+            "is_required": true,
+            "values": [
+                {
+                    "value": "black",
+                    "label": "Đen"
+                },
+                {
+                    "value": "white",
+                    "label": "Trắng"
+                }
+            ]
+        },
+        {
+            "name": "Dung lượng",
+            "code": "capacity",
+            "type": "select",
+            "is_filterable": true,
+            "is_required": true,
+            "values": [
+                {
+                    "value": "64",
+                    "label": "64 GB"
+                },
+                {
+                    "value": "128",
+                    "label": "128 GB"
+                }
+            ]
+        }
+    ],
+    "coupons": [
+        {
+            "code": "SHOP1_10",
+            "name": "Shop 1 Welcome Discount",
+            "type": "percent",
+            "value": 10,
+            "status": "active",
+            "group_code": "shop1"
+        },
+        {
+            "code": "SHOP2_FIXED",
+            "name": "Shop 2 Fixed Discount",
+            "type": "fixed_amount",
+            "value": 50000,
+            "status": "active",
+            "group_code": "shop2"
+        }
+    ],
+    "shipping_methods": [
+        {
+            "name": "Giao hàng tiết kiệm",
+            "code": "ECONOMY",
+            "price": 15000,
+            "status": "active"
+        },
+        {
+            "name": "Giao hàng tiêu chuẩn",
+            "code": "STANDARD",
+            "price": 30000,
+            "status": "active"
+        },
+        {
+            "name": "Giao hàng hỏa tốc",
+            "code": "EXPRESS",
+            "price": 50000,
+            "status": "active"
+        }
+    ],
+    "payment_methods": [
+        {
+            "name": "Thanh toán khi nhận hàng (COD)",
+            "code": "COD",
+            "type": "offline",
+            "status": "active"
+        },
+        {
+            "name": "Chuyển khoản ngân hàng",
+            "code": "BANK_TRANSFER",
+            "type": "offline",
+            "status": "active"
+        },
+        {
+            "name": "Thanh toán online (VNPAY)",
+            "code": "VNPAY",
+            "type": "online",
+            "status": "active"
+        }
+    ]
+}

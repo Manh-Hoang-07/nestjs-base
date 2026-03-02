@@ -1,0 +1,83 @@
+{
+    "popular_comics": [
+        "one-piece",
+        "naruto",
+        "attack-on-titan",
+        "demon-slayer"
+    ],
+    "popular_chapters_range": {
+        "min": 30,
+        "max": 50
+    },
+    "default_chapters_range": {
+        "min": 10,
+        "max": 25
+    },
+    "pages_range": {
+        "min": 10,
+        "max": 30
+    },
+    "chapter_titles": {
+        "one-piece": [
+            "Romance Dawn",
+            "Versus! Buggy the Clown!",
+            "Morgan versus Luffy!",
+            "Luffy's Past",
+            "Enter the Great Swordsman!",
+            "The First Person",
+            "The Beast Tamer",
+            "Nami",
+            "The Honest Crook",
+            "The Grand Line"
+        ],
+        "naruto": [
+            "Uzumaki Naruto!",
+            "Konohamaru!",
+            "Sasuke Uchiha!",
+            "Kakashi Hatake!",
+            "The Worst Possible Ending",
+            "For Your Own Dream",
+            "The Path You Should Tread",
+            "Life-and-Death Battles",
+            "Kakashi's Decision",
+            "A New Chapter Begins"
+        ],
+        "attack-on-titan": [
+            "To You, in 2000 Years",
+            "That Day",
+            "A Dim Light Amid Despair",
+            "The Night of the Closing Ceremony",
+            "First Battle",
+            "The World the Girl Saw",
+            "Small Blade",
+            "I Can Hear His Heartbeat",
+            "Whereabouts of His Left Arm",
+            "Response"
+        ],
+        "demon-slayer": [
+            "Cruelty",
+            "Trainer Sakonji Urokodaki",
+            "Sabito and Makomo",
+            "Final Selection",
+            "My Own Steel",
+            "Swordsman Accompanying a Demon",
+            "Muzan Kibutsuji",
+            "The Smell of Enchanting Blood",
+            "Temari Demon and Arrow Demon",
+            "Together Forever"
+        ]
+    },
+    "comment_texts": [
+        "Truyện hay quá!",
+        "Hóng chap mới.",
+        "Art đẹp thực sự.",
+        "Main bá đạo vãi.",
+        "Cốt truyện cuốn hút quá.",
+        "Dịch mượt, cảm ơn nhóm dịch.",
+        "Chapter này combat mãn nhãn.",
+        "Tội nghiệp nhân vật phụ quá.",
+        "Khi nào có chap mới vậy ad?",
+        "Truyện này siêu phẩm rồi."
+    ],
+    "reply_text": "Chuẩn luôn bác ơi!"
+}

@@ -1,0 +1,96 @@
+[
+    {
+        "name": "Nguyễn Văn An",
+        "position": "Tổng Giám đốc",
+        "department": "Ban Giám đốc",
+        "bio": "Hơn 20 năm kinh nghiệm trong ngành xây dựng, từng đảm nhiệm nhiều vị trí quan trọng tại các công ty xây dựng hàng đầu. Tốt nghiệp Thạc sĩ Kỹ thuật Xây dựng tại Đại học Bách Khoa TP.HCM.",
+        "avatar": "/uploads/staff/nguyen-van-an.jpg",
+        "email": "nguyenvanan@company.com",
+        "phone": "0901234567",
+        "social_links": {
+            "linkedin": "https://linkedin.com/in/nguyenvanan",
+            "facebook": "https://facebook.com/nguyenvanan"
+        },
+        "experience": 20,
+        "expertise": "Quản lý dự án, Kỹ thuật xây dựng, Quản trị doanh nghiệp",
+        "status": "active",
+        "sort_order": 1
+    },
+    {
+        "name": "Trần Thị Bình",
+        "position": "Phó Tổng Giám đốc",
+        "department": "Ban Giám đốc",
+        "bio": "Chuyên gia về quản lý chất lượng và an toàn lao động. Có chứng chỉ PMP và ISO 9001 Lead Auditor. Đã tham gia quản lý hơn 50 dự án xây dựng lớn.",
+        "avatar": "/uploads/staff/tran-thi-binh.jpg",
+        "email": "tranthibinh@company.com",
+        "phone": "0901234568",
+        "social_links": {
+            "linkedin": "https://linkedin.com/in/tranthibinh"
+        },
+        "experience": 18,
+        "expertise": "Quản lý chất lượng, An toàn lao động, Quản lý dự án",
+        "status": "active",
+        "sort_order": 2
+    },
+    {
+        "name": "Lê Văn Cường",
+        "position": "Giám đốc Kỹ thuật",
+        "department": "Phòng Kỹ thuật",
+        "bio": "Kỹ sư xây dựng với 15 năm kinh nghiệm thiết kế và thi công các công trình lớn. Chuyên về kết cấu bê tông cốt thép và công nghệ xây dựng hiện đại.",
+        "avatar": "/uploads/staff/le-van-cuong.jpg",
+        "email": "levancuong@company.com",
+        "phone": "0901234569",
+        "social_links": {},
+        "experience": 15,
+        "expertise": "Kết cấu xây dựng, Thiết kế công trình, Công nghệ BIM",
+        "status": "active",
+        "sort_order": 3
+    },
+    {
+        "name": "Phạm Thị Dung",
+        "position": "Trưởng phòng Thiết kế",
+        "department": "Phòng Thiết kế",
+        "bio": "Kiến trúc sư với 12 năm kinh nghiệm thiết kế các công trình dân dụng và công nghiệp. Tốt nghiệp Đại học Kiến trúc TP.HCM, có nhiều giải thưởng thiết kế.",
+        "avatar": "/uploads/staff/pham-thi-dung.jpg",
+        "email": "phamthidung@company.com",
+        "phone": "0901234570",
+        "social_links": {
+            "linkedin": "https://linkedin.com/in/phamthidung",
+            "behance": "https://behance.net/phamthidung"
+        },
+        "experience": 12,
+        "expertise": "Thiết kế kiến trúc, Thiết kế nội thất, 3D Visualization",
+        "status": "active",
+        "sort_order": 4
+    },
+    {
+        "name": "Hoàng Văn Đức",
+        "position": "Trưởng phòng Thi công",
+        "department": "Phòng Thi công",
+        "bio": "Kỹ sư thi công với 14 năm kinh nghiệm quản lý các công trường lớn. Chuyên về thi công nhà cao tầng và công trình công nghiệp. Có chứng chỉ quản lý dự án PMP.",
+        "avatar": "/uploads/staff/hoang-van-duc.jpg",
+        "email": "hoangvanduc@company.com",
+        "phone": "0901234571",
+        "social_links": {},
+        "experience": 14,
+        "expertise": "Quản lý thi công, An toàn lao động, Quản lý tiến độ",
+        "status": "active",
+        "sort_order": 5
+    },
+    {
+        "name": "Võ Thị Em",
+        "position": "Trưởng phòng Kinh doanh",
+        "department": "Phòng Kinh doanh",
+        "bio": "Chuyên viên kinh doanh với 10 năm kinh nghiệm trong lĩnh vực xây dựng. Đã tham gia đàm phán và ký kết nhiều hợp đồng lớn với các đối tác trong và ngoài nước.",
+        "avatar": "/uploads/staff/vo-thi-em.jpg",
+        "email": "vothiem@company.com",
+        "phone": "0901234572",
+        "social_links": {
+            "linkedin": "https://linkedin.com/in/vothiem"
+        },
+        "experience": 10,
+        "expertise": "Kinh doanh B2B, Đàm phán hợp đồng, Quan hệ đối tác",
+        "status": "active",
+        "sort_order": 6
+    }
+]

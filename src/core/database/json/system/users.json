@@ -1,0 +1,30 @@
+[
+    {
+        "username": "systemadmin",
+        "email": "systemadmin@example.com",
+        "status": "active",
+        "group_code": "system",
+        "role_code": "system"
+    },
+    {
+        "username": "systemuser",
+        "email": "systemuser@example.com",
+        "status": "active",
+        "group_code": "system",
+        "role_code": "system_manager"
+    },
+    {
+        "username": "shopadmin",
+        "email": "shopadmin@example.com",
+        "status": "active",
+        "group_code": "shop1",
+        "role_code": "shop_admin"
+    },
+    {
+        "username": "shopuser",
+        "email": "shopuser@example.com",
+        "status": "active",
+        "group_code": "shop1",
+        "role_code": "shop_manager"
+    }
+]

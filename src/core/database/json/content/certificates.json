@@ -1,0 +1,74 @@
+[
+    {
+        "name": "Chứng nhận ISO 9001:2015",
+        "image": "/uploads/certificates/iso-9001-2015.jpg",
+        "issued_by": "Tổ chức Chứng nhận Quốc tế",
+        "issued_date": "2020-03-15",
+        "expiry_date": "2026-03-15",
+        "certificate_number": "ISO-9001-2020-001",
+        "description": "Chứng nhận hệ thống quản lý chất lượng theo tiêu chuẩn ISO 9001:2015",
+        "type": "iso",
+        "status": "active",
+        "sort_order": 1
+    },
+    {
+        "name": "Chứng nhận ISO 14001:2015",
+        "image": "/uploads/certificates/iso-14001-2015.jpg",
+        "issued_by": "Tổ chức Chứng nhận Quốc tế",
+        "issued_date": "2021-06-20",
+        "expiry_date": "2027-06-20",
+        "certificate_number": "ISO-14001-2021-001",
+        "description": "Chứng nhận hệ thống quản lý môi trường theo tiêu chuẩn ISO 14001:2015",
+        "type": "iso",
+        "status": "active",
+        "sort_order": 2
+    },
+    {
+        "name": "Giải thưởng Nhà thầu Xây dựng Xuất sắc",
+        "image": "/uploads/certificates/award-excellent-contractor.jpg",
+        "issued_by": "Hiệp hội Xây dựng Việt Nam",
+        "issued_date": "2015-12-10",
+        "expiry_date": null,
+        "certificate_number": "Award-2015-001",
+        "description": "Giải thưởng Nhà thầu Xây dựng Xuất sắc năm 2015",
+        "type": "award",
+        "status": "active",
+        "sort_order": 3
+    },
+    {
+        "name": "Giấy phép Hành nghề Xây dựng Hạng I",
+        "image": "/uploads/certificates/license-grade-1.jpg",
+        "issued_by": "Bộ Xây dựng",
+        "issued_date": "2018-01-15",
+        "expiry_date": "2028-01-15",
+        "certificate_number": "GP-XD-H1-2018-001",
+        "description": "Giấy phép hành nghề xây dựng hạng I - được phép thi công các công trình cấp đặc biệt và cấp I",
+        "type": "license",
+        "status": "active",
+        "sort_order": 4
+    },
+    {
+        "name": "Chứng nhận LEED Gold",
+        "image": "/uploads/certificates/leed-gold.jpg",
+        "issued_by": "U.S. Green Building Council",
+        "issued_date": "2023-05-20",
+        "expiry_date": null,
+        "certificate_number": "LEED-GOLD-2023-001",
+        "description": "Chứng nhận công trình xanh LEED Gold cho dự án Khu đô thị sinh thái Green Valley",
+        "type": "certification",
+        "status": "active",
+        "sort_order": 5
+    },
+    {
+        "name": "Top 10 Công ty Xây dựng Uy tín",
+        "image": "/uploads/certificates/top-10-reputable.jpg",
+        "issued_by": "Tạp chí Xây dựng Việt Nam",
+        "issued_date": "2022-11-15",
+        "expiry_date": null,
+        "certificate_number": "Top10-2022-001",
+        "description": "Vinh danh trong Top 10 công ty xây dựng uy tín nhất Việt Nam năm 2022",
+        "type": "award",
+        "status": "active",
+        "sort_order": 6
+    }
+]

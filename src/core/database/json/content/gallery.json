@@ -1,0 +1,71 @@
+[
+    {
+        "title": "Dự án Tòa nhà Văn phòng Quận 1",
+        "description": "Bộ sưu tập ảnh về quá trình thi công và hoàn thiện tòa nhà văn phòng cao cấp tại Quận 1",
+        "cover_image": "/uploads/gallery/office-building-cover.jpg",
+        "images": [
+            "/uploads/gallery/office-building-1.jpg",
+            "/uploads/gallery/office-building-2.jpg",
+            "/uploads/gallery/office-building-3.jpg",
+            "/uploads/gallery/office-building-4.jpg",
+            "/uploads/gallery/office-building-5.jpg"
+        ],
+        "featured": true,
+        "status": "active",
+        "sort_order": 1
+    },
+    {
+        "title": "Khu đô thị sinh thái Green Valley",
+        "description": "Hình ảnh về khu đô thị sinh thái với không gian xanh và tiện ích hiện đại",
+        "cover_image": "/uploads/gallery/green-valley-cover.jpg",
+        "images": [
+            "/uploads/gallery/green-valley-1.jpg",
+            "/uploads/gallery/green-valley-2.jpg",
+            "/uploads/gallery/green-valley-3.jpg",
+            "/uploads/gallery/green-valley-4.jpg"
+        ],
+        "featured": true,
+        "status": "active",
+        "sort_order": 2
+    },
+    {
+        "title": "Trung tâm Thương mại Mega Mall",
+        "description": "Ảnh về trung tâm thương mại 5 tầng với các cửa hàng và khu vui chơi giải trí",
+        "cover_image": "/uploads/gallery/mega-mall-cover.jpg",
+        "images": [
+            "/uploads/gallery/mega-mall-1.jpg",
+            "/uploads/gallery/mega-mall-2.jpg",
+            "/uploads/gallery/mega-mall-3.jpg"
+        ],
+        "featured": false,
+        "status": "active",
+        "sort_order": 3
+    },
+    {
+        "title": "Bệnh viện Đa khoa Quốc tế",
+        "description": "Hình ảnh về bệnh viện đa khoa quốc tế với trang thiết bị y tế hiện đại",
+        "cover_image": "/uploads/gallery/hospital-cover.jpg",
+        "images": [
+            "/uploads/gallery/hospital-1.jpg",
+            "/uploads/gallery/hospital-2.jpg",
+            "/uploads/gallery/hospital-3.jpg",
+            "/uploads/gallery/hospital-4.jpg"
+        ],
+        "featured": true,
+        "status": "active",
+        "sort_order": 4
+    },
+    {
+        "title": "Chung cư cao cấp Sky Tower",
+        "description": "Bộ sưu tập ảnh về tòa chung cư cao cấp 30 tầng với thiết kế sang trọng",
+        "cover_image": "/uploads/gallery/sky-tower-cover.jpg",
+        "images": [
+            "/uploads/gallery/sky-tower-1.jpg",
+            "/uploads/gallery/sky-tower-2.jpg",
+            "/uploads/gallery/sky-tower-3.jpg"
+        ],
+        "featured": false,
+        "status": "active",
+        "sort_order": 5
+    }
+]

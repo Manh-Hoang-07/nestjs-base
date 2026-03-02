@@ -1,0 +1,74 @@
+[
+    {
+        "name": "Công ty TNHH ABC",
+        "logo": "/uploads/partners/client-abc.png",
+        "website": "https://www.abc-company.com",
+        "description": "Đối tác chiến lược lâu năm, đã hợp tác trong nhiều dự án lớn",
+        "type": "client",
+        "status": "active",
+        "sort_order": 1
+    },
+    {
+        "name": "Tập đoàn XYZ",
+        "logo": "/uploads/partners/client-xyz.png",
+        "website": "https://www.xyz-group.com",
+        "description": "Tập đoàn hàng đầu trong lĩnh vực bất động sản",
+        "type": "client",
+        "status": "active",
+        "sort_order": 2
+    },
+    {
+        "name": "Công ty Cổ phần DEF",
+        "logo": "/uploads/partners/client-def.png",
+        "website": "https://www.def-corp.com",
+        "description": "Đối tác uy tín trong các dự án thương mại",
+        "type": "client",
+        "status": "active",
+        "sort_order": 3
+    },
+    {
+        "name": "Công ty Vật liệu Xây dựng GHI",
+        "logo": "/uploads/partners/supplier-ghi.png",
+        "website": "https://www.ghi-materials.com",
+        "description": "Nhà cung cấp vật liệu xây dựng chất lượng cao",
+        "type": "supplier",
+        "status": "active",
+        "sort_order": 4
+    },
+    {
+        "name": "Công ty Thiết bị Xây dựng JKL",
+        "logo": "/uploads/partners/supplier-jkl.png",
+        "website": "https://www.jkl-equipment.com",
+        "description": "Cung cấp thiết bị và máy móc xây dựng",
+        "type": "supplier",
+        "status": "active",
+        "sort_order": 5
+    },
+    {
+        "name": "Công ty Thép MNO",
+        "logo": "/uploads/partners/supplier-mno.png",
+        "website": "https://www.mno-steel.com",
+        "description": "Nhà cung cấp thép xây dựng hàng đầu",
+        "type": "supplier",
+        "status": "active",
+        "sort_order": 6
+    },
+    {
+        "name": "Ngân hàng PQR",
+        "logo": "/uploads/partners/partner-pqr.png",
+        "website": "https://www.pqr-bank.com",
+        "description": "Đối tác tài chính, hỗ trợ vốn cho các dự án",
+        "type": "partner",
+        "status": "active",
+        "sort_order": 7
+    },
+    {
+        "name": "Công ty Tư vấn Thiết kế STU",
+        "logo": "/uploads/partners/partner-stu.png",
+        "website": "https://www.stu-design.com",
+        "description": "Đối tác tư vấn thiết kế và kiến trúc",
+        "type": "partner",
+        "status": "active",
+        "sort_order": 8
+    }
+]

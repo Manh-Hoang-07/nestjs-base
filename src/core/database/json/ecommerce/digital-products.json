@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Tài khoản Netflix Premium 1 Tháng",
+        "sku": "NETFLIX-PRE-1M",
+        "price": 65000,
+        "description": "Bản quyền Tài khoản Netflix Premium 1 Tháng chính hãng.",
+        "short_description": "Mua Tài khoản Netflix Premium 1 Tháng giá rẻ.",
+        "assets": [
+            "user1@example.com|pass123",
+            "user2@example.com|abc456",
+            "user3@example.com|secure789",
+            "user4@example.com|password123",
+            "user5@example.com|topsecret99"
+        ]
+    },
+    {
+        "name": "Windows 11 Pro License Key",
+        "sku": "WIN11PRO-KEY",
+        "price": 150000,
+        "description": "Bản quyền Windows 11 Pro License Key chính hãng.",
+        "short_description": "Mua Windows 11 Pro License Key giá rẻ.",
+        "assets": [
+            "W269N-WFGWX-YVC9B-4J6C9-T83GX",
+            "MH37W-N47XK-V7XM9-C7227-GCQG9",
+            "NRG8B-VKK3Q-UXVJ-H67TR-A42G6",
+            "9FNHH-K3HBT-3W4TD-6383H-6XYWF",
+            "6TP4R-GNPTD-KYYHQ-7B7DP-J447Y"
+        ]
+    }
+]

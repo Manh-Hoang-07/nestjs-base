@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/core/database/prisma/prisma.service';
 import { SeedRoles } from '@/core/database/seeder/seed-roles';
 import { SeedPermissions } from '@/core/database/seeder/seed-permissions';
@@ -33,8 +33,6 @@ import { SeedLocations } from '@/core/database/seeder/seed-locations';
 
 @Injectable()
 export class SeedService {
-  private readonly logger = new Logger(SeedService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly seedPermissions: SeedPermissions,
@@ -51,7 +49,6 @@ export class SeedService {
     private readonly seedEcommerce: SeedEcommerce,
     private readonly seedWarehouseInventory: SeedWarehouseInventory,
     private readonly seedOrders: SeedOrders,
-    // Introduction Seeders
     private readonly seedProjects: SeedProjects,
     private readonly seedAboutSections: SeedAboutSections,
     private readonly seedStaff: SeedStaff,
@@ -60,7 +57,6 @@ export class SeedService {
     private readonly seedGallery: SeedGallery,
     private readonly seedCertificates: SeedCertificates,
     private readonly seedFaqs: SeedFaqs,
-    // Post Module Seeders
     private readonly seedPosts: SeedPosts,
     private readonly seedComicCategories: SeedComicCategories,
     private readonly seedComics: SeedComics,
@@ -72,35 +68,19 @@ export class SeedService {
   ) { }
 
   async seedAll(): Promise<void> {
-    this.logger.log('Starting database seeding...');
-
     try {
-      // Seed in order:
-      // permissions -> roles -> users -> groups (contexts)
       await this.seedPermissions.seed();
       await this.seedRoles.seed();
       await this.seedUsers.seed();
       await this.seedGroups.seed();
-
-      // Menu system
       await this.seedMenus.seed();
-
-      // Banner system
       await this.seedBannerLocations.seed();
       await this.seedBanners.seed();
-
-      // Contact system
       await this.seedContacts.seed();
-
-      // System config
       await this.seedGeneralConfigs.seed();
       await this.seedEmailConfigs.seed();
       await this.seedContentTemplates.seed();
-
-      // Groups and contexts (sau khi có users và system context)
       await this.seedGroups.seed();
-
-      // Introduction Modules
       await this.seedProjects.seed();
       await this.seedAboutSections.seed();
       await this.seedStaff.seed();
@@ -108,57 +88,31 @@ export class SeedService {
       await this.seedGallery.seed();
       await this.seedCertificates.seed();
       await this.seedFaqs.seed();
-      // Testimonials cần seed sau Projects vì có relation
       await this.seedTestimonials.seed();
-
-      // Post Module
       await this.seedPosts.seed();
-
-      // Ecommerce (products, categories, variants, attributes, coupons, shipping, payment)
       await this.seedEcommerce.seed();
       await this.seedProductDigitalAssets.seed();
-
-      // Ecommerce - Warehouse & Inventory (tồn kho)
       await this.seedWarehouseInventory.seed();
-
-      // Ecommerce - Orders (đơn hàng)
       await this.seedOrders.seed();
-      // comics demo
       await this.seedComicCategories.seed();
       await this.seedComics.seed();
       await this.seedChapters.seed();
       await this.seedComicComments.seed();
-      // Backfill last chapter data sau khi seed chapters
       await this.seedComicLastChapter.seed();
-
-      // Location seed (Countries, Provinces, Wards)
       await this.seedLocations.seed();
-
-      this.logger.log('Database seeding completed successfully');
     } catch (error) {
-      this.logger.error('Database seeding failed', error);
       throw error;
     }
   }
 
   async clearAll(includeLocations = true): Promise<void> {
-    this.logger.log('Clearing database...');
-
     try {
-      // Clear in reverse order (children first, then parents)
-      // Location data (Wards -> Provinces -> Countries)
-      if (includeLocations) {
-        await this.seedLocations.clear();
-      }
-
-      // Clear junction tables first (many-to-many)
+      if (includeLocations) await this.seedLocations.clear();
       await this.prisma.userRoleAssignment.deleteMany({});
       await this.prisma.userGroup.deleteMany({});
       await this.prisma.roleHasPermission.deleteMany({});
       await this.prisma.roleContext.deleteMany({});
       await this.prisma.menuPermission.deleteMany({});
-      // Clear main tables
-      // Comic system
       await this.prisma.bookmark.deleteMany({});
       await this.prisma.readingHistory.deleteMany({});
       await this.prisma.comicFollow.deleteMany({});
@@ -170,32 +124,19 @@ export class SeedService {
       await this.prisma.comicComment.deleteMany({});
       await this.prisma.comic.deleteMany({});
       await this.prisma.comicCategory.deleteMany({});
-
-      // Clear main tables
       await this.prisma.banner.deleteMany({});
       await this.prisma.bannerLocation.deleteMany({});
-
       await this.prisma.contact.deleteMany({});
-
       await this.prisma.menu.deleteMany({});
-
       await this.prisma.notification.deleteMany({});
-
       await this.prisma.group.deleteMany({});
       await this.prisma.context.deleteMany({});
-
       await this.prisma.user.deleteMany({});
       await this.prisma.role.deleteMany({});
       await this.prisma.permission.deleteMany({});
-
       await this.prisma.emailConfig.deleteMany({});
       await this.prisma.generalConfig.deleteMany({});
-      // Use explicit delete for content templates if needed, or rely on cascade if relation exists? No relation to user usually.
-      // But lint error said contentTemplate doesn't exist? Assuming it does.
-      // Actually, I can't put comment inside code block if I want to match.
       await this.prisma.contentTemplate.deleteMany({});
-
-      // Introduction Tables
       await this.prisma.testimonial.deleteMany({});
       await this.prisma.project.deleteMany({});
       await this.prisma.gallery.deleteMany({});
@@ -204,15 +145,11 @@ export class SeedService {
       await this.prisma.partner.deleteMany({});
       await this.prisma.staff.deleteMany({});
       await this.prisma.aboutSection.deleteMany({});
-
-      // Post Module Tables
       await this.prisma.postPosttag.deleteMany({});
       await this.prisma.postPostcategory.deleteMany({});
       await this.prisma.post.deleteMany({});
       await this.prisma.postTag.deleteMany({});
       await this.prisma.postCategory.deleteMany({});
-
-      // Ecommerce - Orders & Warehouse (clear children -> parents)
       await this.prisma.cart.deleteMany({});
       await this.prisma.cartHeader.deleteMany({});
       await this.prisma.trackingHistory.deleteMany({});
@@ -222,8 +159,6 @@ export class SeedService {
       await this.prisma.warehouseInventory.deleteMany({});
       await this.prisma.stockTransfer.deleteMany({});
       await this.prisma.warehouse.deleteMany({});
-
-      // Ecommerce - Product & Config (clear children -> parents)
       await this.prisma.productReview.deleteMany({});
       await this.prisma.productDigitalAsset.deleteMany({});
       await this.prisma.productVariantAttribute.deleteMany({});
@@ -236,16 +171,13 @@ export class SeedService {
       await this.prisma.coupon.deleteMany({});
       await this.prisma.shippingMethod.deleteMany({});
       await this.prisma.paymentMethod.deleteMany({});
-
-      this.logger.log('Database cleared successfully');
     } catch (error) {
-      this.logger.error('Database clearing failed', error);
       throw error;
     }
   }
 
   async clearDatabase(includeLocations = true): Promise<void> {
-    this.logger.log('Clearing database...');
     await this.clearAll(includeLocations);
   }
 }
+

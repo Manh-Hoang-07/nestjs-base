@@ -1,0 +1,18 @@
+[
+    {
+        "name": "Kho dùng chung hệ thống",
+        "code": "WH_SHARED",
+        "address": "Trung tâm Phân phối",
+        "city": "TP. Hồ Chí Minh",
+        "status": "active",
+        "group_code": null
+    },
+    {
+        "name": "Kho riêng Shop 1",
+        "code": "WH_SHOP1",
+        "address": "Quận 1, TP. HCM",
+        "city": "TP. Hồ Chí Minh",
+        "status": "active",
+        "group_code": "shop1"
+    }
+]
