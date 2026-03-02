@@ -2,8 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { Coupon } from '@prisma/client';
 import { BaseService } from '@/common/core/services';
 import { ICouponRepository, COUPON_REPOSITORY } from '../../domain/coupon.repository';
-import { RequestContext } from '@/common/shared/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import { verifyGroupOwnership, getGroupFilter } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class AdminCouponService extends BaseService<Coupon, ICouponRepository> {
@@ -35,11 +34,7 @@ export class AdminCouponService extends BaseService<Coupon, ICouponRepository> {
   protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
     const prepared = { ...(filters || {}) };
     if (prepared.group_id === undefined) {
-      const contextId = RequestContext.get<number>('contextId');
-      const groupId = RequestContext.get<number | null>('groupId');
-      if (contextId && contextId !== 1 && groupId) {
-        prepared.group_id = groupId;
-      }
+      Object.assign(prepared, getGroupFilter());
     }
     return prepared;
   }

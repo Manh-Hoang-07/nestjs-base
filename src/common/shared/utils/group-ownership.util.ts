@@ -62,10 +62,11 @@ export function verifyContextOwnership(entity: GroupOwnedEntity): void {
  */
 export function getGroupFilter(): { group_id?: number | bigint } {
   const context = RequestContext.get<any>('context');
+  const contextId = RequestContext.get<number>('contextId');
   const groupId = RequestContext.get<number | null>('groupId');
 
   // Nếu là system context (quản trị toàn hệ thống) thì không lọc theo group_id
-  if (context?.type === 'system') {
+  if (context?.type === 'system' || contextId === 1) {
     return {};
   }
 

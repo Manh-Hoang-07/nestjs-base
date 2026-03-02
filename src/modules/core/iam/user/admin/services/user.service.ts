@@ -5,6 +5,7 @@ import { RbacService } from '@/modules/core/rbac/services/rbac.service';
 import { ChangePasswordDto } from '@/modules/core/iam/user/admin/dtos/change-password.dto';
 import { IUserRepository, USER_REPOSITORY, UserFilter } from '@/modules/core/iam/user/domain/user.repository';
 import { BaseService } from '@/common/core/services';
+import { getGroupFilter } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class UserService extends BaseService<any, IUserRepository> {
@@ -17,14 +18,9 @@ export class UserService extends BaseService<any, IUserRepository> {
   }
 
   protected async prepareFilters(filter: any) {
-    // Lấy context để filter theo group nếu cần
-    const context = RequestContext.get<any>('context');
-    const contextId = RequestContext.get<number>('contextId') || 1;
-    const groupId = RequestContext.get<number | null>('groupId');
-
-    // Nếu không phải system context, filter theo groupId
-    if (context && context.type !== 'system' && contextId !== 1 && groupId) {
-      return { ...filter, groupId };
+    const groupFilter = getGroupFilter();
+    if (groupFilter.group_id) {
+      return { ...filter, groupId: groupFilter.group_id };
     }
 
     return filter;

@@ -6,8 +6,7 @@ import { CreateComicDto } from '../dtos/create-comic.dto';
 import { UpdateComicDto } from '../dtos/update-comic.dto';
 import { StringUtil } from '@/core/utils/string.util';
 import { IComicStatsRepository, COMIC_STATS_REPOSITORY } from '../../../stats/domain/comic-stats.repository';
-import { RequestContext } from '@/common/shared/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import { verifyGroupOwnership, getGroupFilter } from '@/common/shared/utils/group-ownership.util';
 
 @Injectable()
 export class ComicService extends BaseService<Comic, IComicRepository> {
@@ -28,11 +27,7 @@ export class ComicService extends BaseService<Comic, IComicRepository> {
   protected override async prepareFilters(filters?: any): Promise<any> {
     const prepared = { ...(filters || {}) };
     if (prepared.group_id === undefined) {
-      const contextId = RequestContext.get<number>('contextId');
-      const groupId = RequestContext.get<number | null>('groupId');
-      if (contextId && contextId !== 1 && groupId) {
-        prepared.group_id = groupId;
-      }
+      Object.assign(prepared, getGroupFilter());
     }
     return prepared;
   }

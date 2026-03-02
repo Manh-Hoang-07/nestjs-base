@@ -4,7 +4,6 @@ import { BaseService } from '@/common/core/services';
 import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '../../domain/product-variant.repository';
 import { CreateProductVariantDto } from '../dtos/create-product-variant.dto';
 import { UpdateProductVariantDto } from '../dtos/update-product-variant.dto';
-import { RequestContext } from '@/common/shared/utils/request-context.util';
 import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
 import { IProductVariantAttributeRepository, PRODUCT_VARIANT_ATTRIBUTE_REPOSITORY } from '../../domain/product-variant-attribute.repository';
 import { ProductPriceSyncService } from '@/modules/ecommerce/product/infrastructure/services/product-price-sync.service';
@@ -255,11 +254,7 @@ export class AdminProductVariantService extends BaseService<ProductVariant, IPro
   protected override async prepareFilters(filters?: any): Promise<any> {
     const prepared = { ...(filters || {}) };
     if (prepared.group_id === undefined) {
-      const contextId = RequestContext.get<number>('contextId');
-      const groupId = RequestContext.get<number | null>('groupId');
-      if (contextId && contextId !== 1 && groupId) {
-        prepared.group_id = groupId;
-      }
+      Object.assign(prepared, this.getGroupFilter());
     }
     return prepared;
   }

@@ -4,8 +4,7 @@ import { BaseService } from '@/common/core/services';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../domain/product.repository';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
-import { RequestContext } from '@/common/shared/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import { verifyGroupOwnership, getGroupFilter } from '@/common/shared/utils/group-ownership.util';
 import { StringUtil } from '@/core/utils/string.util';
 
 @Injectable()
@@ -28,12 +27,7 @@ export class AdminProductService extends BaseService<Product, IProductRepository
     const prepared = { ...(filters || {}) };
 
     if (prepared.group_id === undefined) {
-      const contextId = RequestContext.get<number>('contextId');
-      const groupId = RequestContext.get<number | null>('groupId');
-
-      if (contextId && contextId !== 1 && groupId) {
-        prepared.group_id = groupId;
-      }
+      Object.assign(prepared, getGroupFilter());
     }
 
     return prepared;

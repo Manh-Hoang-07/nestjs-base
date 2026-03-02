@@ -4,8 +4,7 @@ import { BaseService } from '@/common/core/services';
 import { IOrderRepository, ORDER_REPOSITORY } from '../../domain/order.repository';
 import { UpdateOrderStatusDto } from '../dtos/update-order-status.dto';
 import { UpdateOrderDto } from '../dtos/update-order.dto';
-import { RequestContext } from '@/common/shared/utils/request-context.util';
-import { verifyGroupOwnership } from '@/common/shared/utils/group-ownership.util';
+import { verifyGroupOwnership, getGroupFilter } from '@/common/shared/utils/group-ownership.util';
 import {
   getOrderStatusMetadata,
   getPaymentStatusMetadata,
@@ -45,11 +44,7 @@ export class AdminOrderService extends BaseService<Order, IOrderRepository> {
   protected override async prepareFilters(filters?: any, _options?: any): Promise<any> {
     const prepared = { ...(filters || {}) };
     if (prepared.group_id === undefined) {
-      const contextId = RequestContext.get<number>('contextId');
-      const groupId = RequestContext.get<number | null>('groupId');
-      if (contextId && contextId !== 1 && groupId) {
-        prepared.group_id = groupId;
-      }
+      Object.assign(prepared, getGroupFilter());
     }
     return prepared;
   }
