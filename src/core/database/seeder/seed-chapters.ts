@@ -14,6 +14,7 @@ export class SeedChapters {
 
     const baseDir = path.join(process.cwd(), 'src', 'core', 'database', 'json', 'comic');
     const config: any = JSON.parse(fs.readFileSync(path.join(baseDir, 'comic-config.json'), 'utf8'));
+    const cmangaData: any[] = JSON.parse(fs.readFileSync(path.join(baseDir, 'cmanga.json'), 'utf8'));
 
     const adminUser = await this.prisma.user.findFirst({ where: { username: 'admin' } });
     const defaultUserId = adminUser ? adminUser.id : BigInt(1);
@@ -31,40 +32,69 @@ export class SeedChapters {
     const chapterTitles: Record<string, string[]> = config.chapter_titles;
 
     for (const comic of comics) {
-      const isPopular = popularComics.includes(comic.slug);
-      const chaptersCount = isPopular
-        ? Math.floor(Math.random() * (popMax - popMin + 1)) + popMin
-        : Math.floor(Math.random() * (defMax - defMin + 1)) + defMin;
+      const cmangaComic = cmangaData.find(c => c.slug === comic.slug);
 
-      for (let i = 1; i <= chaptersCount; i++) {
-        const pagesCount = Math.floor(Math.random() * (pageMax - pageMin + 1)) + pageMin;
-        const pages = Array.from({ length: pagesCount }, (_, idx) => ({
-          page_number: idx + 1,
-          image_url: `https://via.placeholder.com/800x1200?text=${comic.title}+Ch${i}+Pg${idx + 1}`,
-          width: 800,
-          height: 1200,
-          file_size: Math.floor(Math.random() * 500000) + 100000,
-        }));
+      if (cmangaComic && cmangaComic.chapters) {
+        for (const chap of cmangaComic.chapters) {
+          const pages = chap.images.map((img: string, idx: number) => ({
+            page_number: idx + 1,
+            image_url: img,
+            width: 800,
+            height: 1200,
+            file_size: Math.floor(Math.random() * 500000) + 100000,
+          }));
 
-        const titlesForComic = chapterTitles[comic.slug];
-        const title = titlesForComic && i <= titlesForComic.length
-          ? titlesForComic[i - 1]
-          : `Chapter ${i}`;
+          await this.prisma.chapter.create({
+            data: {
+              comic_id: comic.id,
+              title: chap.title || `Chapter ${chap.chapter_index}`,
+              chapter_index: chap.chapter_index,
+              chapter_label: `Chương ${chap.chapter_index}`,
+              status: ChapterStatus.published,
+              group_id: groupId,
+              view_count: BigInt(Math.floor(Math.random() * 5000) + 100),
+              created_user_id: defaultUserId,
+              updated_user_id: defaultUserId,
+              pages: { create: pages },
+            },
+          });
+        }
+      } else {
+        const isPopular = popularComics.includes(comic.slug);
+        const chaptersCount = isPopular
+          ? Math.floor(Math.random() * (popMax - popMin + 1)) + popMin
+          : Math.floor(Math.random() * (defMax - defMin + 1)) + defMin;
 
-        await this.prisma.chapter.create({
-          data: {
-            comic_id: comic.id,
-            title,
-            chapter_index: i,
-            chapter_label: `Chương ${i}`,
-            status: ChapterStatus.published,
-            group_id: groupId,
-            view_count: BigInt(Math.floor(Math.random() * 5000) + 100),
-            created_user_id: defaultUserId,
-            updated_user_id: defaultUserId,
-            pages: { create: pages },
-          },
-        });
+        for (let i = 1; i <= chaptersCount; i++) {
+          const pagesCount = Math.floor(Math.random() * (pageMax - pageMin + 1)) + pageMin;
+          const pages = Array.from({ length: pagesCount }, (_, idx) => ({
+            page_number: idx + 1,
+            image_url: `https://via.placeholder.com/800x1200?text=${comic.title}+Ch${i}+Pg${idx + 1}`,
+            width: 800,
+            height: 1200,
+            file_size: Math.floor(Math.random() * 500000) + 100000,
+          }));
+
+          const titlesForComic = chapterTitles[comic.slug];
+          const title = titlesForComic && i <= titlesForComic.length
+            ? titlesForComic[i - 1]
+            : `Chapter ${i}`;
+
+          await this.prisma.chapter.create({
+            data: {
+              comic_id: comic.id,
+              title,
+              chapter_index: i,
+              chapter_label: `Chương ${i}`,
+              status: ChapterStatus.published,
+              group_id: groupId,
+              view_count: BigInt(Math.floor(Math.random() * 5000) + 100),
+              created_user_id: defaultUserId,
+              updated_user_id: defaultUserId,
+              pages: { create: pages },
+            },
+          });
+        }
       }
     }
   }

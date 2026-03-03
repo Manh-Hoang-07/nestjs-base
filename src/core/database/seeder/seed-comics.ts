@@ -14,6 +14,10 @@ export class SeedComics {
 
     const baseDir = path.join(process.cwd(), 'src', 'core', 'database', 'json', 'comic');
     const comicsData: any[] = JSON.parse(fs.readFileSync(path.join(baseDir, 'comics.json'), 'utf8'));
+    const cmangaData: any[] = JSON.parse(fs.readFileSync(path.join(baseDir, 'cmanga.json'), 'utf8'));
+
+    // Combine both data sets
+    const allComicsData = [...comicsData, ...cmangaData];
 
     const adminUser = await this.prisma.user.findFirst({ where: { username: 'admin' } });
     const defaultUserId = adminUser ? adminUser.id : BigInt(1);
@@ -24,7 +28,7 @@ export class SeedComics {
     const systemGroup = await this.prisma.group.findFirst({ where: { code: 'system' } });
     const groupId = systemGroup ? systemGroup.id : null;
 
-    for (const comicData of comicsData) {
+    for (const comicData of allComicsData) {
       const comicCategories = categories.filter(cat =>
         (comicData.category_slugs as string[]).includes(cat.slug),
       );

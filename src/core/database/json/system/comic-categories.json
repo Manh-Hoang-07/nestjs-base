@@ -123,5 +123,50 @@
         "name": "Webtoon",
         "slug": "webtoon",
         "description": "Thể loại webtoon"
+    },
+    {
+        "name": "Mạt Thế",
+        "slug": "mat-the",
+        "description": "Thể loại mạt thế"
+    },
+    {
+        "name": "Huyền Huyễn",
+        "slug": "huyen-huyen",
+        "description": "Thể loại huyền huyễn"
+    },
+    {
+        "name": "Manhua",
+        "slug": "manhua",
+        "description": "Truyện tranh Trung Quốc"
+    },
+    {
+        "name": "Hệ Thống",
+        "slug": "he-thong",
+        "description": "Thể loại liên quan đến hệ thống"
+    },
+    {
+        "name": "Đô Thị",
+        "slug": "do-thi",
+        "description": "Bối cảnh đô thị hiện đại"
+    },
+    {
+        "name": "Võng Du",
+        "slug": "vong-du",
+        "description": "Thể loại game thực tế ảo"
+    },
+    {
+        "name": "Girls Love",
+        "slug": "girls-love",
+        "description": "Thể loại tình yêu nữ"
+    },
+    {
+        "name": "Hiện Đại",
+        "slug": "hien-dai",
+        "description": "Bối cảnh thời hiện đại"
+    },
+    {
+        "name": "Truyện Tranh",
+        "slug": "truyen-tranh",
+        "description": "Truyện tranh nói chung"
     }
 ]
